@@ -1,0 +1,24 @@
+if (NOT TARGET sphere::sphere)
+    cmake_policy(PUSH) # save project's policies
+    if (POLICY CMP0074)
+        cmake_policy(SET CMP0074 NEW)
+    endif()
+
+    # load macro to find dependencies on the system
+    include(include(CMakeFindDependencyMacro))
+
+    # we first load bundled modules to prevent conflix
+    set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_MODULE_PATH})
+
+    # find the semiprof dependency
+    if ("@SPHERE_WITH_PROFILING@")
+        find_dependency(semiprof)
+    endif()
+
+    # clean-up the module path
+    list(REMOVE_ITEM CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
+
+    # include the targets for SPHERE and restore the project's policies
+    include("${CMAKE_CURRENT_LIST_DIR}/sphereTargets.cmake")
+    cmake_policy(POP)
+endif()
