@@ -22,10 +22,17 @@ project(sphere VERSION 0.1 LANGUAGES CXX)
 # set compile flags in debug build mode
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 
-# set-up bundled dependencies. in particular, do not install cxxopts when including it
+# set-up bundled dependencies:
+# the json library will be included in every build
+OPTION(JSON_BuildTests OFF)
+OPTION(JSON_Install OFF)
+add_subdirectory(libs/json)
+
+# semiprof is only included in profiling mode
 if (SPHERE_WITH_PROFILING)
     add_subdirectory(libs/semiprof)
 endif()
+# cxxopts is included whenever a test/app/benchmark suite is built
 if (SPHERE_WITH_TESTS OR SPHERE_WITH_APPS OR SPHERE_WITH_BENCHMARKS)
     option(CXXOPTS_BUILD_EXAMPLES OFF)
     option(CXXOPTS_BUILD_TESTS OFF)

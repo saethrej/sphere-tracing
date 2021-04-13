@@ -10,9 +10,9 @@ if (NOT TARGET sphere)
     
     # specify compiler options that are valid in any case
     target_include_directories(sphere PUBLIC $<BUILD_INTERFACE:${sphere_SOURCE_DIR}/src>)
-    target_compile_options(-O3 -march=native)
+    target_compile_options(sphere PRIVATE -O3 PRIVATE -march=native)
     target_compile_features(sphere PUBLIC cxx_std_17)
-    #target_link_libraries(sphere PUBLIC SomeLibrary)
+    target_link_libraries(sphere PRIVATE nlohmann_json::nlohmann_json)
 
     # set the BENCHMARK macro if in benchmark mode
     if (SPHERE_WITH_BENCHMARKS)
