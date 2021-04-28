@@ -55,7 +55,7 @@ namespace sphere {
  * @brief enum class defining the different shapes we can render. Each
  * shape has exactly one of the types in this enum.
  */
-enum class ShapeType {PLANE, BOX, SPHERE, TORUS, OCTAHEDRON, CONE};
+enum class ShapeType {PLANE, BOX, SPHERE, TORUS, OCTAHEDRON, CONE, UNKNOWN};
 
 /**
  * @brief abstract class that provides the template for the different shapes
@@ -65,8 +65,14 @@ class Shape
 {
 public:
     // constructors and destructor
-    Shape(json data);
+    Shape(json const &params);
+    ~Shape();
+
+    // distance function
     virtual ftype distanceFunction(Vector *pos) = 0;
+
+    // static functions
+    static ShapeType getShapeType(std::string shapeName);
 
     // public member variables shared by all shapes
     Vector position;
@@ -74,10 +80,7 @@ public:
     ftype reflection;
     ftype shininess;
     Color color;
-    ShapeType type;
-
-private:
-    
+    ShapeType type;  
 };
 
 /**
@@ -87,7 +90,10 @@ class Plane : public Shape
 {
 public:
     // constructor
-    Plane();
+    Plane(json const &plane);
+
+    // distance function
+    ftype distanceFunction(Vector *pos);
 
     // additional public member fields
     Vector normal;
@@ -101,7 +107,10 @@ class Box : public Shape
 {
 public:
     // constructor
-    Box(std::string pathToFile);
+    Box(json const &box);
+
+    // distance function
+    ftype distanceFunction(Vector *pos);
 
     // additional public member fields
     Vector extents;
@@ -114,7 +123,10 @@ class Sphere : public Shape
 {
 public:
     // constructor
-    Sphere(std::string pathToFile);
+    Sphere(json const &params);
+
+    // distance function
+    ftype distanceFunction(Vector *pos);
 
     // additional public member fields
     ftype radius;
@@ -127,7 +139,10 @@ class Torus : public Shape
 {
 public:
     // constructor
-    Torus(std::string pathToFile);
+    Torus(json const &params);
+
+    // distance function
+    ftype distanceFunction(Vector *pos);
 
     // additional public member fields
     ftype r1;
@@ -141,7 +156,10 @@ class Octahedron : public Shape
 {
 public:
     // constructor
-    Octahedron(std::string pathToFile);
+    Octahedron(json const &params);
+
+    // distance function
+    ftype distanceFunction(Vector *pos);
 
     // additional public member fields
     ftype s;
@@ -154,7 +172,10 @@ class Cone : public Shape
 {
 public:
     // constructor
-    Cone(std::string pathToFile);
+    Cone(json const &params);
+
+    // distance function
+    ftype distanceFunction(Vector *pos);
 
     // additional public member fields
     Vector form;
