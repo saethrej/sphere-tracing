@@ -46,15 +46,39 @@
 #include <json.hpp>
 
 #include "SphereTypes.h"
+#include "SphereShapes.h"
+
+using json = nlohmann::json;
 
 namespace sphere {
 
+/**
+ * @brief Scene description object that stores information about the camera,
+ * the pointlight(s) and all shapes in the scene
+ */
 class Scene
 {
+public:
     // constructor and destructor
     Scene(std::string pathToFile);
     ~Scene();
 
+    // public member functions
+    void addShape(Shape *newShape);
+    void removeShape(itype index);
+
+    // public member fields
+    ftype cameraFov;  //!< field of view of the camera
+    Vector cameraPos; //!< position of the camera
+    Vector cameraRot; //!< rotation of the camera
+    Vector lightPos;  //!< position of the pointlight
+    Vector lightEmi;  //!< emission of the pointlight
+    std::vector<Shape*> shapes; //!< vector of shape objects
+    itype numShapes;  //!< number of shapes in this scene
+
+private:
+    // private member fields
+    json sceneDescription; //!< json description of the file
 };
 
 } // namespace sphere
