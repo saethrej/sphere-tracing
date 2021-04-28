@@ -10,7 +10,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(cmake/build_type.cmake)
 
 # build options
-option(SPHERE_WITH_TESTS "Generate the test targets." ${MASTER_PROJECT})
+option(SPHERE_WITH_TESTS "Generate the test targets." OFF)
 option(SPHERE_WITH_APPS "Generate the example targets." ${MASTER_PROJECT})
 option(SPHERE_WITH_BENCHMARKS "Generate the benchmark targets." OFF)
 option(SPHERE_WITH_PROFILING "Enables profiling." OFF)
