@@ -77,6 +77,74 @@ typedef struct Color {
     char _pad[PAD_COLOR]; // auxiliary padding for cache performance
 } Color;
 
+/**
+ * @brief an object that stores multiple vectors. Note that for performance
+ * one should use structs/classes of arrays rather than arrays of structs
+ */
+class Vectors
+{
+public:
+    // member fields
+    VectorVal *x; //!< the x elements of the vector
+    VectorVal *y; //!< the y-elements of the vector
+    VectorVal *z; //!< the z-elements of the vector
+
+    /**
+     * @brief constructor for a vectors object, constructs three arrays of size n
+     * @param n the size of the vectors
+     * 
+     * @todo potentially align on some memory boundary
+     */
+    Vectors(size_t n) {
+        this->x = new VectorVal[n];
+        this->y = new VectorVal[n];
+        this->z = new VectorVal[n];
+    }
+
+    /**
+     * @brief simple destructor that deletes all 3 component vectors
+     */
+    ~Vectors() {
+        delete[] this->x;
+        delete[] this->y;
+        delete[] this->z;
+    }
+};
+
+/**
+ * @brief an object that stores multiple colors. Note that for performance
+ * one should use structs/classes of arrays rather than arrays of structs
+ */
+class Colors
+{
+public:
+    // member fields
+    ColorVal *r; //!< the red components of the colors
+    ColorVal *g; //!< the green components of the colors
+    ColorVal *b; //!< the blue components of the colors
+
+    /**
+     * @brief constructor for a vectors object, constructs three arrays of size n
+     * @param n the size of the vectors
+     * 
+     * @todo potentially align on some memory boundary
+     */
+    Colors(size_t n) {
+        this->r = new ColorVal[n];
+        this->g = new ColorVal[n];
+        this->b = new ColorVal[n];
+    }
+
+    /**
+     * @brief simple destructor that deletes all 3 component vectors
+     */
+    ~Colors() {
+        delete[] this->r;
+        delete[] this->g;
+        delete[] this->b;
+    }
+};
+
 /**************************** Exception Types ********************************/
 
 /**

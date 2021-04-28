@@ -46,6 +46,8 @@
 #include <cxxopts.hpp>
 #include <json.hpp>
 
+#include "sphere/Scene.h"
+
 int main(int argc, char *argv[])
 {
     // set-up parser for command line arguments
@@ -58,8 +60,6 @@ int main(int argc, char *argv[])
         cxxopts::value<std::vector<uint8_t>>())
         ("a,allscenes", "render all scenes. --scenes will be ignored",
         cxxopts::value<bool>()->default_value("false"))
-        ("r,rep", "number of repetitions",
-        cxxopts::value<uint8_t>()->default_value("5"))
         ("h,help", "Print usage.");
 
     const char **argv2 = const_cast<const char**>(argv);
@@ -72,7 +72,14 @@ int main(int argc, char *argv[])
     // parse the command line arguments
     bool allScenes = result["allscenes"].as<bool>();
     std::vector<uint8_t> scenes = result["scenes"].as<std::vector<uint8_t>>();
-    uint8_t rep = result["rep"].as<uint8_t>();
 
-    // do sth useful here
+    // to verify if the scene parsing works, we print the rotations of all shapes.
+    sphere::Scene *scn = new sphere::Scene("scenes/scene0.json");
+    int i = 0;
+    for (const sphere::Shape *shp : scn->shapes) {
+        std::cout << "idx = " << i << ", pos = (" << shp->rotation.x << ","
+                  << shp->rotation.y << "," << shp->rotation.z << ")" << std::endl;
+        i++;
+    }
+    std::cout << "success." << std::endl;
 }
