@@ -57,16 +57,6 @@ using ftype = double;     // the floating point type used in SPHERE
 using itype = int32_t;    // the integer type used in SPHERE
 
 /**
- * @brief type that stores a 3d vector of integers
- */
-typedef struct Vector {
-    VectorVal x; // the vector's x-coordinate
-    VectorVal y; // the vector's y-coordinate
-    VectorVal z; // the vector's z-coordinate
-    uint8_t _pad[PAD_VECTOR]; // auxiliary padding for cache performance
-} Vector;
-
-/**
  * @brief type that stores a 2D vector of type VectorVal
  */
 typedef struct Vect2D {
