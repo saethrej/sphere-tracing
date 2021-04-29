@@ -44,6 +44,7 @@
 
 #include "SphereTypes.h"
 #include "SphereShapes.h"
+#include "CustomVector.h"
 
 using json = nlohmann::json;
 
@@ -179,7 +180,9 @@ sphere::Box::Box(json const &box)
  */
 sphere::ftype sphere::Box::distanceFunction(Vector *pointPos)
 {
-    return 0.0;
+    Vector q =  (*pointPos - position).absVal() - extents;
+    return 0;
+
 }
 
 /********************************** Sphere ************************************/
@@ -209,7 +212,7 @@ sphere::Sphere::Sphere(json const &sph)
  */
 sphere::ftype sphere::Sphere::distanceFunction(Vector *pointPos)
 {
-    return 0.0;
+    return pointPos->distance(position) - radius;
 }
 
 /********************************** Torus ************************************/
