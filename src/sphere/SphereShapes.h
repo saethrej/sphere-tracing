@@ -46,6 +46,7 @@
 #include <json.hpp>
 
 #include "SphereTypes.h"
+#include "CustomVector.h"
 
 using json = nlohmann::json;
 
