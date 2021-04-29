@@ -62,28 +62,32 @@ public:
     Vector(VectorVal x, VectorVal y, VectorVal z);
 
     Vector operator+(const Vector &a);
-
     Vector operator-(const Vector &a);
-
     Vector operator*(const Vector &a);
-
     Vector operator*(const ftype &a);
-
     Vector absVal();
-
-    Vector compMax(const Vector &a);
-
-    Vector compMin(const Vector &a);
-
+    Vector componentwiseMax(const Vector &a);
+    Vector componentwiseMin(const Vector &a);
     VectorVal length();
-
     VectorVal distance(const Vector &a);
-
     Vector normalize();
+    VectorVal maxComponent();
+    VectorVal minComponent();
 
 };
 
+class ZeroVector : public Vector {
+public:
+    ZeroVector() {
+        x = 0;
+        y = 0;
+        z = 0;
+    }
+};
+
 }
+
+
 
 
 
