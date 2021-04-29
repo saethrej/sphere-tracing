@@ -128,7 +128,7 @@ sphere::Scene::Scene(std::string pathToFile)
 
     } catch (json::exception &e) {
         // print exception information and rethrow as SphereException
-        std::cout << e.what() << std::endl;
+        std::cerr << e.what() << std::endl;
         throw SphereException(SphereException::ErrorCode::JsonSyntaxError);
     }
 }
