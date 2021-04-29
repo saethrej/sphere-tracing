@@ -3,7 +3,9 @@ set(INSTALLED_TARGETS_LIST "")
 # make sure that this was not executed so far
 if (NOT TARGET sphere)
     set(sphere_src_files SphereShapes.cpp 
-                         Scene.cpp  
+                         Scene.cpp
+                         ImageClasses.cpp
+                         Renderer.cpp
                          CustomVector.cpp
     )
     add_library(sphere ${sphere_src_files})

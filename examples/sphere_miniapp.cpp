@@ -46,7 +46,7 @@
 #include <cxxopts.hpp>
 #include <json.hpp>
 
-#include "sphere/Scene.h"
+#include "sphere/Renderer.h"
 
 int main(int argc, char *argv[])
 {
@@ -72,6 +72,12 @@ int main(int argc, char *argv[])
     // parse the command line arguments
     bool allScenes = result["allscenes"].as<bool>();
     std::vector<uint8_t> scenes = result["scenes"].as<std::vector<uint8_t>>();
+
+    // initializing the Renderer object, add a scene and render it
+    sphere::Renderer *rndr = new sphere::Renderer();
+    rndr->addScene("scenes/scene0.json");
+    rndr->renderScene("scenes/scene0.ppm", 60, 40);
+    delete rndr;
 
     // to verify if the scene parsing works, we print the rotations of all shapes.
     sphere::Scene *scn = new sphere::Scene("scenes/scene0.json");
