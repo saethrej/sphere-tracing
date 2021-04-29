@@ -48,6 +48,7 @@ namespace sphere {
 /******************************** Constants **********************************/
 constexpr uint8_t PAD_VECTOR = sizeof(double);
 constexpr uint8_t PAD_COLOR = sizeof(float);
+constexpr uint8_t PAD_2DVECT = 0;
 
 /**************************** Type Definitions *******************************/
 using VectorVal = double; // type used for coordinates in vectors
@@ -64,6 +65,15 @@ typedef struct Vector {
     VectorVal z; // the vector's z-coordinate
     uint8_t _pad[PAD_VECTOR]; // auxiliary padding for cache performance
 } Vector;
+
+/**
+ * @brief type that stores a 2D vector of type VectorVal
+ */
+typedef struct Vect2D {
+    VectorVal x; // the vector's x-coordinate
+    VectorVal y; // the vector's y-coordinate
+    uint8_t _pad[PAD_2DVECT]; // auxiliary padding for cache performance
+} Vect2D;
 
 /**
  * @brief type that stores a color in RGB format, where each color is
