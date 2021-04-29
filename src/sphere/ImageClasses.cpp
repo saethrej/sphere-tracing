@@ -59,8 +59,8 @@ sphere::Image::Image(ftype cameraFov, itype width, itype height)
     height_f = static_cast<ftype>(this->height);
     ftype ratio = width_f / height_f;
     ftype angle = tan((cameraFov * 0.5) * M_PI / 180.0);
-    for(itype i; i < this->height; ++i){
-        for(itype j; j < this->width; ++j){
+    for(itype i = 0; i < this->height; ++i){
+        for(itype j = 0; j < this->width; ++j){
             x = (2 * i / width_f - 1) * ratio * angle;
             y = (1 - j / height_f * 2) * angle;
             this->pixel.push_back(Pixel(x,y));
