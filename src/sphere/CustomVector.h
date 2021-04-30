@@ -63,7 +63,7 @@ public:
 
     Vector operator+(const Vector &a);
     Vector operator-(const Vector &a);
-    Vector operator*(const Vector &a);
+    ftype operator*(const Vector &a);
     Vector operator*(const ftype &a);
     Vector absVal();
     Vector componentwiseMax(const Vector &a);
@@ -73,7 +73,6 @@ public:
     Vector normalize();
     VectorVal maxComponent();
     VectorVal minComponent();
-    //@TODO create a type for rotation matrix
     Vector rotate(ftype rotationMatrix[]);
 
 };
