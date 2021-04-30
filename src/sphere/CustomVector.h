@@ -38,7 +38,6 @@
  * 
  */
 
-
 #ifndef CUSTOM_VECTOR_H
 #define CUSTOM_VECTOR_H
 
@@ -66,6 +65,7 @@ public:
     ftype operator*(const Vector &a);
     Vector operator*(const ftype &a);
     Vector& operator+=(const Vector &a);
+    Vector& operator-=(const Vector &a);
     Vector absVal();
     Vector componentwiseMax(const Vector &a);
     Vector componentwiseMin(const Vector &a);
@@ -75,13 +75,8 @@ public:
     VectorVal maxComponent();
     VectorVal minComponent();
     Vector rotate(ftype rotationMatrix[]);
-
 };
 
-}
-
-
-
-
+} // namespace sphere
 
 #endif //CUSTOM_VECTOR_H
