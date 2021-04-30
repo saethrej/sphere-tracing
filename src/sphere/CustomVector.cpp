@@ -34,16 +34,48 @@ sphere::Vector sphere::Vector::operator-(const Vector &a) {
 }
 
 /**
- * @brief Component wise addition with equality
+ * @brief adds a vector and assigns result to this vector
  * 
- * @param a Vector 
- * @return result of component wise subtraction
+ * @param a vector to add to this vector
+ * @return result of component wise addition
  */
 sphere::Vector& sphere::Vector::operator+=(const Vector &a) {
     *this = *this + a;
     return *this;
 }
 
+/**
+ * @brief subtracts a vector from this vector and assigns result to it
+ * 
+ * @param a vector 
+ * @return sphere::Vector& 
+ */
+sphere::Vector& sphere::Vector::operator-=(const Vector &a) {
+    *this = *this - a;
+    return *this;
+}
+
+/**
+ * @brief dot product overload for multiplication
+ * 
+ * @param a vector to compute dot product with
+ * @return the dot product value
+ */
+sphere::ftype sphere::Vector::operator*(const Vector &a) 
+{
+    return x * a.x + y * a.y + z * a.z;
+}
+
+/**
+ * @brief scalar multiplication overload for multiplication operator
+ * 
+ * @param a the scalar to be multiplied with the vector
+ * @return the result vector, scaled by the argument
+ */
+sphere::Vector sphere::Vector::operator*(const ftype &a) 
+{
+    return Vector(x * a, y * a, z * a);
+}
 
 /**
  * @brief Component wise absolut value
@@ -120,4 +152,18 @@ sphere::VectorVal sphere::Vector::maxComponent(){
  */
 sphere::VectorVal sphere::Vector::minComponent(){
     return std::min(std::min(x,y),z);
+}
+
+/**
+ * @brief Rotates a vector by a given rotationMatrix
+ * 
+ * @param rotationMatrix defines the rotation, size 9
+ * @return sphere::Vector rotated vector
+ */
+sphere::Vector sphere::Vector::rotate(ftype rotationMatrix[])
+{
+    VectorVal r_x = rotationMatrix[0] * x + rotationMatrix[1] * y + rotationMatrix[2] * z;
+    VectorVal r_y = rotationMatrix[3] * x + rotationMatrix[4] * y + rotationMatrix[5] * z;
+    VectorVal r_z = rotationMatrix[6] * x + rotationMatrix[7] * y + rotationMatrix[8] * z;
+    return sphere::Vector(r_x, r_y, r_z);
 }

@@ -63,7 +63,7 @@ public:
 
     Vector operator+(const Vector &a);
     Vector operator-(const Vector &a);
-    Vector operator*(const Vector &a);
+    ftype operator*(const Vector &a);
     Vector operator*(const ftype &a);
     Vector& operator+=(const Vector &a);
     Vector absVal();
@@ -74,16 +74,8 @@ public:
     Vector normalize();
     VectorVal maxComponent();
     VectorVal minComponent();
+    Vector rotate(ftype rotationMatrix[]);
 
-};
-
-class ZeroVector : public Vector {
-public:
-    ZeroVector() {
-        x = 0;
-        y = 0;
-        z = 0;
-    }
 };
 
 }
