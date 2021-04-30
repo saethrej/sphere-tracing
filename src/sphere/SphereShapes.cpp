@@ -41,6 +41,8 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <math.h>
+#include <cmath>
 
 #include "SphereTypes.h"
 #include "SphereShapes.h"
@@ -83,6 +85,22 @@ sphere::Shape::Shape(json const &params)
         std::cerr << e.what() << std::endl;
         throw SphereException(SphereException::ErrorCode::JsonSyntaxError);
     }
+
+
+    // we create the inverse rotation matrix
+    ftype r = M_PI/180.0;
+    ftype phi = rotation.x * r;
+    ftype theta = rotation.y * r;
+    ftype xi = rotation.z * r;
+    inverseRotation[0] = cos(theta) * cos(xi);
+    inverseRotation[1] = cos(theta) * sin(xi);
+    inverseRotation[2] =-sin(theta); // x axis
+    inverseRotation[3] = -cos(phi) * sin(xi) + sin(phi) * sin(theta) * cos(xi);
+    inverseRotation[4] = cos(phi) * cos(xi) + sin(phi) * sin(theta) * sin(xi);
+    inverseRotation[5] = sin(phi) * cos(theta); // y axis
+    inverseRotation[6] = sin(phi) * sin (xi) + cos(phi) * sin(theta) * cos(xi);
+    inverseRotation[7] = - sin(phi) * cos(xi) + cos(phi) * sin(theta) * sin(xi);
+    inverseRotation[8] = cos(phi) * cos(theta); // z axis
 }
 
 /**
