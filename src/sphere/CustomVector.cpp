@@ -20,7 +20,7 @@ sphere::Vector::Vector(VectorVal x, VectorVal y, VectorVal z) : x(x), y(y), z(z)
  * @return result of component wise addition
  */
 sphere::Vector sphere::Vector::operator+(const Vector &a) {
-    return Vector(x + a.x, x + a.y, z + a.z);
+    return Vector(x + a.x, y + a.y, z + a.z);
 }
 
 /**
@@ -31,6 +31,17 @@ sphere::Vector sphere::Vector::operator+(const Vector &a) {
  */
 sphere::Vector sphere::Vector::operator-(const Vector &a) {
     return Vector(x - a.x, y-a.y, z-a.z);
+}
+
+/**
+ * @brief Component wise addition with equality
+ * 
+ * @param a Vector 
+ * @return result of component wise subtraction
+ */
+sphere::Vector& sphere::Vector::operator+=(const Vector &a) {
+    *this = *this + a;
+    return *this;
 }
 
 

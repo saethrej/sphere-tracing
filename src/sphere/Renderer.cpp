@@ -121,7 +121,112 @@ void sphere::Renderer::sphereTrace(itype pix_y, itype pix_x)
 {
     // make sphere tracing for this->image->pixel[y*width + x]
     // and use this->image->pixel[y*width + x].writeColor(r, g, b) to writeColor;
+
+    //TODO the computation of the rayDirection (what if camerapos is not 0,0,0)?
+    Vector rayOrigin = this->scene->cameraPos;
+    Vector rayDirection = {(VectorVal) pix_x, (VectorVal) pix_y, 1};
+    Vector rayDirection_normalized =  rayDirection.normalize();
+
+    constexpr itype maxDistance = 100;
+    ftype t = 0;
+    ftype d = 0;
+    constexpr ftype threshold = 10e-2; 
+    while(t < maxDistance){
+        //computes rayOrigin + t*rayDirection
+        Vector ray_to_shape = Vector(rayOrigin.x + t * rayDirection.x, rayOrigin.y + t * rayDirection.y,  rayOrigin.z + t * rayDirection.z);
+        ftype minDistance = std::numeric_limits<ftype>::max();
+        for(itype i=0; i < this->scene->numShapes; ++i){
+            d = this->scene->shapes[i]->distanceFunction(&ray_to_shape);
+            if(d < minDistance){
+                minDistance = d;
+            }
+            if(minDistance <= threshold * t){
+                //intersection, this->scene->shapes[i]
+                Vector col = shade(&ray_to_shape, this->scene->shapes[i]);
+                //this->image->pixel[pix_y * (this->image->width) + pix_x].writeColor(col.x,col.y, col.z);
+                this->image->pixel[pix_y * (this->image->width) + pix_x].writeColor(col.x,col.y, col.z);
+                return;
+            }
+        }
+        t = t + minDistance;
+    }
+    //no intersection
 }
+
+
+/**
+ * @brief computes the color for the pixel
+ * 
+ * 
+ * @param ray_to_shape Vector from rayOrigin to shape
+ */
+sphere::Vector sphere::Renderer::shade(Vector const *ray_to_shape, Shape *shape)
+{
+    constexpr ftype delta = 10e-5;
+    Vector c_1 = {ray_to_shape->x + delta, ray_to_shape->y, ray_to_shape->z};
+    Vector c_2 = {ray_to_shape->x - delta, ray_to_shape->y, ray_to_shape->z};
+    Vector *c_x_1 = &c_1;
+    Vector *c_x_2 = &c_2;
+    ftype x1 = shape->distanceFunction(c_x_1) - shape->distanceFunction(c_x_2);
+    c_1 = {ray_to_shape->x, ray_to_shape->y+delta, ray_to_shape->z};
+    c_2 = {ray_to_shape->x, ray_to_shape->y-delta, ray_to_shape->z};
+    Vector *c_y_1 = &c_1;
+    Vector *c_y_2 = &c_2;
+    ftype y1 = shape->distanceFunction(c_y_1) - shape->distanceFunction(c_y_2);
+    c_1 = {ray_to_shape->x, ray_to_shape->y, ray_to_shape->z+delta};
+    c_2 = {ray_to_shape->x, ray_to_shape->y, ray_to_shape->z-delta};
+    Vector *c_z_1 = &c_1;
+    Vector *c_z_2 = &c_2;
+    ftype z1 = shape->distanceFunction(c_z_1) - shape->distanceFunction(c_z_2);
+    Vector n = {x1, y1, z1};
+    n.normalize();
+    Vector light_to_intersection = {this->scene->lightPos.x - ray_to_shape->x, this->scene->lightPos.y - ray_to_shape->y, this->scene->lightPos.z - ray_to_shape->z};
+    Vector R = {0,0,0};
+    ftype lightDir_n_dotproduct = {light_to_intersection.x * n.x + light_to_intersection.y *n.y + light_to_intersection.z * n.z};
+    if( lightDir_n_dotproduct > 0){
+        ftype dist = light_to_intersection.x * light_to_intersection.x + light_to_intersection.y * light_to_intersection.y + light_to_intersection.z * light_to_intersection.z;
+        dist = sqrtf(dist); 
+        bool sha = 1 - shadow(ray_to_shape, light_to_intersection, dist);
+        //TODO light->col, light->emission
+        R += {sha * lightDir_n_dotproduct * this->scene->lightEmi.x  / (4 * M_PI * dist),sha * lightDir_n_dotproduct * this->scene->lightEmi.y  / (4 * M_PI * dist),sha * lightDir_n_dotproduct * this->scene->lightEmi.x  / (4 * M_PI * dist)}  ;
+       // R += shadow * lightDir.dotProduct(n) * light->col * light->intensity / (4 * M_PI * dist2);
+    }
+   
+    return R;
+}
+
+/**
+ * @brief returns true if there is a shape between the point and the light 
+ * 
+ * 
+ * @param ray_to_shape Vector from rayOrigin to shape
+ * @param lightDir direction of the light ray
+ * @param dist maxDistance 
+ */
+bool sphere::Renderer::shadow(Vector const *ray_to_shape, Vector lightDir, ftype dist)
+{
+    constexpr ftype threshold = 10e-2; 
+    ftype t = 0;
+    ftype d = 0;
+    ftype maxDistance = dist;
+    Vector *from = new Vector(ray_to_shape->x + t * lightDir.x, ray_to_shape->y + t * lightDir.y,  ray_to_shape->z + t * lightDir.z);
+    while (t < maxDistance){
+        ftype minDistance = std::numeric_limits<ftype>::max();
+        for (itype i=0;i<this->scene->numShapes;++i){
+            d = this->scene->shapes[i]->distanceFunction(from);
+            if (d < minDistance){
+                minDistance = d;
+            }
+            if (minDistance <= threshold * t){
+                return true;
+            }
+        }
+        t = t + minDistance;
+    }
+    delete from;
+return false;
+}
+
 
 /**
  * @brief Writes the image into a file in .ppm format

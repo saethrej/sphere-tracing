@@ -65,6 +65,7 @@ public:
     Vector operator-(const Vector &a);
     Vector operator*(const Vector &a);
     Vector operator*(const ftype &a);
+    Vector& operator+=(const Vector &a);
     Vector absVal();
     Vector componentwiseMax(const Vector &a);
     Vector componentwiseMin(const Vector &a);

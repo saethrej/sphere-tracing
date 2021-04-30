@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
     // initializing the Renderer object, add a scene and render it
     sphere::Renderer *rndr = new sphere::Renderer();
     rndr->addScene("scenes/scene0.json");
-    rndr->renderScene("scenes/scene0.ppm", 60, 40);
+    rndr->renderScene("scenes/scene0.ppm", 600, 400);
     delete rndr;
 
     // to verify if the scene parsing works, we print the rotations of all shapes.
