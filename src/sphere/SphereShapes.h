@@ -69,6 +69,9 @@ public:
     Shape(json const &params);
     ~Shape();
 
+    // transate and rotate function
+    Vector translate_rotate(Vector *pos);
+
     // distance function
     virtual ftype distanceFunction(Vector *pos) = 0;
 
@@ -82,6 +85,7 @@ public:
     ftype shininess;
     Color color;
     ShapeType type;  
+    ftype inverseRotation[9];
 };
 
 /**
