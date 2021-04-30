@@ -73,16 +73,9 @@ public:
     Vector normalize();
     VectorVal maxComponent();
     VectorVal minComponent();
+    //@TODO create a type for rotation matrix
+    Vector rotate(ftype rotationMatrix[]);
 
-};
-
-class ZeroVector : public Vector {
-public:
-    ZeroVector() {
-        x = 0;
-        y = 0;
-        z = 0;
-    }
 };
 
 }

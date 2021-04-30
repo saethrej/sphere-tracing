@@ -181,7 +181,7 @@ sphere::Box::Box(json const &box)
 sphere::ftype sphere::Box::distanceFunction(Vector *pointPos)
 {
     Vector q =  (*pointPos - position).absVal() - extents;
-    ZeroVector zero = ZeroVector();
+    Vector zero = Vector(0,0,0);
     return q.componentwiseMax(zero).length() + std::min(q.maxComponent(), 0.0);
 
 }

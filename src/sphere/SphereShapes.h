@@ -82,6 +82,7 @@ public:
     ftype shininess;
     Color color;
     ShapeType type;  
+    ftype inverseRotation[9];
 };
 
 /**
