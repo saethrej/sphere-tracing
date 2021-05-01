@@ -92,3 +92,9 @@ void sphere::Pixel::writeColor(ColorVal r, ColorVal g, ColorVal b){
     this->color.g = g;
     this->color.b = b;
 }
+
+void sphere::Pixel::writeColor(Color col){
+    this->color.r = col.r;
+    this->color.g = col.g;
+    this->color.b = col.b;
+}

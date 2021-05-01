@@ -60,6 +60,7 @@ public:
 
     // public member functions
     void writeColor(ColorVal r, ColorVal g, ColorVal b);
+    void writeColor(Color col);
 
     // public member fields
     Vect2D cameraCoord; //!< the coordinates of this pixel in the camera system
