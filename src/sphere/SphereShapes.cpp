@@ -87,7 +87,6 @@ sphere::Shape::Shape(json const &params)
         throw SphereException(SphereException::ErrorCode::JsonSyntaxError);
     }
 
-
     // we create the inverse rotation matrix
     ftype r = M_PI/180.0;
     ftype phi = rotation.x * r;
@@ -178,10 +177,10 @@ sphere::Plane::Plane(json const &plane)
  * @param pointPos the position of the point
  * @returns the distance between the point and this plane
  */
-sphere::ftype sphere::Plane::distanceFunction(Vector *pointPos)
+sphere::ftype sphere::Plane::distanceFunction(Vector pointPos)
 {
     // translate and rotate point such that object is at origin and in normal position
-    Vector tr_point = Shape::translate_rotate(pointPos);
+    Vector tr_point = Shape::translate_rotate(&pointPos);
 
     // calculate distance in this coordinate system
     return tr_point * this->normal + this->displacement;
@@ -213,10 +212,10 @@ sphere::Box::Box(json const &box)
  * @param pointPos position of the point of interest
  * @returns the distance between point and box
  */
-sphere::ftype sphere::Box::distanceFunction(Vector *pointPos)
+sphere::ftype sphere::Box::distanceFunction(Vector pointPos)
 {
     // translate and rotate point such that object is at origin and in normal position
-    Vector tr_point = Shape::translate_rotate(pointPos);
+    Vector tr_point = Shape::translate_rotate(&pointPos);
 
     // calculate distance in this coordinate system
     Vector q =  (tr_point).absVal() - extents;
@@ -250,10 +249,10 @@ sphere::Sphere::Sphere(json const &sph)
  * @param pointPos position of the point of interest
  * @returns the distance between point and sphere
  */
-sphere::ftype sphere::Sphere::distanceFunction(Vector *pointPos)
+sphere::ftype sphere::Sphere::distanceFunction(Vector pointPos)
 {
     // translate and rotate point such that object is at origin and in normal position
-    Vector tr_point = Shape::translate_rotate(pointPos);
+    Vector tr_point = Shape::translate_rotate(&pointPos);
 
     // calculate distance in this coordinate system
     return tr_point.length() - radius;
@@ -285,10 +284,10 @@ sphere::Torus::Torus(json const &torus)
  * @param pointPos position of the point of interest
  * @returns the distance between point and torus
  */
-sphere::ftype sphere::Torus::distanceFunction(Vector *pointPos)
+sphere::ftype sphere::Torus::distanceFunction(Vector pointPos)
 {
     // translate and rotate point such that object is at origin and in normal position
-    Vector tr_point = Shape::translate_rotate(pointPos);
+    Vector tr_point = Shape::translate_rotate(&pointPos);
 
     // calculate distance in this coordinate system
     Vect2D q = {Vector(tr_point.x, 0, tr_point.z).length() - this->r1, tr_point.y}; 
@@ -320,10 +319,10 @@ sphere::Octahedron::Octahedron(json const &octa)
  * @param pointPos position of the point of interest
  * @returns the distance between point and octahedron
  */
-sphere::ftype sphere::Octahedron::distanceFunction(Vector *pointPos)
+sphere::ftype sphere::Octahedron::distanceFunction(Vector pointPos)
 {
    // translate and rotate point such that object is at origin and in normal position
-    Vector tr_point = Shape::translate_rotate(pointPos);
+    Vector tr_point = Shape::translate_rotate(&pointPos);
 
     // calculate distance in this coordinate system
     Vector abs_tr_point = tr_point.absVal();
@@ -371,10 +370,10 @@ sphere::Cone::Cone(json const &cone)
  * @param pointPos position of the point of interest
  * @returns the distance between point and cone
  */
-sphere::ftype sphere::Cone::distanceFunction(Vector *pointPos)
+sphere::ftype sphere::Cone::distanceFunction(Vector pointPos)
 {
     // translate and rotate point such that object is at origin and in normal position
-    Vector tr_point = Shape::translate_rotate(pointPos);
+    Vector tr_point = Shape::translate_rotate(&pointPos);
 
     // calculate distance in this coordinate system
     // Vect2D q = {this->form.x / this->form.y * this->form.z, -1.0};
