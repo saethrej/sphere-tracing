@@ -102,7 +102,7 @@ void sphere::Renderer::renderPixel()
 
     for (itype i = 0; i < this->image->height; ++i){
         for (itype j = 0; j < this->image->width; ++j){
-            sphereTrace(image->pixels[i * this->image->width +j].cameraCoord.x, image->pixels[i * this->image->width +j].cameraCoord.y, i,j);
+            sphereTrace(image->pixels[i * this->image->width +j].cameraCoord.x, image->pixels[i * this->image->width +j].cameraCoord.y, j,i);
         }
     }
 }
@@ -142,7 +142,7 @@ void sphere::Renderer::sphereTrace(ftype pix_x, ftype pix_y, itype imageCoordx, 
             if (minDistance <= threshold * t) {
                 //intersection, this->scene->shapes[i]
                 Color col = shade(ray_to_shape, shape);
-                this->image->pixels[imageCoordx * (this->image->width) + imageCoordy].writeColor(1, 0, 0);
+                this->image->pixels[imageCoordx * (this->image->width) + imageCoordy].writeColor(col.r, col.g, col.b);
                 return;
             }
         }
@@ -174,14 +174,21 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Shape *shape)
     // dot product of said  with the normal vector of the tangential plane computed
     // above. If it's larger than zero, this indicates that theray is hitting the 
     // shape from the front, which means it's important to our image
-    Vector lightItsct = this->scene->lightPos - ray;
-    ftype dotProd = lightItsct * normal;
-
+    Vector lightItsct = (this->scene->lightPos - ray);
+    ftype NdotL = lightItsct.normalize() * normal;
+    Vector bisector = (ray + lightItsct).normalize();
+    ftype NdotH = normal * bisector * (normal * bisector);
+    Color ambient = shape->color;
+    Color diffuse = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0, NdotL);
+    Color specular = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * NdotH;
     Color col = Color(); // initially black
-    if (dotProd > 0) {
+    if (NdotL > 0) {
         ftype dist = lightItsct.length();
-        bool shadowFlag = 1 - shadow(ray, lightItsct, dist);
-        col += static_cast<Color>(this->scene->lightEmi * (shadowFlag * dotProd / (4.0 * M_PI * dist)));
+        bool shadowFlag = 1; // - shadow(ray, lightItsct, dist);
+        col += ambient + diffuse + specular;
+        col.r = std::min(col.r, 1.0f);
+        col.g = std::min(col.g, 1.0f);
+        col.b = std::min(col.b, 1.0f);
     }
 
     return col;
@@ -197,7 +204,7 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Shape *shape)
  */
 bool sphere::Renderer::shadow(Vector const &ray_to_shape, Vector lightDir, ftype dist)
 {
-    constexpr ftype threshold = 10e-2; 
+    constexpr ftype threshold = 10e-5; 
     ftype t = 0, d = 0;
     ftype maxDist = dist;
 
