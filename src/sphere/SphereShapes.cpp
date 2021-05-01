@@ -51,6 +51,33 @@
 
 using json = nlohmann::json;
 
+/**
+ * @brief overloads the stream operator for shape type
+ * 
+ * @param out the stream that the type should be output in
+ * @param type the type of the shape
+ * @return reference to the stream where the output was written
+ */
+std::ostream& sphere::operator<<(std::ostream &out, ShapeType const &type)
+{
+    if (type == sphere::ShapeType::BOX) {
+        out << "Box";
+    } else if (type == sphere::ShapeType::CONE) {
+        out << "Cone";
+    } else if (type == sphere::ShapeType::OCTAHEDRON) {
+        out << "Octahedron";
+    } else if (type == sphere::ShapeType::PLANE) {
+        out << "Plane";
+    } else if (type == sphere::ShapeType::SPHERE) {
+        out << "Sphere";
+    } else if (type == sphere::ShapeType::TORUS) {
+        out << "Torus";
+    } else {
+        out << "Unknown Shape";
+    }
+    return out;
+}
+
 /********************************** Shape ************************************/
 
 /**
