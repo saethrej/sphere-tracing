@@ -46,6 +46,29 @@
 namespace sphere {
 
 /**
+ * @brief type that stores a color in RGB format, where each color is
+ * a floating point value in [0,1] indicating the intensity of each 
+ * component.
+ */
+class Color {
+
+public:
+    // public member fields
+    ColorVal r; //!< the color's red component
+    ColorVal g; //!< the color's green component
+    ColorVal b; //!< the color's blue component
+    uint8_t _pad[PAD_COLOR]; //!< auxiliary padding for cache performance
+
+    // constructors
+    Color();
+    Color(ColorVal r, ColorVal g, ColorVal b);
+
+    // operator overloading
+    Color operator+(const Color &other);
+    Color& operator+=(const Color &other);
+};
+
+/**
  * @brief type that stores a 3d vector of integers
  */
 class Vector {
@@ -56,25 +79,31 @@ public:
     VectorVal z; // the vector's z-coordinate
     uint8_t _pad[PAD_VECTOR]; // auxiliary padding for cache performance
 
+    // constructors
     Vector(){};
-
     Vector(VectorVal x, VectorVal y, VectorVal z);
 
-    Vector operator+(const Vector &a);
-    Vector operator-(const Vector &a);
-    ftype operator*(const Vector &a);
-    Vector operator*(const ftype &a);
+    // mathematical operator overloads
+    Vector operator+(const Vector &a) const;
+    Vector operator-(const Vector &a) const;
+    ftype operator*(const Vector &a) const;
+    Vector operator*(const ftype &a) const;
     Vector& operator+=(const Vector &a);
     Vector& operator-=(const Vector &a);
-    Vector absVal();
-    Vector componentwiseMax(const Vector &a);
-    Vector componentwiseMin(const Vector &a);
-    VectorVal length();
-    VectorVal distance(const Vector &a);
-    Vector normalize();
-    VectorVal maxComponent();
-    VectorVal minComponent();
-    Vector rotate(ftype rotationMatrix[]);
+
+    // casting operator overloads
+    operator Color() const;
+
+    // auxiliary vector functions
+    Vector absVal() const;
+    Vector componentwiseMax(const Vector &a) const;
+    Vector componentwiseMin(const Vector &a) const;
+    VectorVal length() const;
+    VectorVal distance(const Vector &a) const;
+    Vector normalize() const;
+    VectorVal maxComponent() const;
+    VectorVal minComponent() const;
+    Vector rotate(ftype rotationMatrix[]) const;
 };
 
 } // namespace sphere

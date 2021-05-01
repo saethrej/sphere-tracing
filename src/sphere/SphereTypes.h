@@ -66,18 +66,6 @@ typedef struct Vect2D {
 } Vect2D;
 
 /**
- * @brief type that stores a color in RGB format, where each color is
- * a floating point value in [0,1] indicating the intensity of each 
- * component.
- */
-typedef struct Color {
-    ColorVal r; // the color's red component
-    ColorVal g; // the color's green component
-    ColorVal b; // the color's blue component
-    char _pad[PAD_COLOR]; // auxiliary padding for cache performance
-} Color;
-
-/**
  * @brief an object that stores multiple vectors. Note that for performance
  * one should use structs/classes of arrays rather than arrays of structs
  */

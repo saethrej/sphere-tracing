@@ -69,10 +69,10 @@ public:
 private:
     // private member functions
     void renderPixel();
-    void sphereTrace(itype pix_y, itype pix_x);
+    void sphereTrace(itype pix_x, itype pix_y);
     void writeImageToFile(std::string pathToFile);
-    Vector shade(Vector const *ray_to_shape, Shape *shape);
-    bool shadow(Vector const *ray_to_shape,Vector lightDir, ftype dist);
+    Color shade(Vector const &ray_to_shape, Shape *shape);
+    bool shadow(Vector const &ray_to_shape, Vector lightDir, ftype dist);
 };
 
 } // namespace sphere

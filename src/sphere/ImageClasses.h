@@ -44,11 +44,12 @@
 #include <vector>
 
 #include "SphereTypes.h"
+#include "CustomVector.h"
 
 namespace sphere {
 
 /**
- * @brief Description of a pixel object consisting of a 2D vector representing the
+ * @brief a pixel object consisting of a 2D vector representing the
  * pixel in camera coordinates and its color in rgb format.
  */
 class Pixel 
@@ -58,15 +59,15 @@ public:
     Pixel(itype x, itype y);
 
     // public member functions
-    void writeColor(ftype r, ftype g, ftype b);
+    void writeColor(ColorVal r, ColorVal g, ColorVal b);
 
     // public member fields
-    Vect2D cameraCoord;
-    Color color;
+    Vect2D cameraCoord; //!< the coordinates of this pixel in the camera system
+    Color color; //!< the color of this pixel
 };
 
 /**
- * @brief Description of an image object consisting of a pixel vector and its 
+ * @brief an image object consisting of a pixel vector and its 
  * width and height
  */
 class Image
@@ -76,9 +77,9 @@ public:
     Image(ftype cameraFov, itype width, itype height);
 
     // public member fields
-    itype width;
-    itype height;
-    std::vector<Pixel> pixel;
+    itype width;  //!< the width of the image (in pixels)
+    itype height; //!< the height of the image (in pixels)
+    std::vector<Pixel> pixels; //!< vector containing all pixels
 };
 
 } // namespace sphere
