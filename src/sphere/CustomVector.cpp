@@ -38,6 +38,7 @@
  */
 
 #include <cmath>
+#include <ostream>
 
 #include "SphereTypes.h"
 #include "CustomVector.h"
@@ -283,4 +284,30 @@ sphere::Color& sphere::Color::operator+=(const Color &other)
 {
     *this = *this + other;
     return *this;
+}
+
+/**
+ * @brief overloads the stream operator to print a Color object
+ * 
+ * @param out the output stream
+ * @param col the color to be printed
+ * @return reference to the stream that produced the output
+ */
+std::ostream& sphere::operator<<(std::ostream &out, Color const &col)
+{
+    out << "Color = (" << col.r << "," << col.g << "," << col.b << ")";
+    return out;
+}
+
+/**
+ * @brief overloads the stream operator to print a Vector object
+ * 
+ * @param out the output stream
+ * @param vec the vector to be printed
+ * @return reference to the stream that produced the output
+ */
+std::ostream& sphere::operator<<(std::ostream &out, Vector const &vec)
+{
+    out << "Vector = (" << vec.x << "," << vec.y << "," << vec.z << ")";
+    return out;
 }

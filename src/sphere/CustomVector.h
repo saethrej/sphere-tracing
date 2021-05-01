@@ -41,7 +41,9 @@
 #ifndef CUSTOM_VECTOR_H
 #define CUSTOM_VECTOR_H
 
+#include <iosfwd>
 #include "SphereTypes.h"
+
 
 namespace sphere {
 
@@ -63,7 +65,7 @@ public:
     Color();
     Color(ColorVal r, ColorVal g, ColorVal b);
 
-    // operator overloading
+    // arithmetic operator overloading
     Color operator+(const Color &other);
     Color& operator+=(const Color &other);
 };
@@ -105,6 +107,10 @@ public:
     VectorVal minComponent() const;
     Vector rotate(ftype rotationMatrix[]) const;
 };
+
+// output overloading
+std::ostream &operator<<(std::ostream &out, Color const &col);
+std::ostream &operator<<(std::ostream &out, Vector const &vec);
 
 } // namespace sphere
 
