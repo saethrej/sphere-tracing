@@ -59,12 +59,10 @@ sphere::Renderer::Renderer()
  */
 sphere::Renderer::~Renderer()
 {
-    if (this->scene != nullptr)
-    {
+    if (this->scene != nullptr) {
         delete this->scene;
     }
-    if (this->image != image)
-    {
+    if (this->image != nullptr) {
         delete this->image;
     }
 }
@@ -233,7 +231,7 @@ void sphere::Renderer::writeImageToFile(std::string pathToFile)
     unsigned char r, g, b;
     std::ofstream outstream;
     outstream.open(pathToFile);
-    outstream << "P3\n" << this->image->width << " " << this->image->height << "\n255\n";
+    outstream << "P6\n" << this->image->width << " " << this->image->height << "\n255\n";
     for(itype i = 0; i < this->image->width*this->image->height; ++i) {
         r = static_cast<unsigned char>(std::min(1.0f, this->image->pixels[i].color.r * 255));
         g = static_cast<unsigned char>(std::min(1.0f, this->image->pixels[i].color.g * 255));
