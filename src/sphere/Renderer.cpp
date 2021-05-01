@@ -233,9 +233,9 @@ void sphere::Renderer::writeImageToFile(std::string pathToFile)
     outstream.open(pathToFile);
     outstream << "P6\n" << this->image->width << " " << this->image->height << "\n255\n";
     for(itype i = 0; i < this->image->width*this->image->height; ++i) {
-        r = static_cast<unsigned char>(std::min(1.0f, this->image->pixels[i].color.r * 255));
-        g = static_cast<unsigned char>(std::min(1.0f, this->image->pixels[i].color.g * 255));
-        b = static_cast<unsigned char>(std::min(1.0f, this->image->pixels[i].color.b * 255));
+        r = static_cast<unsigned char>(std::max(1.0f, this->image->pixels[i].color.r * 255));
+        g = static_cast<unsigned char>(std::max(1.0f, this->image->pixels[i].color.g * 255));
+        b = static_cast<unsigned char>(std::max(1.0f, this->image->pixels[i].color.b * 255));
         outstream << r << g << b;
     }
     outstream.close();
