@@ -295,7 +295,7 @@ sphere::Color& sphere::Color::operator+=(const Color &other)
  */
 std::ostream& sphere::operator<<(std::ostream &out, Color const &col)
 {
-    out << "Color = (" << col.r << "," << col.g << "," << col.b << ")";
+    out << "(" << col.r << "," << col.g << "," << col.b << ")";
     return out;
 }
 
@@ -308,6 +308,6 @@ std::ostream& sphere::operator<<(std::ostream &out, Color const &col)
  */
 std::ostream& sphere::operator<<(std::ostream &out, Vector const &vec)
 {
-    out << "Vector = (" << vec.x << "," << vec.y << "," << vec.z << ")";
+    out << "(" << vec.x << "," << vec.y << "," << vec.z << ")";
     return out;
 }
