@@ -252,7 +252,7 @@ sphere::Sphere::Sphere(json const &sph)
 sphere::ftype sphere::Sphere::distanceFunction(Vector pointPos)
 {
     // translate and rotate point such that object is at origin and in normal position
-    Vector tr_point = Shape::translate_rotate(&pointPos);
+    Vector tr_point = pointPos - position;
 
     // calculate distance in this coordinate system
     return tr_point.length() - radius;

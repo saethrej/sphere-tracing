@@ -36,3 +36,6 @@ build/*
 
 # visual studio code folder
 .vscode/*
+
+#images
+*.ppm 

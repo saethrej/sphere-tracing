@@ -56,7 +56,7 @@ class Pixel
 {
 public:
     // constructor
-    Pixel(itype x, itype y);
+    Pixel(ftype x, ftype y);
 
     // public member functions
     void writeColor(ColorVal r, ColorVal g, ColorVal b);

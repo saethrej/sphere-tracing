@@ -1,0 +1,52 @@
+{
+    "camera": {
+      "fov": 30,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    },
+    "pointlight": {
+      "position": {
+        "x": 0,
+        "y": 100,
+        "z": 0
+      },
+      "emission": {
+        "x": 200,
+        "y": 200,
+        "z": 200
+      }
+    },
+    "objects": [
+      {
+        "kind": "sphere",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 20
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0.3,
+          "y": 0,
+          "z": 0
+        },
+        "params": {
+          "radius": 3
+        }
+      }
+    ]
+  }

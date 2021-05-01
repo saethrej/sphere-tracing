@@ -69,7 +69,7 @@ public:
 private:
     // private member functions
     void renderPixel();
-    void sphereTrace(itype pix_x, itype pix_y);
+    void sphereTrace(ftype pix_x, ftype pix_y, itype imageCoordx, itype imageCoordy);
     void writeImageToFile(std::string pathToFile);
     Color shade(Vector const &ray_to_shape, Shape *shape);
     bool shadow(Vector const &ray_to_shape, Vector lightDir, ftype dist);

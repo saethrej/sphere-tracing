@@ -74,7 +74,7 @@ sphere::Image::Image(ftype cameraFov, itype width, itype height)
  * @param x x-coordinate of pixel in camera-coordinates
  * @param y y-coordinate of pixel in camera-coordinates
  */
-sphere::Pixel::Pixel(itype x, itype y)
+sphere::Pixel::Pixel(ftype x, ftype y)
 {
     this->cameraCoord.x = x;
     this->cameraCoord.y = y;

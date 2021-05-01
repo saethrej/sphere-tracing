@@ -99,9 +99,10 @@ void sphere::Renderer::renderScene(std::string pathToOutputFile, itype width, it
  */
 void sphere::Renderer::renderPixel()
 {
+
     for (itype i = 0; i < this->image->height; ++i){
         for (itype j = 0; j < this->image->width; ++j){
-            sphereTrace(i, j);
+            sphereTrace(image->pixels[i * this->image->width +j].cameraCoord.x, image->pixels[i * this->image->width +j].cameraCoord.y, i,j);
         }
     }
 }
@@ -114,7 +115,7 @@ void sphere::Renderer::renderPixel()
  * @param pix_x row index of pixel
  * @param pix_y column index of pixel
  */
-void sphere::Renderer::sphereTrace(itype pix_x, itype pix_y)
+void sphere::Renderer::sphereTrace(ftype pix_x, ftype pix_y, itype imageCoordx, itype imageCoordy)
 {
     // make sphere tracing for this->image->pixel[y*width + x]
     // and use this->image->pixel[y*width + x].writeColor(r, g, b) to writeColor;
@@ -127,7 +128,7 @@ void sphere::Renderer::sphereTrace(itype pix_x, itype pix_y)
     constexpr itype maxDistance = 100;
     ftype t = 0;
     ftype d = 0;
-    constexpr ftype threshold = 10e-2; 
+    constexpr ftype threshold = 10e-5; 
     while (t < maxDistance) {
         //computes rayOrigin + t*rayDirection
         Vector ray_to_shape = rayOrigin + rayDirection * t;
@@ -141,7 +142,7 @@ void sphere::Renderer::sphereTrace(itype pix_x, itype pix_y)
             if (minDistance <= threshold * t) {
                 //intersection, this->scene->shapes[i]
                 Color col = shade(ray_to_shape, shape);
-                this->image->pixels[pix_x * (this->image->width) + pix_y].writeColor(col.r, col.g, col.b);
+                this->image->pixels[imageCoordx * (this->image->width) + imageCoordy].writeColor(1, 0, 0);
                 return;
             }
         }
