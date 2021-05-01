@@ -36,7 +36,7 @@ Other build options are summarized in the following table:
 ## Running SPHERE
 We recommend running SPHERE from the root folder of this project (thus the `cd ..` command earlier in this tutorial) for the paths to possible inputs/outputs to resolve correctly. To launch SPHERE, run:
 ```bash
-./build/examples/sphere_miniapp --scene=0
+./build/examples/sphere_miniapp --scenes=0
 ```
 
 ## Creating Documentation for SPHERE
