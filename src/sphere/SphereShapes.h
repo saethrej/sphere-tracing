@@ -73,7 +73,7 @@ public:
     Vector translate_rotate(Vector *pos);
 
     // distance function
-    virtual ftype distanceFunction(Vector *pos) = 0;
+    virtual ftype distanceFunction(Vector pos) = 0;
 
     // static functions
     static ShapeType getShapeType(std::string shapeName);
@@ -98,7 +98,7 @@ public:
     Plane(json const &plane);
 
     // distance function
-    ftype distanceFunction(Vector *pos);
+    ftype distanceFunction(Vector pos);
 
     // additional public member fields
     Vector normal;
@@ -115,7 +115,7 @@ public:
     Box(json const &box);
 
     // distance function
-    ftype distanceFunction(Vector *pos);
+    ftype distanceFunction(Vector pos);
 
     // additional public member fields
     Vector extents;
@@ -131,7 +131,7 @@ public:
     Sphere(json const &params);
 
     // distance function
-    ftype distanceFunction(Vector *pos);
+    ftype distanceFunction(Vector pos);
 
     // additional public member fields
     ftype radius;
@@ -147,7 +147,7 @@ public:
     Torus(json const &params);
 
     // distance function
-    ftype distanceFunction(Vector *pos);
+    ftype distanceFunction(Vector pos);
 
     // additional public member fields
     ftype r1;
@@ -164,7 +164,7 @@ public:
     Octahedron(json const &params);
 
     // distance function
-    ftype distanceFunction(Vector *pos);
+    ftype distanceFunction(Vector pos);
 
     // additional public member fields
     ftype s;
@@ -180,7 +180,7 @@ public:
     Cone(json const &params);
 
     // distance function
-    ftype distanceFunction(Vector *pos);
+    ftype distanceFunction(Vector pos);
 
     // additional public member fields
     Vector form;

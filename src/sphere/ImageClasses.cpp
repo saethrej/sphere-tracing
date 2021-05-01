@@ -51,19 +51,19 @@
  */
 sphere::Image::Image(ftype cameraFov, itype width, itype height)
 {
-    ftype x, y, width_f, height_f;
-    this->width = width;
-    this->height = height;
-    this->pixel.reserve(this->height*this->width);
-    width_f = static_cast<ftype>(this->width);
-    height_f = static_cast<ftype>(this->height);
+    ftype x, y;
+    ftype width_f = static_cast<ftype>(this->width = width);
+    ftype height_f = static_cast<ftype>(this->height = height);
     ftype ratio = width_f / height_f;
     ftype angle = tan((cameraFov * 0.5) * M_PI / 180.0);
-    for(itype i = 0; i < this->height; ++i){
-        for(itype j = 0; j < this->width; ++j){
+
+    // create pixels and add them to the vector
+    this->pixels.reserve(this->height*this->width);    
+    for (itype i = 0; i < this->height; ++i){
+        for (itype j = 0; j < this->width; ++j){
             x = (2 * i / width_f - 1) * ratio * angle;
             y = (1 - j / height_f * 2) * angle;
-            this->pixel.push_back(Pixel(x,y));
+            this->pixels.push_back(Pixel(x,y));
         }
     }
 }
@@ -87,7 +87,7 @@ sphere::Pixel::Pixel(itype x, itype y)
  * @param g g-color value
  * @param b b-color value
  */
-void sphere::Pixel::writeColor(ftype r, ftype g, ftype b){
+void sphere::Pixel::writeColor(ColorVal r, ColorVal g, ColorVal b){
     this->color.r = r;
     this->color.g = g;
     this->color.b = b;

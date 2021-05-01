@@ -59,12 +59,10 @@ sphere::Renderer::Renderer()
  */
 sphere::Renderer::~Renderer()
 {
-    if (this->scene != nullptr)
-    {
+    if (this->scene != nullptr) {
         delete this->scene;
     }
-    if (this->image != image)
-    {
+    if (this->image != nullptr) {
         delete this->image;
     }
 }
@@ -98,12 +96,11 @@ void sphere::Renderer::renderScene(std::string pathToOutputFile, itype width, it
 
 /**
  * @brief Renders all pixel for a given scene in a given image
- * 
  */
 void sphere::Renderer::renderPixel()
 {
-    for(itype i = 0; i < this->image->height; ++i){
-        for(itype j = 0; j < this->image->width; ++j){
+    for (itype i = 0; i < this->image->height; ++i){
+        for (itype j = 0; j < this->image->width; ++j){
             sphereTrace(i, j);
         }
     }
@@ -114,14 +111,115 @@ void sphere::Renderer::renderPixel()
  * 
  * #TODO as soon as algo actually implemented
  * 
- * @param pix_y row index of pixel
- * @param pix_x column index of pixel
+ * @param pix_x row index of pixel
+ * @param pix_y column index of pixel
  */
-void sphere::Renderer::sphereTrace(itype pix_y, itype pix_x)
+void sphere::Renderer::sphereTrace(itype pix_x, itype pix_y)
 {
     // make sphere tracing for this->image->pixel[y*width + x]
     // and use this->image->pixel[y*width + x].writeColor(r, g, b) to writeColor;
+
+    //TODO the computation of the rayDirection (what if camerapos is not 0,0,0)?
+    Vector rayOrigin = this->scene->cameraPos;
+    Vector rayDirection = {(VectorVal) pix_x, (VectorVal) pix_y, 1};
+    Vector rayDirection_normalized =  rayDirection.normalize();
+
+    constexpr itype maxDistance = 100;
+    ftype t = 0;
+    ftype d = 0;
+    constexpr ftype threshold = 10e-2; 
+    while (t < maxDistance) {
+        //computes rayOrigin + t*rayDirection
+        Vector ray_to_shape = rayOrigin + rayDirection * t;
+        ftype minDistance = std::numeric_limits<ftype>::max();
+
+        for (Shape *shape : this->scene->shapes) {
+            d = shape->distanceFunction(ray_to_shape);
+            if (d < minDistance) {
+                minDistance = d;
+            }
+            if (minDistance <= threshold * t) {
+                //intersection, this->scene->shapes[i]
+                Color col = shade(ray_to_shape, shape);
+                this->image->pixels[pix_x * (this->image->width) + pix_y].writeColor(col.r, col.g, col.b);
+                return;
+            }
+        }
+        t = t + minDistance;
+    }
+    //no intersection
 }
+
+/**
+ * @brief computes the color for the pixel
+ * @param ray Vector from rayOrigin to shape
+ * @returns the color
+ */
+sphere::Color sphere::Renderer::shade(Vector const &ray, Shape *shape)
+{
+    // set delta that is used for computing the derivative
+    constexpr ftype delta = 10e-5;
+
+    // create delta vectors and use them to compute the normal vector of the 
+    // tangential plane at the point where the ray and the shape intersect
+    Vector dx = {delta, 0.0, 0.0}, dy = {0.0, delta, 0.0}, dz = {0.0, 0.0, delta};
+    Vector normal = Vector(
+        shape->distanceFunction(ray + dx) - shape->distanceFunction(ray - dx),
+        shape->distanceFunction(ray + dy) - shape->distanceFunction(ray - dy),
+        shape->distanceFunction(ray + dz) - shape->distanceFunction(ray - dz)
+    ).normalize();
+
+    // get the vector of the light point to the intersection point, and compute the
+    // dot product of said  with the normal vector of the tangential plane computed
+    // above. If it's larger than zero, this indicates that theray is hitting the 
+    // shape from the front, which means it's important to our image
+    Vector lightItsct = this->scene->lightPos - ray;
+    ftype dotProd = lightItsct * normal;
+
+    Color col = Color(); // initially black
+    if (dotProd > 0) {
+        ftype dist = lightItsct.length();
+        bool shadowFlag = 1 - shadow(ray, lightItsct, dist);
+        col += static_cast<Color>(this->scene->lightEmi * (shadowFlag * dotProd / (4.0 * M_PI * dist)));
+    }
+
+    return col;
+}
+
+/**
+ * @brief returns true iff there is a shape between the point and the light 
+ * 
+ * @param ray_to_shape Vector from rayOrigin to shape
+ * @param lightDir direction of the light ray
+ * @param dist maxDistance 
+ * @returns true iff there is a shape between the point and the light
+ */
+bool sphere::Renderer::shadow(Vector const &ray_to_shape, Vector lightDir, ftype dist)
+{
+    constexpr ftype threshold = 10e-2; 
+    ftype t = 0, d = 0;
+    ftype maxDist = dist;
+
+    // determine the nearest element in the current step
+    Vector from = ray_to_shape + lightDir * t;
+    while (t < maxDist) {
+        // iterate over all shapes to determine the nearest
+        ftype minDist = std::numeric_limits<ftype>::max();
+        for (Shape *shape : this->scene->shapes) {
+            d = shape->distanceFunction(from);
+            // keep track of the smallest distance seen so far
+            if (d < minDist) minDist = d;
+
+            // return true if the smallest distance is below the threshold
+            if (minDist <= threshold * t) return true;
+        }
+        t += minDist;
+    }
+
+    // if no object is in between, return false
+    return false;
+}
+
 
 /**
  * @brief Writes the image into a file in .ppm format
@@ -135,9 +233,9 @@ void sphere::Renderer::writeImageToFile(std::string pathToFile)
     outstream.open(pathToFile);
     outstream << "P6\n" << this->image->width << " " << this->image->height << "\n255\n";
     for(itype i = 0; i < this->image->width*this->image->height; ++i) {
-        r = static_cast<unsigned char>(std::min(1.0f, this->image->pixel[i].color.r * 255));
-        g = static_cast<unsigned char>(std::min(1.0f, this->image->pixel[i].color.g * 255));
-        b = static_cast<unsigned char>(std::min(1.0f, this->image->pixel[i].color.b * 255));
+        r = static_cast<unsigned char>(std::min(1.0f, this->image->pixels[i].color.r * 255));
+        g = static_cast<unsigned char>(std::min(1.0f, this->image->pixels[i].color.g * 255));
+        b = static_cast<unsigned char>(std::min(1.0f, this->image->pixels[i].color.b * 255));
         outstream << r << g << b;
     }
     outstream.close();
