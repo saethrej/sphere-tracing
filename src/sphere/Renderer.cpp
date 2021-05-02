@@ -102,7 +102,7 @@ void sphere::Renderer::renderPixel()
 
     for (itype i = 0; i < this->image->height; ++i){
         for (itype j = 0; j < this->image->width; ++j){
-            sphereTrace(image->pixels[i * this->image->width +j].cameraCoord.x, image->pixels[i * this->image->width +j].cameraCoord.y, j,i);
+            sphereTrace(image->pixels[i * this->image->width +j].cameraCoord.x, image->pixels[i * this->image->width +j].cameraCoord.y, i,j);
         }
     }
 }
@@ -125,7 +125,7 @@ void sphere::Renderer::sphereTrace(ftype pix_x, ftype pix_y, itype imageCoordx, 
     Vector rayDirection = {(VectorVal) pix_x, (VectorVal) pix_y, 1};
     Vector rayDirection_normalized =  rayDirection.normalize();
 
-    constexpr itype maxDistance = 60;
+    constexpr itype maxDistance = 100;
     ftype t = 0;
     ftype d = 0;
     constexpr ftype threshold = 1e-10; 

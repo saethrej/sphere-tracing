@@ -61,8 +61,8 @@ sphere::Image::Image(ftype cameraFov, itype width, itype height)
     this->pixels.reserve(this->height*this->width);    
     for (itype i = 0; i < this->height; ++i){
         for (itype j = 0; j < this->width; ++j){
-            x = (2 * i / width_f - 1) * ratio * angle;
-            y = (1 - j / height_f * 2) * angle;
+            x = (2 * j / width_f - 1) * ratio * angle;
+            y = (1 - i / height_f * 2) * angle;
             this->pixels.push_back(Pixel(x,y));
         }
     }
