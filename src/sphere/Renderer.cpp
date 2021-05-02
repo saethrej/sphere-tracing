@@ -159,7 +159,36 @@ void sphere::Renderer::sphereTrace(ftype pix_x, ftype pix_y, itype imageCoordx, 
 sphere::Color sphere::Renderer::shade(Vector const &ray, Shape *shape)
 {
     // set delta that is used for computing the derivative
-    constexpr ftype delta = 10e-3;
+    //constexpr ftype delta = 10e-2;
+
+    // create delta vectors and use them to compute the normal vector of the 
+    // tangential plane at the point where the ray and the shape intersect
+    /*
+    Vector dx = {delta, 0.0, 0.0}, dy = {0.0, delta, 0.0}, dz = {0.0, 0.0, delta};
+    Vector normal = Vector(
+        shape->distanceFunction(ray + dx) - shape->distanceFunction(ray - dx),
+        shape->distanceFunction(ray + dy) - shape->distanceFunction(ray - dy),
+        shape->distanceFunction(ray + dz) - shape->distanceFunction(ray - dz)
+    ).normalize();
+
+    // get the vector of the light point to the intersection point, and compute the
+    // dot product of said  with the normal vector of the tangential plane computed
+    // above. If it's larger than zero, this indicates that theray is hitting the 
+    // shape from the front, which means it's important to our image
+    Vector lightItsct = this->scene->lightPos - ray;
+    ftype dotProd = lightItsct * normal;
+
+    Color col = Color(); // initially black
+    if (dotProd > 0) {
+        ftype dist = lightItsct.length();
+        bool shadowFlag = 1;// - shadow(ray, lightItsct, dist);
+        col += static_cast<Color>(this->scene->lightEmi * (shadowFlag * dotProd / (4.0 * M_PI * dist)));
+    }
+
+    return col;
+    */
+    
+    constexpr ftype delta = 10e-5;
 
     // create delta vectors and use them to compute the normal vector of the 
     // tangential plane at the point where the ray and the shape intersect
@@ -176,20 +205,18 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Shape *shape)
     // shape from the front, which means it's important to our image
     Vector lightItsct = (this->scene->lightPos - ray);
     ftype NdotL = lightItsct.normalize() * normal;
-    Vector bisector = (ray * -1.0 + lightItsct).normalize();
+    Vector bisector = (ray + lightItsct).normalize();
     ftype NdotH = normal * bisector * (normal * bisector);
     Color ambient = shape->color;
     Color diffuse = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0, NdotL);
-    Color specular = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.);
+    Color specular = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0,NdotH);
     Color col = Color(); // initially black
-    //if (NdotL > 0) {
-    ftype dist = lightItsct.length();
     bool shadowFlag = 1; // - shadow(ray, lightItsct, dist);
     col += ambient + diffuse + specular;
     col.r = std::min(col.r, 1.0f);
     col.g = std::min(col.g, 1.0f);
     col.b = std::min(col.b, 1.0f);
-    //}
+
 
     return col;
 }
