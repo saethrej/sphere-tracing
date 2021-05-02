@@ -67,6 +67,17 @@ sphere::Vector sphere::Vector::operator+(const Vector &a) const
 }
 
 /**
+ * @brief Scalar addition to vector
+ * 
+ * @param a float
+ * @return result of scalar addition 
+ */
+sphere::Vector sphere::Vector::operator+(const ftype &a) const
+{
+    return Vector(x + a, y + a, z + a);
+}
+
+/**
  * @brief Component wise vector subtraction
  * 
  * @param a Vector 
@@ -75,6 +86,17 @@ sphere::Vector sphere::Vector::operator+(const Vector &a) const
 sphere::Vector sphere::Vector::operator-(const Vector &a) const
 {
     return Vector(x - a.x, y-a.y, z-a.z);
+}
+
+/**
+ * @brief Scalar subtraction from vector
+ * 
+ * @param a float
+ * @return result of scalar subtraction
+ */
+sphere::Vector sphere::Vector::operator-(const ftype &a) const
+{
+    return Vector(x - a, y - a, z - a);
 }
 
 /**

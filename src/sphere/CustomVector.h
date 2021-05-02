@@ -87,7 +87,9 @@ public:
 
     // mathematical operator overloads
     Vector operator+(const Vector &a) const;
+    Vector operator+(const ftype &a) const;
     Vector operator-(const Vector &a) const;
+    Vector operator-(const ftype &a) const;
     ftype operator*(const Vector &a) const;
     Vector operator*(const ftype &a) const;
     Vector& operator+=(const Vector &a);

@@ -353,22 +353,29 @@ sphere::ftype sphere::Octahedron::distanceFunction(Vector pointPos)
     // calculate distance in this coordinate system
     Vector abs_tr_point = tr_point.absVal();
     ftype m = abs_tr_point.x + abs_tr_point.y + abs_tr_point.z - s;
+    Vector r = abs_tr_point * 3.0 - m;
+    //Vector zero = Vector(0.0, 0.0, 0.0);
+    //Vector o = r.componentwiseMin(zero);
+    //Vector p = zero.componentwiseMax(r*2 - 0*3 + (o.x + o.y + o.z));
+    //Vector n = p - o*this->s*(1.0/(o.x + o.y + o.z));
+    //return n.length();
+    
     Vector q;
-    if (3.0 * abs_tr_point.x < m){
+    if (r.x < 0){
         q = abs_tr_point;
     }
-    else if(3.0 * abs_tr_point.y < m) {
+    else if(r.y < 0) {
         q = Vector(abs_tr_point.y, abs_tr_point.z, abs_tr_point.x);
     }
-    else if(3.0 * abs_tr_point.z < m) {
+    else if(r.z < 0) {
         q = Vector(abs_tr_point.z, abs_tr_point.x, abs_tr_point.y);
     }
     else {
         return m*0.57735027;
     }
     
-    ftype k = std::clamp(0.5*(abs_tr_point.z - abs_tr_point.y + s), 0.0, s);
-    return Vector(abs_tr_point.x, abs_tr_point.y - s + k, abs_tr_point.z - k).length();
+    ftype k = std::clamp(0.5*(q.z - q.y + s), 0.0, s);
+    return Vector(q.x, q.y - s + k, q.z - k).length();
 }
 
 /********************************* Cone **************************************/
