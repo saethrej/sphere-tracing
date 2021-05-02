@@ -210,7 +210,7 @@ sphere::ftype sphere::Plane::distanceFunction(Vector pointPos)
     Vector tr_point = Shape::translate_rotate(&pointPos);
 
     // calculate distance in this coordinate system
-    return tr_point * this->normal + this->displacement;
+    return tr_point * this->normal - this->displacement;
 }
 
 /*********************************** Box *************************************/
@@ -428,7 +428,7 @@ sphere::ftype sphere::Cone::distanceFunction2(Vector pointPos)
  */
 sphere::ftype sphere::Cone::distanceFunction(Vector pointPos)
 {
-    VectorVal h = this->form.x, r1 = this->form.y, r2 = this->form.z;
+    VectorVal h = this->form.z, r1 = this->form.x, r2 = this->form.y;
 
     // translate and rotate point such that the object is at the origin
     Vector rotP = Shape::translate_rotate(&pointPos);
