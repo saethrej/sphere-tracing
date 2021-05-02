@@ -256,6 +256,105 @@ sphere::Vector sphere::Vector::rotate(ftype rotationMatrix[]) const
     return sphere::Vector(r_x, r_y, r_z);
 }
 
+/********************************* Vector2 ***********************************/
+
+/**
+ * @brief constructs a new Vector2 object
+ * @param x the vector's x-coordinate
+ * @param y the vector's y-coordinate
+ */
+sphere::Vector2::Vector2(VectorVal xx, VectorVal yy)
+ : x(xx), y(yy) 
+{
+    // nothing else to do here
+}
+
+/**
+ * @brief overloads the + operator for vector addition
+ * @param a the vector to add
+ * @return the result vector 
+ */
+sphere::Vector2 sphere::Vector2::operator+(const Vector2 &a) const
+{
+    return Vector2(x + a.x, y + a.y);
+}
+
+/**
+ * @brief overloads the - operator for vector subtraction
+ * @param a the vector to subtract
+ * @return the result vector
+ */
+sphere::Vector2 sphere::Vector2::operator-(const Vector2 &a) const
+{
+    return Vector2(x - a.x, y - a.y);
+}
+
+/**
+ * @brief overloads the * operator to the dot product
+ * @param a the vector to compute the dot product with
+ * @return the dot product
+ */
+sphere::ftype sphere::Vector2::operator*(const Vector2 &a) const
+{
+    return x * a.x + y * a.y;
+}
+
+/**
+ * @brief overloads the * operator to a scalar multiplication
+ * @param a the scalar to compute the product with
+ * @return the result vector
+ */
+sphere::Vector2 sphere::Vector2::operator*(const ftype &a) const
+{
+    return Vector2(a * x, a * y);
+}
+
+/**
+ * @brief computes the absolute value of the vector components
+ * @return the vector with the absolute values
+ */
+sphere::Vector2 sphere::Vector2::absVal() const
+{
+    return Vector2(std::fabs(x), std::fabs(y));
+}
+
+/**
+ * @brief computes the length of a 2d vector
+ * @return the vector's length
+ */
+sphere::ftype sphere::Vector2::length() const 
+{
+    return std::sqrt(x*x + y*y);
+}
+
+/**
+ * @brief returns the normalized vector
+ * @return the normalized vector
+ */
+sphere::Vector2 sphere::Vector2::normalize() const
+{
+    ftype l = length();
+    return Vector2(x/l, y/l);
+}
+
+/**
+ * @brief returns the maximum component of the vector
+ * @return the max component
+ */
+sphere::VectorVal sphere::Vector2::maxComponent() const
+{
+    return std::max(x, y);
+}
+
+/**
+ * @brief returns the minimum component of the vector
+ * @return the min component
+ */
+sphere::VectorVal sphere::Vector2::minComponent() const
+{
+    return std::min(x, y);
+}
+
 /********************************** Color ***********************************/
 
 /**
@@ -331,5 +430,18 @@ std::ostream& sphere::operator<<(std::ostream &out, Color const &col)
 std::ostream& sphere::operator<<(std::ostream &out, Vector const &vec)
 {
     out << "(" << vec.x << "," << vec.y << "," << vec.z << ")";
+    return out;
+}
+
+/**
+ * @brief overloads the stream operator to print a Vector2 object
+ * 
+ * @param out the output stream
+ * @param vec the vector to be printed
+ * @return reference to the stream that produced the output
+ */
+std::ostream& sphere::operator<<(std::ostream &out, Vector2 const &vec)
+{
+    out << "(" << vec.x << "," << vec.y << ")";
     return out;
 }

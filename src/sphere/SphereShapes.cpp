@@ -403,7 +403,7 @@ sphere::Cone::Cone(json const &cone)
  * @param pointPos position of the point of interest
  * @returns the distance between point and cone
  */
-sphere::ftype sphere::Cone::distanceFunction(Vector pointPos)
+sphere::ftype sphere::Cone::distanceFunction2(Vector pointPos)
 {
     // translate and rotate point such that object is at origin and in normal position
     Vector tr_point = Shape::translate_rotate(&pointPos);
@@ -419,4 +419,30 @@ sphere::ftype sphere::Cone::distanceFunction(Vector pointPos)
     Vect2D cb = {q.x - k1.x - k2.x*clamped, q.y - k1.y - k2.y*clamped};
     ftype s = (cb.x<0.0 && ca.y<0.0) ? -1.0 : 1.0;
     return s*std::sqrt(std::min((ca.x*ca.x + ca.y*ca.y),(cb.x*cb.x + cb.y*cb.y)));
+}
+
+/**
+ * @brief returns the signed distance to a cone
+ * @param pointPos the position of the point 
+ * @return the signed distance
+ */
+sphere::ftype sphere::Cone::distanceFunction(Vector pointPos)
+{
+    VectorVal h = this->form.x, r1 = this->form.y, r2 = this->form.z;
+
+    // translate and rotate point such that the object is at the origin
+    Vector rotP = Shape::translate_rotate(&pointPos);
+
+    // calculate the distance in this coordinate system
+    Vector2 q = Vector2(Vector2(rotP.x, rotP.z).length(), rotP.y);
+    Vector2 k1 = Vector2(r2, h);
+    Vector2 k2 = Vector2(r2-r1, 2.0*h);
+
+    Vector2 ca = Vector2(
+        q.x - std::min(q.x, q.y < 0 ? r1 : r2),
+        std::fabs(q.y) - h
+    );
+    Vector2 cb = q - k1 + k2 * std::clamp((k2 * (k1 - q)) / (k2 * k2), 0.0, 1.0);
+    ftype s = cb.x < 0.f && ca.y < 0.f ? -1.0 : 1.0;
+    return s * std::sqrt(std::min(ca * ca, cb * cb));
 }

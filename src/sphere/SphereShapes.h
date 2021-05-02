@@ -182,6 +182,7 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
+    ftype distanceFunction2(Vector pos);
 
     // additional public member fields
     Vector form;

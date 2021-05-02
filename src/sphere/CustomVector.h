@@ -110,9 +110,38 @@ public:
     Vector rotate(ftype rotationMatrix[]) const;
 };
 
+/**
+ * @brief class for a two-dimensional vector
+ */
+class Vector2 {
+
+public:
+    VectorVal x; //!< the vector's x-coordinate
+    VectorVal y; //!< the vector's y-coordinate
+    uint8_t _pad[PAD_2DVECT]; //!< auxiliary padding for cache performance
+
+    // constructors
+    Vector2(){};
+    Vector2(VectorVal x, VectorVal y);
+
+    // mathematical operator overloads
+    Vector2 operator+(const Vector2 &a) const;
+    Vector2 operator-(const Vector2 &a) const;
+    ftype operator*(const Vector2 &a) const;
+    Vector2 operator*(const ftype &a) const;
+
+    // auxiliary vector functions
+    Vector2 absVal() const;
+    ftype length() const;
+    Vector2 normalize() const;
+    VectorVal maxComponent() const;
+    VectorVal minComponent() const;
+ };
+
 // output overloading
 std::ostream &operator<<(std::ostream &out, Color const &col);
 std::ostream &operator<<(std::ostream &out, Vector const &vec);
+std::ostream &operator<<(std::ostream &out, Vector2 const &vec);
 
 } // namespace sphere
 
