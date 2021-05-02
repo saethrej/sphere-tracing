@@ -125,10 +125,10 @@ void sphere::Renderer::sphereTrace(ftype pix_x, ftype pix_y, itype imageCoordx, 
     Vector rayDirection = {(VectorVal) pix_x, (VectorVal) pix_y, 1};
     Vector rayDirection_normalized =  rayDirection.normalize();
 
-    constexpr itype maxDistance = 100;
+    constexpr itype maxDistance = 60;
     ftype t = 0;
     ftype d = 0;
-    constexpr ftype threshold = 10e-5; 
+    constexpr ftype threshold = 1e-10; 
     while (t < maxDistance) {
         //computes rayOrigin + t*rayDirection
         Vector ray_to_shape = rayOrigin + rayDirection * t;
@@ -142,7 +142,7 @@ void sphere::Renderer::sphereTrace(ftype pix_x, ftype pix_y, itype imageCoordx, 
             if (minDistance <= threshold * t) {
                 //intersection, this->scene->shapes[i]
                 Color col = shade(ray_to_shape, shape);
-                this->image->pixels[imageCoordx * (this->image->width) + imageCoordy].writeColor(col.r, col.g, col.b);
+                this->image->pixels[imageCoordx * (this->image->width) + imageCoordy].writeColor(col);
                 return;
             }
         }
@@ -159,7 +159,7 @@ void sphere::Renderer::sphereTrace(ftype pix_x, ftype pix_y, itype imageCoordx, 
 sphere::Color sphere::Renderer::shade(Vector const &ray, Shape *shape)
 {
     // set delta that is used for computing the derivative
-    constexpr ftype delta = 10e-5;
+    constexpr ftype delta = 10e-3;
 
     // create delta vectors and use them to compute the normal vector of the 
     // tangential plane at the point where the ray and the shape intersect
@@ -168,21 +168,28 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Shape *shape)
         shape->distanceFunction(ray + dx) - shape->distanceFunction(ray - dx),
         shape->distanceFunction(ray + dy) - shape->distanceFunction(ray - dy),
         shape->distanceFunction(ray + dz) - shape->distanceFunction(ray - dz)
-    ).normalize();
-
+    );
+    normal = normal.normalize();
     // get the vector of the light point to the intersection point, and compute the
     // dot product of said  with the normal vector of the tangential plane computed
     // above. If it's larger than zero, this indicates that theray is hitting the 
     // shape from the front, which means it's important to our image
-    Vector lightItsct = this->scene->lightPos - ray;
-    ftype dotProd = lightItsct * normal;
-
+    Vector lightItsct = (this->scene->lightPos - ray);
+    ftype NdotL = lightItsct.normalize() * normal;
+    Vector bisector = (ray * -1.0 + lightItsct).normalize();
+    ftype NdotH = normal * bisector * (normal * bisector);
+    Color ambient = shape->color;
+    Color diffuse = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0, NdotL);
+    Color specular = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.);
     Color col = Color(); // initially black
-    if (dotProd > 0) {
-        ftype dist = lightItsct.length();
-        bool shadowFlag = 1; // - shadow(ray, lightItsct, dist);
-        col += static_cast<Color>(this->scene->lightEmi * (shadowFlag * dotProd / (4.0 * M_PI * dist)));
-    }
+    //if (NdotL > 0) {
+    ftype dist = lightItsct.length();
+    bool shadowFlag = 1; // - shadow(ray, lightItsct, dist);
+    col += ambient + diffuse + specular;
+    col.r = std::min(col.r, 1.0f);
+    col.g = std::min(col.g, 1.0f);
+    col.b = std::min(col.b, 1.0f);
+    //}
 
     return col;
 }
