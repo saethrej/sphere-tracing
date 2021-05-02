@@ -146,7 +146,7 @@ sphere::Shape::~Shape()
  */
 sphere::Vector sphere::Shape::translate_rotate(Vector *pos)
 {
-    Vector translated = this->position - *pos;
+    Vector translated = *pos - position;
     return translated.rotate(this->inverseRotation);
 }
 
