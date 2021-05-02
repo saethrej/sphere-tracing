@@ -37,7 +37,7 @@
  * @date 30.04.2021
  */
 
-#include <cmath>
+#include <math.h>
 #include <ostream>
 
 #include "SphereTypes.h"

@@ -188,7 +188,7 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Shape *shape)
     return col;
     */
     
-    constexpr ftype delta = 10e-5;
+    constexpr ftype delta = 10e-4;
 
     // create delta vectors and use them to compute the normal vector of the 
     // tangential plane at the point where the ray and the shape intersect
@@ -206,12 +206,11 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Shape *shape)
     Vector lightItsct = (this->scene->lightPos - ray);
     ftype NdotL = lightItsct.normalize() * normal;
     Vector bisector = (ray + lightItsct).normalize();
-    ftype NdotH = normal * bisector * (normal * bisector);
+    ftype NdotH = pow(normal * bisector, shape->shininess);
     Color ambient = shape->color;
     Color diffuse = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0, NdotL);
     Color specular = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0,NdotH);
     Color col = Color(); // initially black
-    bool shadowFlag = 1; // - shadow(ray, lightItsct, dist);
     col += ambient + diffuse + specular;
     col.r = std::min(col.r, 1.0f);
     col.g = std::min(col.g, 1.0f);

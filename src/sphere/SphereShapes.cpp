@@ -121,7 +121,7 @@ sphere::Shape::Shape(json const &params)
     ftype xi = rotation.z * r;
     inverseRotation[0] = cos(theta) * cos(xi);
     inverseRotation[1] = cos(theta) * sin(xi);
-    inverseRotation[2] =-sin(theta); // x axis
+    inverseRotation[2] = -sin(theta); // x axis
     inverseRotation[3] = -cos(phi) * sin(xi) + sin(phi) * sin(theta) * cos(xi);
     inverseRotation[4] = cos(phi) * cos(xi) + sin(phi) * sin(theta) * sin(xi);
     inverseRotation[5] = sin(phi) * cos(theta); // y axis
@@ -244,8 +244,7 @@ sphere::ftype sphere::Box::distanceFunction(Vector pointPos)
     // translate and rotate point such that object is at origin and in normal position
     Vector tr_point = Shape::translate_rotate(&pointPos);
 
-    // calculate distance in this coordinate system
-    Vector q =  (tr_point).absVal() - extents;
+    Vector q = tr_point.absVal() - extents;
     Vector zero = Vector(0,0,0);
     return q.componentwiseMax(zero).length() + std::min(q.maxComponent(), 0.0);
 
