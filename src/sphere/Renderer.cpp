@@ -174,21 +174,14 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Shape *shape)
     // dot product of said  with the normal vector of the tangential plane computed
     // above. If it's larger than zero, this indicates that theray is hitting the 
     // shape from the front, which means it's important to our image
-    Vector lightItsct = (this->scene->lightPos - ray);
-    ftype NdotL = lightItsct.normalize() * normal;
-    Vector bisector = (ray + lightItsct).normalize();
-    ftype NdotH = normal * bisector * (normal * bisector);
-    Color ambient = shape->color;
-    Color diffuse = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0, NdotL);
-    Color specular = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * NdotH;
+    Vector lightItsct = this->scene->lightPos - ray;
+    ftype dotProd = lightItsct * normal;
+
     Color col = Color(); // initially black
-    if (NdotL > 0) {
+    if (dotProd > 0) {
         ftype dist = lightItsct.length();
         bool shadowFlag = 1; // - shadow(ray, lightItsct, dist);
-        col += ambient + diffuse + specular;
-        col.r = std::min(col.r, 1.0f);
-        col.g = std::min(col.g, 1.0f);
-        col.b = std::min(col.b, 1.0f);
+        col += static_cast<Color>(this->scene->lightEmi * (shadowFlag * dotProd / (4.0 * M_PI * dist)));
     }
 
     return col;
