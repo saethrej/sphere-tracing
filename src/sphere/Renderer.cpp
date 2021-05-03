@@ -130,11 +130,9 @@ sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector con
     while ((distance + t) < MAX_DISTANCE) {
         Vector ray = ray_origin + ray_direction * t;
         ftype minDistance = std::numeric_limits<ftype>::max();
-
-        // iterate over all shapes to determine the nearest
         for (Shape *shape : this->scene->shapes) {
             d = shape->distanceFunction(ray);
-            if(d < minDistance) {
+            if (d < minDistance) {
                 minDistance = d;
                 closestShape = shape;
             }
