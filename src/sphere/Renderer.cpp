@@ -131,7 +131,7 @@ void sphere::Renderer::sphereTrace(ftype pix_x, ftype pix_y, itype imageCoordx, 
     constexpr ftype threshold = 1e-10; 
     while (t < maxDistance) {
         //computes rayOrigin + t*rayDirection
-        Vector ray_to_shape = rayOrigin + rayDirection * t;
+        Vector ray_to_shape = rayOrigin + rayDirection_normalized * t;
         ftype minDistance = std::numeric_limits<ftype>::max();
 
         for (Shape *shape : this->scene->shapes) {
@@ -211,12 +211,20 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Shape *shape)
     Color diffuse = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0, NdotL);
     Color specular = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0,NdotH);
     Color col = Color(); // initially black
+    bool shadowflag = shadow(ray, lightItsct, lightItsct.length());
+    if(shadowflag && shape->type == sphere::ShapeType::PLANE){
+        col.r = col.r * 0.5;
+        col.g = col.g * 0.5;
+        col.b = col.b * 0.5;
+       // return col;
+    }else{
+
     col += ambient + diffuse + specular;
     col.r = std::min(col.r, 1.0f);
     col.g = std::min(col.g, 1.0f);
     col.b = std::min(col.b, 1.0f);
 
-
+    }
     return col;
 }
 
@@ -230,23 +238,28 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Shape *shape)
  */
 bool sphere::Renderer::shadow(Vector const &ray_to_shape, Vector lightDir, ftype dist)
 {
-    constexpr ftype threshold = 10e-5; 
+    constexpr ftype threshold = 10e-6; 
     ftype t = 0, d = 0;
     ftype maxDist = dist;
-
     // determine the nearest element in the current step
-    Vector from = ray_to_shape + lightDir * t;
+
     while (t < maxDist) {
+      Vector from = ray_to_shape + lightDir * t;
         // iterate over all shapes to determine the nearest
         ftype minDist = std::numeric_limits<ftype>::max();
         for (Shape *shape : this->scene->shapes) {
             d = shape->distanceFunction(from);
             // keep track of the smallest distance seen so far
-            if (d < minDist) minDist = d;
-
+            if (d < minDist){
+                minDist = d;
+            } 
+            if (minDist <= threshold *t){
+                return true;
+            }
             // return true if the smallest distance is below the threshold
-            if (minDist <= threshold * t) return true;
+           
         }
+        
         t += minDist;
     }
 
