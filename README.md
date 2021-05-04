@@ -27,11 +27,11 @@ Other build options are summarized in the following table:
 |--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|---------------|----------------------------------------|
 | `CMAKE_BUILD_TYPE`       | Type of the build, determines optimization levels, etc.                                                                                            | `Release`     | `DEBUG`, `MinSizeRel`, `RelWithDebInf` |
 | `SPHERE_WITH_APPS`       | Specifies whether example apps should be built or not.                                                                                             | `ON`          | `OFF`                                  |
-| `SPHERE_WITH_PROFILING`  | Enables profiling the library with semiprof to generate a table where most of the time is spent.<br>Sets the `PROFILING` macro during compilation. | `OFF`         | `ON`                                   |
-| `SPHERE_WITH_BENCHMARKS` | Builds the library with the `BENCHMARK` macro and builds all programs in the benchmarks directory.                                                 | `OFF`         | `ON`                                   |
-| `SPHERE_WITH_TESTS`      | Builds unit tests for the library relying on Google's C++ test infrastructure.                                                                     | `ON`          | `OFF`                                  |
+| `SPHERE_WITH_PROFILING`  | Enables profiling the library with semiprof to generate a table where most of the time is spent.<br>Sets the `SPHERE_WITH_PROFILING` macro during compilation. | `OFF`         | `ON`                                   |
+| `SPHERE_WITH_BENCHMARKS` | Builds the library with the `SPHERE_WITH_BENCHMARKS` macro and builds all programs in the benchmarks directory.                                                 | `OFF`         | `ON`                                   |
+| `BENCHMARKS_COUNT_OP`    | Builds the library with the `BENCHMARKS_COUNT_OP` macros. If activated, the  `FlopCounter` class will be built, otherwise the `Timer` class will be built. Note that this option will be ignored if `SPHERE_WITH_BENCHMARKS` is not set. | `OFF` | `ON`
+| `SPHERE_WITH_TESTS`      | Builds unit tests for the library relying on Google's C++ test infrastructure.                                                                     | `OFF`          | `ON`                                  |
 | `BUILD_SHARED_LIBS`      | Creates a shared library object that other programs can link to dynamically                                                                        | `OFF`         | `ON`                                   |
-
 
 ## Running SPHERE
 We recommend running SPHERE from the root folder of this project (thus the `cd ..` command earlier in this tutorial) for the paths to possible inputs/outputs to resolve correctly. To launch SPHERE, run:
