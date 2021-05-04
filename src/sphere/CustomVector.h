@@ -68,6 +68,7 @@ public:
     // arithmetic operator overloading
     Color operator+(const Color &other);
     Color& operator+=(const Color &other);
+    Color operator*(const ftype &other);
 };
 
 /**

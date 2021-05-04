@@ -39,6 +39,7 @@
 
 #include <math.h>
 #include <ostream>
+#include <algorithm>
 
 #include "SphereTypes.h"
 #include "CustomVector.h"
@@ -405,6 +406,21 @@ sphere::Color& sphere::Color::operator+=(const Color &other)
 {
     *this = *this + other;
     return *this;
+}
+
+/**
+ * @brief mutliply color with a scalar value
+ * 
+ * @param other scalar to multiply the color with
+ * @return a new color value in [0,1]
+ */
+sphere::Color sphere::Color::operator*(const ftype &other)
+{
+    return Color(
+        std::clamp(this->r * other, 0.0, 1.0),
+        std::clamp(this->g * other, 0.0, 1.0),
+        std::clamp(this->b * other, 0.0, 1.0)
+    );
 }
 
 /**

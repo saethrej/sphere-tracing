@@ -107,6 +107,8 @@ void sphere::Renderer::renderPixel()
     }
 }
 
+#define MAX_DISTANCE 100
+
 /**
  * @brief executes sphereTracing for the pixel at pos [y][x]
  * 
@@ -125,7 +127,7 @@ void sphere::Renderer::sphereTrace(ftype pix_x, ftype pix_y, itype imageCoordx, 
     Vector rayDirection = {(VectorVal) pix_x, (VectorVal) pix_y, 1};
     Vector rayDirection_normalized =  rayDirection.normalize();
 
-    constexpr itype maxDistance = 100;
+    constexpr itype maxDistance = MAX_DISTANCE;
     ftype t = 0;
     ftype d = 0;
     constexpr ftype threshold = 10e-15; 
@@ -144,7 +146,7 @@ void sphere::Renderer::sphereTrace(ftype pix_x, ftype pix_y, itype imageCoordx, 
         }
         if (minDistance <= threshold * t) {
                 //intersection, this->scene->shapes[i]
-                Color col = shade(ray_to_shape, closestShape);
+                Color col = shade(ray_to_shape, rayDirection_normalized, closestShape, t);
                 this->image->pixels[imageCoordx * (this->image->width) + imageCoordy].writeColor(col);
                 return;
             }
@@ -153,12 +155,39 @@ void sphere::Renderer::sphereTrace(ftype pix_x, ftype pix_y, itype imageCoordx, 
     //no intersection
 }
 
+sphere::Color sphere::Renderer::reflect(Vector const &origin, Vector const &direction, ftype distance)
+{
+    constexpr itype maxDistance = MAX_DISTANCE;
+    constexpr ftype threshold = 10e-10;
+    ftype t = 0;
+    ftype d = 0;
+    Vector rayOrigin = origin;
+    Shape *closestShape;
+    while ((distance + t) < maxDistance) {
+        Vector ray = rayOrigin + direction * t;
+        ftype minDistance = std::numeric_limits<ftype>::max();
+
+        for (Shape *shape : this->scene->shapes) {
+            d = shape->distanceFunction(ray);
+            if(d < minDistance) {
+                minDistance = d;
+                closestShape = shape;
+            }
+        }
+        if (minDistance <= threshold * t){
+            return shade(ray, direction, closestShape, distance + t);
+        }
+        t = t + minDistance;
+    }
+    return Color(0,0,0);
+}
+
 /**
  * @brief computes the color for the pixel
  * @param ray Vector from rayOrigin to shape
  * @returns the color
  */
-sphere::Color sphere::Renderer::shade(Vector const &ray, Shape *shape)
+sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_normalized, Shape *shape, ftype distance)
 {
     // set delta that is used for computing the derivative
     //constexpr ftype delta = 10e-2;
@@ -213,20 +242,45 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Shape *shape)
     Color diffuse = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0, NdotL);
     Color specular = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0,NdotH);
     Color col = Color(); // initially black
-    bool shadowflag = shadow(ray, lightItsct.normalize(), lightItsct.length());
+
+    // compute the weight of the fresneleffect
+    //ftype facingratio = (ray_normalized * -1) * normal;
+    //ftype fresnel = pow(1 - facingratio, 3) * 0.9 + 0.1;
+
+    // compute the reflection
+    Vector refldir = ray_normalized - normal * 2 * (ray_normalized * normal);
+    refldir = refldir.normalize();
+    ftype bias = 1e-5;
+    Color reflection = Color(0,0,0);
+    if(shape->reflection > 0){
+        reflection = reflect(ray + normal*bias, refldir, distance);
+    }
+    ftype shadowflag = 1.0;
+    ftype light_len = lightItsct.length();
+    Vector lightdirnorm = lightItsct.normalize();
+    if(shadow(ray, lightdirnorm, light_len)){
+        shadowflag -= 0.1;
+    }
+    if(shadow(ray, lightdirnorm + dx * 300, light_len)){
+        shadowflag -= 0.2;
+    }
+    if(shadow(ray, lightdirnorm - dx * 300, light_len)){
+        shadowflag -= 0.2;
+    }
+    if(shadow(ray, lightdirnorm + dy * 300, light_len)){
+        shadowflag -= 0.2;
+    }
+    if(shadow(ray, lightdirnorm - dy * 300, light_len)){
+        shadowflag -= 0.2;
+    }
+
+    //bool shadowflag = shadow(ray, lightItsct.normalize(), lightItsct.length());
     
-    if(shadowflag){ //&& shape->type == sphere::ShapeType::PLANE){
-        col.r = 0;//col.r * 0.0;
-        col.g = 0;//col.g * 0.0;
-        col.b = 0;//col.b * 0;
-        return col;
-    }else{
-    col += ambient + diffuse + specular;
+    col += (ambient + diffuse + specular)*(1 - shape->reflection) + reflection * shape->reflection;
     col.r = std::min(col.r, 1.0f);
     col.g = std::min(col.g, 1.0f);
     col.b = std::min(col.b, 1.0f);
-    }
-    return col;
+    return col * shadowflag;
 }
 
 /**
@@ -239,7 +293,7 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Shape *shape)
  */
 bool sphere::Renderer::shadow(Vector const &ray_to_shape, Vector lightDir, ftype dist)
 {
-    constexpr ftype threshold = 10e-8; 
+    constexpr ftype threshold = 10e-5; 
     ftype t = 0, d = 0;
     ftype maxDist = dist;
     // determine the nearest element in the current step

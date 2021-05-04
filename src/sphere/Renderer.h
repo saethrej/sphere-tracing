@@ -71,7 +71,8 @@ private:
     void renderPixel();
     void sphereTrace(ftype pix_x, ftype pix_y, itype imageCoordx, itype imageCoordy);
     void writeImageToFile(std::string pathToFile);
-    Color shade(Vector const &ray_to_shape, Shape *shape);
+    Color reflect(Vector const &origin, Vector const &direction, ftype distance);
+    Color shade(Vector const &ray_to_shape, Vector const &ray_normalized, Shape *shape, ftype distance);
     bool shadow(Vector const &ray_to_shape, Vector lightDir, ftype dist);
 };
 
