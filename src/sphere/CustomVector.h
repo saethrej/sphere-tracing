@@ -42,8 +42,9 @@
 #define CUSTOM_VECTOR_H
 
 #include <iosfwd>
-#include "SphereTypes.h"
 
+#include "SphereTypes.h"
+#include "SphereBenchmark.h"
 
 namespace sphere {
 
