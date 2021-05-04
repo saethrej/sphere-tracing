@@ -129,6 +129,7 @@ void sphere::Renderer::sphereTrace(ftype pix_x, ftype pix_y, itype imageCoordx, 
     ftype t = 0;
     ftype d = 0;
     constexpr ftype threshold = 1e-10; 
+    Shape *closestShape;
     while (t < maxDistance) {
         //computes rayOrigin + t*rayDirection
         Vector ray_to_shape = rayOrigin + rayDirection_normalized * t;
@@ -138,14 +139,15 @@ void sphere::Renderer::sphereTrace(ftype pix_x, ftype pix_y, itype imageCoordx, 
             d = shape->distanceFunction(ray_to_shape);
             if (d < minDistance) {
                 minDistance = d;
+                closestShape = shape;
             }
-            if (minDistance <= threshold * t) {
+        }
+        if (minDistance <= threshold * t) {
                 //intersection, this->scene->shapes[i]
-                Color col = shade(ray_to_shape, shape);
+                Color col = shade(ray_to_shape, closestShape);
                 this->image->pixels[imageCoordx * (this->image->width) + imageCoordy].writeColor(col);
                 return;
             }
-        }
         t = t + minDistance;
     }
     //no intersection
