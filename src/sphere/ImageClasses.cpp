@@ -61,8 +61,8 @@ sphere::Image::Image(ftype cameraFov, itype width, itype height)
     this->pixels.reserve(this->height*this->width);    
     for (itype i = 0; i < this->height; ++i){
         for (itype j = 0; j < this->width; ++j){
-            x = (2 * i / width_f - 1) * ratio * angle;
-            y = (1 - j / height_f * 2) * angle;
+            x = (2 * j / width_f - 1) * ratio * angle;
+            y = (1 - i / height_f * 2) * angle;
             this->pixels.push_back(Pixel(x,y));
         }
     }
@@ -74,7 +74,7 @@ sphere::Image::Image(ftype cameraFov, itype width, itype height)
  * @param x x-coordinate of pixel in camera-coordinates
  * @param y y-coordinate of pixel in camera-coordinates
  */
-sphere::Pixel::Pixel(itype x, itype y)
+sphere::Pixel::Pixel(ftype x, ftype y)
 {
     this->cameraCoord.x = x;
     this->cameraCoord.y = y;
@@ -91,4 +91,10 @@ void sphere::Pixel::writeColor(ColorVal r, ColorVal g, ColorVal b){
     this->color.r = r;
     this->color.g = g;
     this->color.b = b;
+}
+
+void sphere::Pixel::writeColor(Color col){
+    this->color.r = col.r;
+    this->color.g = col.g;
+    this->color.b = col.b;
 }
