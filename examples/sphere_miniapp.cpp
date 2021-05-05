@@ -57,9 +57,9 @@ int main(int argc, char *argv[])
     );
     options.add_options()
         ("s,scenes", "Scene(s) to render",
-        cxxopts::value<std::vector<uint8_t>>())
-        ("a,allscenes", "render all scenes. --scenes will be ignored",
-        cxxopts::value<bool>()->default_value("false"))
+        cxxopts::value<std::vector<uint8_t>>()->default_value("0"))
+        ("d,dim", "Image Dimension of Ouput File",
+        cxxopts::value<std::vector<uint16_t>>()->default_value("1200,800"))
         ("h,help", "Print usage.");
 
     const char **argv2 = const_cast<const char**>(argv);
@@ -70,22 +70,21 @@ int main(int argc, char *argv[])
     }
 
     // parse the command line arguments
-    bool allScenes = result["allscenes"].as<bool>();
     std::vector<uint8_t> scenes = result["scenes"].as<std::vector<uint8_t>>();
+    uint16_t width = result["dim"].as<std::vector<uint16_t>>()[0];
+    uint16_t height = result["dim"].as<std::vector<uint16_t>>()[1];
 
-    // initializing the Renderer object, add a scene and render it
-    sphere::Renderer *rndr = new sphere::Renderer();
-    rndr->addScene("scenes/scene0.json");
-    rndr->renderScene("scenes/scene0.ppm", 1200, 800);
-    delete rndr;
-
-    // to verify if the scene parsing works, we print the rotations of all shapes.
-    sphere::Scene *scn = new sphere::Scene("scenes/scene0.json");
-    int i = 0;
-    for (const sphere::Shape *shp : scn->shapes) {
-        std::cout << "idx = " << i << ", pos = (" << shp->position.x << ","
-                  << shp->position.y << "," << shp->position.z << ")" << std::endl;
-        i++;
+    // generate all scenes in a loop
+    for (const auto &sceneNr : scenes) {
+        // generate path-to-scene and path-to-output first
+        std::stringstream scenePath, outputPath;
+        scenePath << "../scenes/scene" << std::to_string(sceneNr) << ".json";
+        outputPath << "../scenes/output_scene" << std::to_string(sceneNr) << ".ppm";
+        
+        // initialize the Renderer, add a new scene and render it
+        std::cout << "Rendering scene " << std::to_string(sceneNr) << " ..." << std::endl;
+        sphere::Renderer r;
+        r.addScene(scenePath.str());
+        r.renderScene(outputPath.str(), width, height);
     }
-    std::cout << "success." << std::endl;
 }
