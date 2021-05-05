@@ -75,7 +75,7 @@ public:
 
     // public member functions
     void addScene(std::string pathToSceneFile);
-    void renderScene(std::string pathToOutputFile, itype width, itype height);
+    void renderScene(std::string pathToOutputFile, itype width, itype height, bool noOutput = false);
 
     // public member fields
     Scene *scene;

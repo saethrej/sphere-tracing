@@ -64,6 +64,7 @@ sphere::Vector::Vector(VectorVal x, VectorVal y, VectorVal z) : x(x), y(y), z(z)
  */
 sphere::Vector sphere::Vector::operator+(const Vector &a) const
 {
+    COUNT_OPS(3);
     return Vector(x + a.x, y + a.y, z + a.z);
 }
 
@@ -75,6 +76,7 @@ sphere::Vector sphere::Vector::operator+(const Vector &a) const
  */
 sphere::Vector sphere::Vector::operator+(const ftype &a) const
 {
+    COUNT_OPS(3);
     return Vector(x + a, y + a, z + a);
 }
 
@@ -86,6 +88,7 @@ sphere::Vector sphere::Vector::operator+(const ftype &a) const
  */
 sphere::Vector sphere::Vector::operator-(const Vector &a) const
 {
+    COUNT_OPS(3);
     return Vector(x - a.x, y-a.y, z-a.z);
 }
 
@@ -97,6 +100,7 @@ sphere::Vector sphere::Vector::operator-(const Vector &a) const
  */
 sphere::Vector sphere::Vector::operator-(const ftype &a) const
 {
+    COUNT_OPS(3);
     return Vector(x - a, y - a, z - a);
 }
 
@@ -108,6 +112,7 @@ sphere::Vector sphere::Vector::operator-(const ftype &a) const
  */
 sphere::Vector& sphere::Vector::operator+=(const Vector &a)
 {
+    COUNT_OPS(0); // ops are counted in + operator
     *this = *this + a;
     return *this;
 }
@@ -120,6 +125,7 @@ sphere::Vector& sphere::Vector::operator+=(const Vector &a)
  */
 sphere::Vector& sphere::Vector::operator-=(const Vector &a)
 {
+    COUNT_OPS(0); // ops are counted in - operator
     *this = *this - a;
     return *this;
 }
@@ -132,6 +138,7 @@ sphere::Vector& sphere::Vector::operator-=(const Vector &a)
  */
 sphere::ftype sphere::Vector::operator*(const Vector &a) const
 {
+    COUNT_OPS(5);
     return x * a.x + y * a.y + z * a.z;
 }
 
@@ -143,15 +150,19 @@ sphere::ftype sphere::Vector::operator*(const Vector &a) const
  */
 sphere::Vector sphere::Vector::operator*(const ftype &a) const
 {
+    COUNT_OPS(3);
     return Vector(x * a, y * a, z * a);
 }
 
 /**
  * @brief converts a Vector to a Color object
  * @return a color object
+ * 
+ * @todo does casting count as a flop?
  */
 sphere::Vector::operator sphere::Color() const
 {
+    COUNT_OPS(0);
     return Color(
         static_cast<ColorVal>(x),
         static_cast<ColorVal>(y),
@@ -166,7 +177,8 @@ sphere::Vector::operator sphere::Color() const
  */
 sphere::Vector sphere::Vector::absVal() const
 {
-    return Vector(abs(x), abs(y), abs(z));
+    COUNT_OPS(3);
+    return Vector(std::fabs(x), std::fabs(y), std::fabs(z));
 }
 
 /**
@@ -177,6 +189,7 @@ sphere::Vector sphere::Vector::absVal() const
  */
 sphere::Vector sphere::Vector::componentwiseMax(const Vector &a) const
 {
+    COUNT_OPS(0);
     return Vector(std::max(x,a.x), std::max(y,a.y), std::max(z, a.z));
 }
 
@@ -188,6 +201,7 @@ sphere::Vector sphere::Vector::componentwiseMax(const Vector &a) const
  */
 sphere::Vector sphere::Vector::componentwiseMin(const Vector &a) const
 {
+    COUNT_OPS(0);
     return Vector(std::min(x,a.x), std::min(y,a.y), std::min(z, a.z));
 }
 
@@ -198,6 +212,7 @@ sphere::Vector sphere::Vector::componentwiseMin(const Vector &a) const
  */
 sphere::VectorVal sphere::Vector::length() const
 {
+    COUNT_OPS(25); // assumes 20 flops for sqrt
     return sqrt(x*x + y*y + z*z);
 }
 
@@ -209,6 +224,7 @@ sphere::VectorVal sphere::Vector::length() const
  */
 sphere::VectorVal sphere::Vector::distance(const Vector &a) const
 {
+    COUNT_OPS(0); // already accounted in operator- and length()
     return (*this - a).length();
 }
 
@@ -219,6 +235,7 @@ sphere::VectorVal sphere::Vector::distance(const Vector &a) const
  */
 sphere::Vector sphere::Vector::normalize() const
 {
+    COUNT_OPS(3); // length() already accounted for in function call
     VectorVal l = length();
     return Vector(x/l, y/l, z/l);
 }
@@ -230,6 +247,7 @@ sphere::Vector sphere::Vector::normalize() const
  */
 sphere::VectorVal sphere::Vector::maxComponent() const
 {
+    COUNT_OPS(0);
     return std::max(std::max(x,y),z);
 }
 
@@ -240,6 +258,7 @@ sphere::VectorVal sphere::Vector::maxComponent() const
  */
 sphere::VectorVal sphere::Vector::minComponent() const
 {
+    COUNT_OPS(0);
     return std::min(std::min(x,y),z);
 }
 
@@ -251,6 +270,7 @@ sphere::VectorVal sphere::Vector::minComponent() const
  */
 sphere::Vector sphere::Vector::rotate(ftype rotationMatrix[]) const
 {
+    COUNT_OPS(15);
     VectorVal r_x = rotationMatrix[0] * x + rotationMatrix[1] * y + rotationMatrix[2] * z;
     VectorVal r_y = rotationMatrix[3] * x + rotationMatrix[4] * y + rotationMatrix[5] * z;
     VectorVal r_z = rotationMatrix[6] * x + rotationMatrix[7] * y + rotationMatrix[8] * z;
@@ -277,6 +297,7 @@ sphere::Vector2::Vector2(VectorVal xx, VectorVal yy)
  */
 sphere::Vector2 sphere::Vector2::operator+(const Vector2 &a) const
 {
+    COUNT_OPS(2);
     return Vector2(x + a.x, y + a.y);
 }
 
@@ -287,6 +308,7 @@ sphere::Vector2 sphere::Vector2::operator+(const Vector2 &a) const
  */
 sphere::Vector2 sphere::Vector2::operator-(const Vector2 &a) const
 {
+    COUNT_OPS(2);
     return Vector2(x - a.x, y - a.y);
 }
 
@@ -297,6 +319,7 @@ sphere::Vector2 sphere::Vector2::operator-(const Vector2 &a) const
  */
 sphere::ftype sphere::Vector2::operator*(const Vector2 &a) const
 {
+    COUNT_OPS(3);
     return x * a.x + y * a.y;
 }
 
@@ -307,6 +330,7 @@ sphere::ftype sphere::Vector2::operator*(const Vector2 &a) const
  */
 sphere::Vector2 sphere::Vector2::operator*(const ftype &a) const
 {
+    COUNT_OPS(2);
     return Vector2(a * x, a * y);
 }
 
@@ -316,6 +340,7 @@ sphere::Vector2 sphere::Vector2::operator*(const ftype &a) const
  */
 sphere::Vector2 sphere::Vector2::absVal() const
 {
+    COUNT_OPS(2);
     return Vector2(std::fabs(x), std::fabs(y));
 }
 
@@ -325,6 +350,7 @@ sphere::Vector2 sphere::Vector2::absVal() const
  */
 sphere::ftype sphere::Vector2::length() const 
 {
+    COUNT_OPS(23); // assume 20 flops for sqrt
     return std::sqrt(x*x + y*y);
 }
 
@@ -334,6 +360,7 @@ sphere::ftype sphere::Vector2::length() const
  */
 sphere::Vector2 sphere::Vector2::normalize() const
 {
+    COUNT_OPS(2); // length already accounted for in length()
     ftype l = length();
     return Vector2(x/l, y/l);
 }
@@ -344,6 +371,7 @@ sphere::Vector2 sphere::Vector2::normalize() const
  */
 sphere::VectorVal sphere::Vector2::maxComponent() const
 {
+    COUNT_OPS(0);
     return std::max(x, y);
 }
 
@@ -353,6 +381,7 @@ sphere::VectorVal sphere::Vector2::maxComponent() const
  */
 sphere::VectorVal sphere::Vector2::minComponent() const
 {
+    COUNT_OPS(0);
     return std::min(x, y);
 }
 
@@ -389,6 +418,7 @@ sphere::Color::Color(ColorVal r, ColorVal g, ColorVal b)
  */
 sphere::Color sphere::Color::operator+(const Color &other)
 {
+    COUNT_OPS(3);
     return Color(
         std::min(this->r + other.r, 1.0f),
         std::min(this->g + other.g, 1.0f),
@@ -404,6 +434,7 @@ sphere::Color sphere::Color::operator+(const Color &other)
  */
 sphere::Color& sphere::Color::operator+=(const Color &other)
 {
+    COUNT_OPS(0); // already accounted for by operator+
     *this = *this + other;
     return *this;
 }

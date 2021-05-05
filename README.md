@@ -19,35 +19,30 @@ export CXX='which CC'
 mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j 8
-cd .. # leave build directory
 ```
 
 Other build options are summarized in the following table:
 | Build Option             | Description                                                                                                                                        | Default Value | Possible Values                        |
 |--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|---------------|----------------------------------------|
 | `CMAKE_BUILD_TYPE`       | Type of the build, determines optimization levels, etc.                                                                                            | `Release`     | `DEBUG`, `MinSizeRel`, `RelWithDebInf` |
-| `SPHERE_WITH_APPS`       | Specifies whether example apps should be built or not.                                                                                             | `ON`          | `OFF`                                  |
-| `SPHERE_WITH_PROFILING`  | Enables profiling the library with semiprof to generate a table where most of the time is spent.<br>Sets the `PROFILING` macro during compilation. | `OFF`         | `ON`                                   |
-| `SPHERE_WITH_BENCHMARKS` | Builds the library with the `BENCHMARK` macro and builds all programs in the benchmarks directory.                                                 | `OFF`         | `ON`                                   |
-| `SPHERE_WITH_TESTS`      | Builds unit tests for the library relying on Google's C++ test infrastructure.                                                                     | `ON`          | `OFF`                                  |
-| `BUILD_SHARED_LIBS`      | Creates a shared library object that other programs can link to dynamically                                                                        | `OFF`         | `ON`                                   |
+| `SPHERE_WITH_PROFILING`  | Enables profiling the library with semiprof to generate a table where most of the time is spent.<br>Sets the `SPHERE_WITH_PROFILING` macro during compilation. | `OFF`         | `ON`                                   |
+| `SPHERE_WITH_BENCHMARKS` | Builds the library with the `SPHERE_WITH_BENCHMARKS` macro and builds all programs in the benchmarks directory.                                                 | `OFF`         | `ON`                                   |
+| `BENCHMARKS_COUNT_OP`    | Builds the library with the `BENCHMARKS_COUNT_OP` macros. If activated, the  `FlopCounter` class will be built, otherwise the `Timer` class will be built. Note that this option will be ignored if `SPHERE_WITH_BENCHMARKS` is not set. | `OFF` | `ON`
+| `SPHERE_WITH_TESTS`      | Builds unit tests for the library relying on Google's C++ test infrastructure.                                                                     | `OFF`          | `ON`                                  |
 
 
 ## Running SPHERE
-We recommend running SPHERE from the root folder of this project (thus the `cd ..` command earlier in this tutorial) for the paths to possible inputs/outputs to resolve correctly. To launch SPHERE, run:
+We recommend running SPHERE from the build folder of this project  for the paths to possible inputs/outputs to resolve correctly. To launch SPHERE, run:
 ```bash
-./build/examples/sphere_miniapp --scenes=0
+./examples/sphere_miniapp --scenes=0
 ```
 
-## Creating Documentation for SPHERE
-We use the doxygen system to automatically create a documentation for the code. If you wish to generate the documentation, make sure that you have Doxygen installed, otherwise check [this page](https://www.doxygen.nl/manual/install.html). If you want to have inheritance diagrams etc. in the documentation, also make sure you have graphviz installed.
-
-With these pre-requisites, you can generate the HTML documentation by running
+## Benchmarking SPHERE
+There's a benchmarking utility script written in Python, namely `benchmarks/run_benchmark.py` that you can use to simplify benchmarking. Checkout the branch you want to benchmark, choose a number of repetitions (e.g. 5) and a scene number (e.g. 0). Then, simply run
 ```bash
-doxygen doc/doxygen.config
-``` 
-then entering the `doc/html/` directory and opening the `index.html` file with your favourite browser.
-
+./benchmarks/run_benchmark.py --scene=0 --repetitions=5
+```
+This can take a while, but the program reports its progress in stdout. After running, you'll find two csv files in the `benchmarks` folder. Each line represents one input size (the first and second entries are width and height, respectively), while the following entry/entries are measurements. Note that times are reported in [ms].
 
 ## Authors
 - [André Gaillard](mailto:andrega@ethz.ch)
