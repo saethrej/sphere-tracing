@@ -47,6 +47,21 @@
 
 namespace sphere {
 
+// maximum distance of a ray traced (including reflections)
+constexpr itype MAX_DISTANCE = 100;
+// threshold for distance to object (sphere tracing)
+constexpr ftype TRACE_THRESHOLD = 10e-12;
+// delta used to compute the normal vector on an object surface
+constexpr ftype NORMAL_DELTA = 10e-5;
+// bias for reflection
+constexpr ftype REFLECTION_BIAS = 10e-5;
+// threshold for distance to object (shadow)
+constexpr ftype SHADOW_THRESHOLD = 10e-5;
+// number of additional additional circles with 4 rays shot to compute shadow
+constexpr ftype SHADOW_CIRCLES = 0.0;
+// distance of rays on the circle to actual point
+constexpr ftype SHADOW_DELTA = 10e-3;
+
 /**
  * @brief Renderer object that stores information about the scene it should render
  * and the image that should be produced.
@@ -68,12 +83,12 @@ public:
 
 private:
     // private member functions
-    void renderPixel();
-    void sphereTrace(ftype pix_x, ftype pix_y, itype imageCoordx, itype imageCoordy);
+    void renderPixels();
     void writeImageToFile(std::string pathToFile);
-    Color reflect(Vector const &origin, Vector const &direction, ftype distance);
+    Color sphereTrace(Vector const &ray_origin, Vector const &ray_direction, ftype distance);
     Color shade(Vector const &ray_to_shape, Vector const &ray_normalized, Shape *shape, ftype distance);
-    bool shadow(Vector const &ray_to_shape, Vector lightDir, ftype dist);
+    ftype shadow(Vector const &ray_to_shade, Vector const &lightDir, ftype dist);
+    bool ObjectInBetween(Vector const &ray_origin, Vector const &ray_direction, ftype max_dist);
 };
 
 } // namespace sphere
