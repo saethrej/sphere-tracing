@@ -43,6 +43,7 @@
 #define SPHERE_SHAPES_H
 
 #include <string>
+#include <iosfwd>
 #include <json.hpp>
 
 #include "SphereTypes.h"
@@ -181,10 +182,14 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
+    ftype distanceFunction2(Vector pos);
 
     // additional public member fields
     Vector form;
 };
+
+// overload stream operator for ShapeType
+std::ostream& operator<<(std::ostream &out, ShapeType const &type);
 
 } // namespace sphere
 

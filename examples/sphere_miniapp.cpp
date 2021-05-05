@@ -76,15 +76,15 @@ int main(int argc, char *argv[])
     // initializing the Renderer object, add a scene and render it
     sphere::Renderer *rndr = new sphere::Renderer();
     rndr->addScene("scenes/scene0.json");
-    rndr->renderScene("scenes/scene0.ppm", 600, 400);
+    rndr->renderScene("scenes/scene0.ppm", 1200, 800);
     delete rndr;
 
     // to verify if the scene parsing works, we print the rotations of all shapes.
     sphere::Scene *scn = new sphere::Scene("scenes/scene0.json");
     int i = 0;
     for (const sphere::Shape *shp : scn->shapes) {
-        std::cout << "idx = " << i << ", pos = (" << shp->rotation.x << ","
-                  << shp->rotation.y << "," << shp->rotation.z << ")" << std::endl;
+        std::cout << "idx = " << i << ", pos = (" << shp->position.x << ","
+                  << shp->position.y << "," << shp->position.z << ")" << std::endl;
         i++;
     }
     std::cout << "success." << std::endl;
