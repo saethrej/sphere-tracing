@@ -84,12 +84,13 @@ sphere::Scene::Scene(std::string pathToFile)
         // create the different shapes that are contained within the "objects" part
         // of the json scene description. Note that shapes that are not defined in
         // SphereShapes.h will be ignored
+        this->numShapes = 0;
         json objects = this->sceneDescription["objects"];
-        this->numShapes = objects.size();
-        this->shapes.reserve(this->numShapes);
+        this->shapes.reserve(objects.size());
 
         for (json const &shp : objects) {
             ShapeType type = Shape::getShapeType(shp.value("kind", "none"));
+            this->numShapes++;
             switch (type) {
                 case ShapeType::BOX: { 
                     Box *box = new Box(shp);
@@ -122,6 +123,8 @@ sphere::Scene::Scene(std::string pathToFile)
                     break;
                 }
                 default:
+                    // counter the ++ before because this shape cannot be handled
+                    this->numShapes--;
                     continue;
             }
         }
