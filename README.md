@@ -35,8 +35,9 @@ Other build options are summarized in the following table:
 ## Running SPHERE
 We recommend running SPHERE from the build folder of this project  for the paths to possible inputs/outputs to resolve correctly. To launch SPHERE, run:
 ```bash
-./examples/sphere_miniapp --scenes=0
+./build/examples/sphere_miniapp --scenes=0,1,2 --dim=1000,600
 ```
+This renders scenes 0,1,2 with 1000x600 pixel resolution.
 
 ## Benchmarking SPHERE
 There's a benchmarking utility script written in Python, namely `benchmarks/run_benchmark.py` that you can use to simplify benchmarking. Checkout the branch you want to benchmark, choose a number of repetitions (e.g. 5) and a scene number (e.g. 0). Then, simply run
