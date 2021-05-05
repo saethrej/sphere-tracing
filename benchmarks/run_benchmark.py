@@ -84,6 +84,3 @@ if __name__ == "__main__":
     log.info("**** Starting to run SPHERE timing benchmark")
     run_benchmark_app(scene, reps, False)
     log.info("**** Finished running sphere timing benchmark")
-
-    # 6.) compute the performance and generate a roofline plot
-

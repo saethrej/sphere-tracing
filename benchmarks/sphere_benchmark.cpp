@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
             std::cout << "counting flops for image nr. " << i << std::endl;
             sphere::Renderer r;
             r.addScene(sceneName);
-            r.renderScene("../scenes/temp_scene.ppm", width, height);
+            r.renderScene("../scenes/temp_scene.ppm", width, height, true);
 
             // store the number of flops
 #ifdef BENCHMARKS_COUNT_OP
@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
                 sphere::Renderer r;
                 r.addScene(sceneName);
                 TIMER_START();
-                r.renderScene("./scenes/temp_scene.ppm", width, height);
+                r.renderScene("./scenes/temp_scene.ppm", width, height, true);
                 TIMER_END();
 
                 // put the result into the vector
