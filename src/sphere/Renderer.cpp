@@ -41,6 +41,10 @@
 #include <fstream>
 #include <iostream>
 
+#ifdef SPHERE_WITH_OPENMP
+#include <omp.h>
+#endif // SPHERE_WITH_OPENMP
+
 #include "Renderer.h"
 
 /**
@@ -92,7 +96,7 @@ void sphere::Renderer::renderScene(std::string pathToOutputFile, itype width, it
 {
     this->image = new Image(this->scene->cameraFov, width, height);
     this->renderPixels();
-    if (noOutput) {
+    if (!noOutput) {
         this->writeImageToFile(pathToOutputFile);
     } 
 }
@@ -103,6 +107,8 @@ void sphere::Renderer::renderScene(std::string pathToOutputFile, itype width, it
 void sphere::Renderer::renderPixels()
 {
     Vector ray_origin = this->scene->cameraPos;
+
+    #pragma omp parallel for
     for (itype i = 0; i < this->image->height; ++i){
         for (itype j = 0; j < this->image->width; ++j){
             Vector ray_direction = {

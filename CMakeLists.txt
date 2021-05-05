@@ -14,13 +14,23 @@ option(SPHERE_WITH_TESTS "Generate the test targets." OFF)
 option(SPHERE_WITH_APPS "Generate the example targets." ${MASTER_PROJECT})
 option(SPHERE_WITH_BENCHMARKS "Generate the benchmark targets." OFF)
 option(SPHERE_WITH_PROFILING "Enables profiling." OFF)
+option(SPHERE_WITH_OPENMP "Enables the usage of OpenMP in SPHERE" ON)
 option(BUILD_SHARED_LIBS "Build shared libraries." OFF)
 
 # set project options
 project(sphere VERSION 0.1 LANGUAGES CXX)
 
-# set compile flags in debug build mode
+# set macro DEBUG in debug build mode
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
+
+# if the library is to be built with OpenMP, check if it is available
+if (SPHERE_WITH_OPENMP)
+    find_package(OpenMP)
+    if (OPENMP_FOUND)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    endif()
+endif()
 
 # set-up bundled dependencies:
 # the json library will be included in every build
