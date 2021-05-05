@@ -29,6 +29,7 @@ Other build options are summarized in the following table:
 | `SPHERE_WITH_BENCHMARKS` | Builds the library with the `SPHERE_WITH_BENCHMARKS` macro and builds all programs in the benchmarks directory.                                                 | `OFF`         | `ON`                                   |
 | `BENCHMARKS_COUNT_OP`    | Builds the library with the `BENCHMARKS_COUNT_OP` macros. If activated, the  `FlopCounter` class will be built, otherwise the `Timer` class will be built. Note that this option will be ignored if `SPHERE_WITH_BENCHMARKS` is not set. | `OFF` | `ON`
 | `SPHERE_WITH_TESTS`      | Builds unit tests for the library relying on Google's C++ test infrastructure.                                                                     | `OFF`          | `ON`                                  |
+| `SPHERE_WITH_OPENMP`     | Builds the library with OpenMP activated if supported by your compiler. Run `export OMP_NUM_THREADS=XXX` to set the desired number of threads before running one of the SPHERE executables. | `ON` | `OFF` |
 
 
 ## Running SPHERE
