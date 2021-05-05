@@ -86,12 +86,15 @@ void sphere::Renderer::addScene(std::string pathToSceneFile)
  * @param pathToOutputFile path to output file in which the image is written, should be of type .ppm
  * @param width width of the image that is generated.
  * @param height height of the image that is generated.
+ * @param noOutput flag that, if set, prevents writing the computed image to a file
  */
-void sphere::Renderer::renderScene(std::string pathToOutputFile, itype width, itype height)
+void sphere::Renderer::renderScene(std::string pathToOutputFile, itype width, itype height, bool noOutput)
 {
     this->image = new Image(this->scene->cameraFov, width, height);
     this->renderPixels();
-    this->writeImageToFile(pathToOutputFile);
+    if (noOutput) {
+        this->writeImageToFile(pathToOutputFile);
+    } 
 }
 
 /**
@@ -130,11 +133,9 @@ sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector con
     while ((distance + t) < MAX_DISTANCE) {
         Vector ray = ray_origin + ray_direction * t;
         ftype minDistance = std::numeric_limits<ftype>::max();
-
-        // iterate over all shapes to determine the nearest
         for (Shape *shape : this->scene->shapes) {
             d = shape->distanceFunction(ray);
-            if(d < minDistance) {
+            if (d < minDistance) {
                 minDistance = d;
                 closestShape = shape;
             }
