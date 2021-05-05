@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     // TODO: parametrize this somehow, e.g. via CMD argument
     constexpr sphere::itype startWidth = 100, startHeight = 60;
     constexpr sphere::itype incStepW = 100, incStepH = 60;
-    constexpr sphere::itype numImages = 3;
+    constexpr sphere::itype numImages = 10;
 
     // parse the command line arguments
     cxxopts::Options options(
@@ -109,8 +109,9 @@ int main(int argc, char *argv[])
 
             // use SPHERE to render the scene and count the number of flops in the
             // region of interest
+            std::cout << "counting flops for image nr. " << i << std::endl;
             sphere::Renderer r;
-            TIMER_START();
+            r.addScene(sceneName);
             r.renderScene("../scenes/temp_scene.ppm", width, height);
 
             // store the number of flops
@@ -146,6 +147,8 @@ int main(int argc, char *argv[])
             // compute the image dimensions
             const sphere::itype width = startWidth + i * incStepW;
             const sphere::itype height = startHeight + i * incStepH;
+
+            std::cout << "timing image nr. " << i << std::endl;
 
             // loop over the number of repetitions
             for (size_t run = 0; run < reps; ++run) {
