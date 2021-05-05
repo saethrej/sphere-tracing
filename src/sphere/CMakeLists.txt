@@ -25,8 +25,8 @@ if (NOT TARGET sphere)
 
     # set the BENCHMARK macro if in benchmark mode
     if (SPHERE_WITH_BENCHMARKS)
-        if (BENCHMARK_COUNT_OP)
-            target_compile_definitions(sphere PUBLIC "SPHERE_WITH_BENCHMARKS" "BENCHMARK_COUNT_OP")
+        if (BENCHMARKS_COUNT_OP)
+            target_compile_definitions(sphere PUBLIC "SPHERE_WITH_BENCHMARKS" "BENCHMARKS_COUNT_OP")
         else()
             target_compile_definitions(sphere PUBLIC "SPHERE_WITH_BENCHMARKS")
         endif()

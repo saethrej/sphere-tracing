@@ -74,7 +74,7 @@ private:
 } // namespace sphere
 
 // define macros to simplify the handling of the flop counter
-#define COUNT_OPS(num) sphere::FlopCounter::increment(#num)
+#define COUNT_OPS(num) sphere::FlopCounter::increment(num)
 #define COUNT_CLEAR() sphere::FlopCounter::clear()
 #define COUNT_GET() sphere::FlopCounter::get()
 
@@ -105,7 +105,7 @@ public:
 private:
     explicit Timer();
     inline static double timeInMs = 0.0; //!< time elapsed in [ms]
-    static std::chrono::time_point<std::chrono::high_resolution_clock> startTime; //!< start time point
+    inline static std::chrono::time_point<std::chrono::high_resolution_clock> startTime; //!< start time point
 };
 } // namespace sphere
 
