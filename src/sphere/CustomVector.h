@@ -70,6 +70,9 @@ public:
     Color operator+(const Color &other);
     Color& operator+=(const Color &other);
     Color operator*(const ftype &other);
+    
+    // comparison function
+    bool equals(const Color &other);
 };
 
 /**
@@ -110,6 +113,7 @@ public:
     VectorVal maxComponent() const;
     VectorVal minComponent() const;
     Vector rotate(ftype rotationMatrix[]) const;
+    std::tuple<bool, bool, bool> shadowAxes() const;
 };
 
 /**

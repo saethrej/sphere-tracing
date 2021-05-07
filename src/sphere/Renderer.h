@@ -53,14 +53,18 @@ constexpr itype MAX_DISTANCE = 100;
 constexpr ftype TRACE_THRESHOLD = 10e-12;
 // delta used to compute the normal vector on an object surface
 constexpr ftype NORMAL_DELTA = 10e-5;
+// weighting for broad vs central specular light effect (higher -> more central)
+constexpr ftype SPECULAR_BIAS = 1;
 // bias for reflection
-constexpr ftype REFLECTION_BIAS = 10e-5;
+constexpr ftype REFLECTION_BIAS = 10e-1;
 // threshold for distance to object (shadow)
 constexpr ftype SHADOW_THRESHOLD = 10e-5;
 // number of additional additional circles with 4 rays shot to compute shadow
 constexpr ftype SHADOW_CIRCLES = 0.0;
 // distance of rays on the circle to actual point
-constexpr ftype SHADOW_DELTA = 10e-3;
+constexpr ftype SHADOW_DELTA = 3*10e-3;
+// max value that is subtracted from the shadow_weight (higher -> darker shadow)
+constexpr ftype SHADOW_MAX = 0.9;
 
 /**
  * @brief Renderer object that stores information about the scene it should render
