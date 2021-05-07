@@ -190,11 +190,15 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
     // compute specular highlights
     Vector lightrefl = light_dir_norm - normal * 2 * (light_dir_norm * normal);
     lightrefl = lightrefl.normalize();
-    ftype specular_weight_central = pow(lightrefl * ray_normalized, 1.0/shape->shininess);
-    ftype specular_weight_middle = pow(lightrefl * ray_normalized * 0.75, 1.0/shape->shininess);
-    ftype specular_weight_broad = pow(lightrefl * ray_normalized, 1.0/shape->shininess);
-    ftype specular_weight = SPECULAR_BIAS * specular_weight_central + ((1 - SPECULAR_BIAS)/2) * specular_weight_broad + ((1 - SPECULAR_BIAS)/2) * specular_weight_middle;
-    Color specular = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0,specular_weight/10);
+    ftype specular_weight_central = pow(lightrefl * ray_normalized, 100.0/shape->shininess);
+    ftype specular_weight_middle = pow(lightrefl * ray_normalized, shape->shininess)/2;
+    ftype specular_weight_wide = pow(lightrefl * ray_normalized, 2);
+    ftype specular_weight_broad = lightrefl * ray_normalized;
+    ftype specular_weight = SPECULAR_BIAS * specular_weight_central;
+    specular_weight += ((1 - SPECULAR_BIAS)/3) * specular_weight_broad;
+    specular_weight += ((1 - SPECULAR_BIAS)/3) * specular_weight_middle;
+    specular_weight += ((1 - SPECULAR_BIAS)/3) * specular_weight_middle;
+    Color specular = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0,specular_weight);
     
     // compute the reflection if object reflects
     Color reflection_color = Color(0,0,0);
@@ -217,12 +221,15 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
 
     // combine the different color values
     Color col = Color();
-    col += (ambient + diffuse + specular) * (1 - reflection_weight) * shadow_weight;
-    col += reflection_color               * reflection_weight       * (shadow_weight + (1-shadow_weight)/4.0);
+    //col += (ambient + diffuse + specular) * (1 - reflection_weight) * shadow_weight;
+    //col += reflection_color               * reflection_weight       * (shadow_weight + (1-shadow_weight)/4.0);
+    col += (ambient + diffuse + specular) * (1 - reflection_weight);
+    col += reflection_color               * reflection_weight;
     col.r = std::min(col.r, 1.0f);
     col.g = std::min(col.g, 1.0f);
     col.b = std::min(col.b, 1.0f);
-    return col;
+    return col * shadow_weight;
+    //return col;
 }
 
 /**
