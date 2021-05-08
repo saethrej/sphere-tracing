@@ -35,7 +35,7 @@ Other build options are summarized in the following table:
 ## Running SPHERE
 We recommend running SPHERE from the build folder of this project  for the paths to possible inputs/outputs to resolve correctly. To launch SPHERE, run:
 ```bash
-./build/examples/sphere_miniapp --scenes=0,1,2 --dim=1000,600
+./examples/sphere_miniapp --scenes=0,1,2 --dim=1000,600
 ```
 This renders scenes 0,1,2 with 1000x600 pixel resolution.
 
