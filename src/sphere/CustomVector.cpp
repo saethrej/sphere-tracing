@@ -40,6 +40,7 @@
 #include <math.h>
 #include <ostream>
 #include <algorithm>
+#include <tuple>
 
 #include "SphereTypes.h"
 #include "CustomVector.h"
@@ -277,6 +278,24 @@ sphere::Vector sphere::Vector::rotate(ftype rotationMatrix[]) const
     return sphere::Vector(r_x, r_y, r_z);
 }
 
+/**
+ * @brief calculates in which axis the vector has its biggest expansion 
+ * and returns false for this and true for the other two axes
+ * 
+ * @return std::tuple<bool, bool, bool> false for the axis with the biggest expansion, true for the other two
+ */
+std::tuple<bool, bool, bool> sphere::Vector::shadowAxes() const
+{
+    if(std::fabs(x) > std::fabs(y) && std::fabs(x) > std::fabs(z)){
+        return std::make_tuple(false, true, true);
+    }
+    if(std::fabs(y) > std::fabs(z)){
+        return std::make_tuple(true, false, true);
+    } else {
+        return std::make_tuple(true, true, false);
+    }
+}
+
 /********************************* Vector2 ***********************************/
 
 /**
@@ -465,6 +484,18 @@ std::ostream& sphere::operator<<(std::ostream &out, Color const &col)
 {
     out << "(" << col.r << "," << col.g << "," << col.b << ")";
     return out;
+}
+
+/**
+ * @brief compares two colors and returns true if they are equal
+ * 
+ * @param other the other color to compare with
+ * @return true if r,g,b values are the same for both colors
+ * @return false else
+ */
+bool sphere::Color::equals(Color const &other)
+{
+    return (r == other.r && g == other.g && b == other.b);
 }
 
 /**
