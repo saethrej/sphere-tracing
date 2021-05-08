@@ -48,6 +48,8 @@
 
 // the library is built with the intention to count the flops
 #ifdef BENCHMARKS_COUNT_OP
+
+#include <atomic>
 // first, define empty macros for the timer-related stuff
 #define TIMER_START()
 #define TIMER_END()
@@ -69,7 +71,7 @@ public:
     static uint64_t get();
 private:
     explicit FlopCounter(); // do not allow instantiation
-    inline static uint64_t flops = 0; //!< the number of flops encountered so far
+    inline static std::atomic<uint64_t> flops = 0; //!< the number of flops encountered so far
 };
 } // namespace sphere
 
