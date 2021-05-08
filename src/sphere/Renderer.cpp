@@ -271,7 +271,7 @@ sphere::ftype sphere::Renderer::shadow(Vector const &ray_to_shade, Vector const 
                 shadow_weight -= shadow_step;
             }
         }
-        if(std::get<0>(axes)){
+        if(std::get<2>(axes)){
             if(ObjectInBetween(ray_to_shade, lightDir + dz * (i + 1), dist)){
                 shadow_weight -= shadow_step;
             }
