@@ -40,6 +40,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <queue>
 
 #ifdef SPHERE_WITH_OPENMP
 #include <omp.h>
@@ -135,22 +136,39 @@ sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector con
 {
     ftype t = 0, d = 0;
     Shape *closestShape;
+    ftype minDistance;
+    ftype totalDistance;
+    std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp> shape_prio;
 
-    while ((distance + t) < MAX_DISTANCE) {
-        Vector ray = ray_origin + ray_direction * t;
-        ftype minDistance = std::numeric_limits<ftype>::max();
-        for (Shape *shape : this->scene->shapes) {
-            d = shape->distanceFunction(ray);
-            if (d < minDistance) {
-                minDistance = d;
-                closestShape = shape;
+    Vector ray = ray_origin + ray_direction * t;
+    for (Shape *shape : this->scene->shapes) {
+        d = shape->distanceFunction(ray);
+        shape_prio.push(shape_dist{d, shape});
+    }
+    closestShape = shape_prio.top().shape;
+    minDistance = shape_prio.top().distance;
+    totalDistance = 0;
+    shape_prio.pop();
+
+    while((distance + t) < MAX_DISTANCE) {
+        ray = ray_origin + ray_direction * t;
+        minDistance = closestShape->distanceFunction(ray);
+        if(shape_prio.top().distance < (totalDistance + minDistance)){
+            shape_prio = std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp>();
+            for (Shape *shape : this->scene->shapes) {
+                d = shape->distanceFunction(ray);
+                shape_prio.push(shape_dist{d, shape});
             }
+            closestShape = shape_prio.top().shape;
+            minDistance = shape_prio.top().distance;
+            totalDistance = 0;
+            shape_prio.pop();
         }
-        // check if shape hit
-        if (minDistance <= TRACE_THRESHOLD* t){
+        if(minDistance <= TRACE_THRESHOLD * t){
             return shade(ray, ray_direction, closestShape, distance + t);
         }
         t = t + minDistance;
+        totalDistance = totalDistance + minDistance;
     }
     return Color(0,0,0);
 }
@@ -296,26 +314,41 @@ sphere::ftype sphere::Renderer::shadow(Vector const &ray_to_shade, Vector const 
 bool sphere::Renderer::ObjectInBetween(Vector const &ray_origin, Vector const &ray_direction, ftype max_dist)
 {
     ftype t = 0, d = 0;
+    Shape *closestShape;
+    ftype minDistance;
+    ftype totalDistance;
+    std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp> shape_prio;
 
-    while (t < max_dist) {
-        Vector ray = ray_origin + ray_direction * t;
-        ftype minDist = std::numeric_limits<ftype>::max();
-
-        // iterate over all shapes to determine the nearest distance
-        for (Shape *shape : this->scene->shapes) {
-            d = shape->distanceFunction(ray);
-            // keep track of the smallest distance seen so far
-            if (d < minDist){
-                minDist = d;
-            } 
-            // check if shape hit
-            if (minDist <= SHADOW_THRESHOLD * t){
-                return true;
-            }           
-        }
-        t += minDist;
+    Vector ray = ray_origin + ray_direction * t;
+    for (Shape *shape : this->scene->shapes) {
+        d = shape->distanceFunction(ray);
+        shape_prio.push(shape_dist{d, shape});
     }
-    // if no object is in between, return false
+    closestShape = shape_prio.top().shape;
+    minDistance = shape_prio.top().distance;
+    totalDistance = 0;
+    shape_prio.pop();
+
+    while(t < max_dist) {
+        ray = ray_origin + ray_direction * t;
+        minDistance = closestShape->distanceFunction(ray);
+        if(shape_prio.top().distance < (totalDistance + minDistance)){
+            shape_prio = std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp>();
+            for (Shape *shape : this->scene->shapes) {
+                d = shape->distanceFunction(ray);
+                shape_prio.push(shape_dist{d, shape});
+            }
+            closestShape = shape_prio.top().shape;
+            minDistance = shape_prio.top().distance;
+            totalDistance = 0;
+            shape_prio.pop();
+        }
+        if(minDistance <= TRACE_THRESHOLD * t){
+            return true;
+        }
+        t = t + minDistance;
+        totalDistance = totalDistance + minDistance;
+    }
     return false;
 }
 
