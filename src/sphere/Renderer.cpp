@@ -343,7 +343,7 @@ bool sphere::Renderer::ObjectInBetween(Vector const &ray_origin, Vector const &r
             totalDistance = 0;
             shape_prio.pop();
         }
-        if(minDistance <= TRACE_THRESHOLD * t){
+        if(minDistance <= SHADOW_THRESHOLD * t){
             return true;
         }
         t = t + minDistance;
