@@ -196,7 +196,10 @@ sphere::Plane::Plane(json const &plane)
         // print information on exception and rethrow as SphereException
         std::cerr << e.what() << std::endl;
         throw SphereException(SphereException::ErrorCode::JsonSyntaxError);
-    }    
+    } 
+
+    maxZDistance = this->normal.z < 0  ? displacement : std::numeric_limits<ftype>::min();   
+    
 }
 
 /**
@@ -232,6 +235,38 @@ sphere::Box::Box(json const &box)
         std::cerr << e.what() << std::endl;
         throw SphereException(SphereException::ErrorCode::JsonSyntaxError);
     }
+
+    ftype rotationMatrix[9] = { inverseRotation[0], inverseRotation[3], inverseRotation[6],
+    inverseRotation[1], inverseRotation[4], inverseRotation[7],
+    inverseRotation[2], inverseRotation[5], inverseRotation[8]};
+    
+
+    // @TODO only use two corners and construct the others from there
+    // we find all coordinates in object space
+    Vector cornerCoordinates[9] = {
+        // lower
+        Vector(-extents.x/2.0, -extents.y/2.0, -extents.z/2.0), // back left
+        Vector(extents.x/2.0, -extents.y/2.0, - extents.z/2.0), // back right
+        Vector(-extents.x/2.0, -extents.y/2.0, extents.z/2.0), //front left
+        Vector(extents.x/2.0, -extents.y/2.0, extents.z/2.0),
+        // upper
+        Vector(-extents.x/2.0, extents.y/2.0, -extents.z/2.0), // back left
+        Vector(extents.x/2.0, extents.y/2.0, - extents.z/2.0), // back right
+        Vector(-extents.x/2.0, extents.y/2.0, extents.z/2.0), //front left
+        Vector(extents.x/2.0, extents.y/2.0, extents.z/2.0),      
+    };
+
+    // now we need to rotate translate to find the maximum distance
+    // only corners need to be considered
+    maxZDistance = std::numeric_limits<ftype>::min();
+    ftype z_transformed;
+    for (uint8_t i = 0; i < 8; ++i) {
+        z_transformed = (cornerCoordinates[i].rotate(rotationMatrix) + position).length();
+        if (z_transformed > maxZDistance) {
+            maxZDistance = z_transformed;
+        }
+    }
+
 }
 
 /**
@@ -268,6 +303,8 @@ sphere::Sphere::Sphere(json const &sph)
         std::cerr << e.what() << std::endl;
         throw SphereException(SphereException::ErrorCode::JsonSyntaxError);
     }
+
+    maxZDistance = (position + Vector(0.,0., radius)).length();
 }
 
 /**
@@ -303,6 +340,15 @@ sphere::Torus::Torus(json const &torus)
         std::cerr << e.what() << std::endl;
         throw SphereException(SphereException::ErrorCode::JsonSyntaxError);
     }
+
+    ftype rotationMatrix[9] = { inverseRotation[0], inverseRotation[3], inverseRotation[6],
+    inverseRotation[1], inverseRotation[4], inverseRotation[7],
+    inverseRotation[2], inverseRotation[5], inverseRotation[8]};
+
+    Vector rotatedOuterRadius = Vector(0.0,0.0, r1).rotate(rotationMatrix);
+    // we need to account for the thickness of the torus
+    // as such, the maximal distance will not be exact
+    maxZDistance = (position + rotatedOuterRadius).length() + (r1-r2);
 }
 
 /**
@@ -337,6 +383,31 @@ sphere::Octahedron::Octahedron(json const &octa)
         // print information on exception and rethrow as SphereException
         std::cerr << e.what() << std::endl;
         throw SphereException(SphereException::ErrorCode::JsonSyntaxError);
+    }
+    
+    ftype rotationMatrix[9] = { inverseRotation[0], inverseRotation[3], inverseRotation[6],
+    inverseRotation[1], inverseRotation[4], inverseRotation[7],
+    inverseRotation[2], inverseRotation[5], inverseRotation[8]};
+
+    // since we only have on coordinate in each vector, we could probably do this without rotation
+    Vector cornerCoordinates[6] = {
+        Vector(0.0, s, 0.0), // up
+        Vector(0.0, -s, 0.0),  // down
+        Vector(-s, 0.0, 0.0), // left
+        Vector(s, 0.0,0.0), // right
+        Vector(0.0,0.0, s), //front
+        Vector(0.0,0.0, -s) // back
+    };
+
+    // now we need to rotate translate to find the maximum distance
+    // only corners need to be considered
+    maxZDistance = std::numeric_limits<ftype>::min();
+    ftype z_transformed;
+    for (uint8_t i = 0; i < 6; ++i) {
+        z_transformed = (cornerCoordinates[i].rotate(rotationMatrix) + position).length();
+        if (z_transformed > maxZDistance) {
+            maxZDistance = z_transformed;
+        }
     }
 }
 
@@ -389,6 +460,9 @@ sphere::Cone::Cone(json const &cone)
 {
     try {
         json fm = cone["params"];
+        // param 1: upper radius
+        // param 0: lower radius (at center)
+        // param 2: height
         this->form = {fm[0], fm[1], fm[2]};
     }
     catch (const json::exception &e) {
@@ -396,6 +470,30 @@ sphere::Cone::Cone(json const &cone)
         std::cerr << e.what() << std::endl;
         throw SphereException(SphereException::ErrorCode::JsonSyntaxError);
     }
+
+    // we rotate the height vector:
+
+    ftype rotationMatrix[9] = { inverseRotation[0], inverseRotation[3], inverseRotation[6],
+    inverseRotation[1], inverseRotation[4], inverseRotation[7],
+    inverseRotation[2], inverseRotation[5], inverseRotation[8]};
+
+    Vector up(0.0, form.z, 0.0);
+    Vector radDown(0,0,form.x);
+    Vector radUp(0,0,form.y);
+    Vector rotatedUp = up.rotate(rotationMatrix);
+    Vector rotatedSmallerRadius = radDown.rotate(rotationMatrix);
+    Vector rotatedUpperRadius = radUp.rotate(rotationMatrix);
+
+
+    // this is a rather coarse approximation
+    // we need to take the maximum of either the outer edge in z direction of the smaller circle or the larger circle
+    // this will calculate a coarse approximation due to the addition of the radiuses without rotation
+    maxZDistance = std::max((position + rotatedUp).length() + form.y, position.length() + form.x); 
+
+
+
+
+
 }
 
 /**

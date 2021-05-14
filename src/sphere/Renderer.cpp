@@ -56,6 +56,7 @@ sphere::Renderer::Renderer()
 {
     this->scene = nullptr;
     this->image = nullptr;
+    maxDistance = std::numeric_limits<ftype>::min();
 }
 
 /**
@@ -80,6 +81,17 @@ sphere::Renderer::~Renderer()
 void sphere::Renderer::addScene(std::string pathToSceneFile)
 {
     this->scene = new Scene(pathToSceneFile);
+
+    // we need to instantiate maxDistance here
+    for (Shape *shape : this->scene->shapes) {
+        if(shape->maxZDistance > maxDistance) {
+            maxDistance = shape->maxZDistance;
+        }
+    }
+
+    // we still want a max distance threshold as the camera cannot render into infinity
+    maxDistance = std::min(maxDistance, std::max(maxDistance,MAX_CAMERA_VISIBILITY));
+
 }
 
 /**
@@ -149,8 +161,8 @@ sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector con
     minDistance = shape_prio.top().distance;
     totalDistance = 0;
     shape_prio.pop();
+    while((distance + t) < maxDistance) {
 
-    while((distance + t) < MAX_DISTANCE) {
         ray = ray_origin + ray_direction * t;
         minDistance = closestShape->distanceFunction(ray);
         if(shape_prio.top().distance < (totalDistance + minDistance)){

@@ -47,10 +47,10 @@
 
 namespace sphere {
 
-// maximum distance of a ray traced (including reflections)
-constexpr itype MAX_DISTANCE = 100;
 // threshold for distance to object (sphere tracing)
 constexpr ftype TRACE_THRESHOLD = 10e-12;
+//the maximum distance the camera can render
+constexpr ftype MAX_CAMERA_VISIBILITY = 100;
 // delta used to compute the normal vector on an object surface
 constexpr ftype NORMAL_DELTA = 10e-5;
 // weighting for broad vs central specular light effect (higher -> more central)
@@ -95,6 +95,7 @@ public:
     // public member functions
     void addScene(std::string pathToSceneFile);
     void renderScene(std::string pathToOutputFile, itype width, itype height, bool noOutput = false);
+    ftype maxDistance;
 
     // public member fields
     Scene *scene;

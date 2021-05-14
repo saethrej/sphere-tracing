@@ -85,7 +85,8 @@ public:
     ftype reflection;
     ftype shininess;
     Color color;
-    ShapeType type;  
+    ShapeType type;
+    ftype maxZDistance;  
     ftype inverseRotation[9];
 };
 
