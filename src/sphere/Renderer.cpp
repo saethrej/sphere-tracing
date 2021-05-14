@@ -139,6 +139,7 @@ sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector con
     ftype minDistance;
     ftype totalDistance;
     std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp> shape_prio;
+    std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp> shape_prio_temp;
 
     Vector ray = ray_origin + ray_direction * t;
     for (Shape *shape : this->scene->shapes) {
@@ -147,20 +148,40 @@ sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector con
     }
     closestShape = shape_prio.top().shape;
     minDistance = shape_prio.top().distance;
+    ftype closest_shape_dist = minDistance;
     totalDistance = 0;
     shape_prio.pop();
+
+    Shape *shape;
+    ftype dist_before;
 
     while((distance + t) < MAX_DISTANCE) {
         ray = ray_origin + ray_direction * t;
         minDistance = closestShape->distanceFunction(ray);
         if(shape_prio.top().distance < (totalDistance + minDistance)){
-            shape_prio = std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp>();
-            for (Shape *shape : this->scene->shapes) {
-                d = shape->distanceFunction(ray);
-                shape_prio.push(shape_dist{d, shape});
+            bool bigger = true;
+            shape_prio_temp.push(shape_dist{minDistance, closestShape});
+            if(minDistance < closest_shape_dist){
+                bigger = false;
             }
+            while(shape_prio.size() > 0){
+                shape = shape_prio.top().shape;
+                dist_before = shape_prio.top().distance;
+                shape_prio.pop();
+                d = shape->distanceFunction(ray);
+                if(d < dist_before*2){
+                    bigger = false;
+                }
+                shape_prio_temp.push(shape_dist{d, shape});
+            }
+            if(bigger){
+                return Color(0,0,0);
+            }
+            shape_prio = shape_prio_temp;
+            shape_prio_temp = std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp>();
             closestShape = shape_prio.top().shape;
             minDistance = shape_prio.top().distance;
+            closest_shape_dist = minDistance;
             totalDistance = 0;
             shape_prio.pop();
         }
@@ -318,6 +339,7 @@ bool sphere::Renderer::ObjectInBetween(Vector const &ray_origin, Vector const &r
     ftype minDistance;
     ftype totalDistance;
     std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp> shape_prio;
+    std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp> shape_prio_temp;
 
     Vector ray = ray_origin + ray_direction * t;
     for (Shape *shape : this->scene->shapes) {
@@ -326,20 +348,40 @@ bool sphere::Renderer::ObjectInBetween(Vector const &ray_origin, Vector const &r
     }
     closestShape = shape_prio.top().shape;
     minDistance = shape_prio.top().distance;
+    ftype closest_shape_dist = minDistance;
     totalDistance = 0;
     shape_prio.pop();
+
+    Shape *shape;
+    ftype dist_before;
 
     while(t < max_dist) {
         ray = ray_origin + ray_direction * t;
         minDistance = closestShape->distanceFunction(ray);
         if(shape_prio.top().distance < (totalDistance + minDistance)){
-            shape_prio = std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp>();
-            for (Shape *shape : this->scene->shapes) {
-                d = shape->distanceFunction(ray);
-                shape_prio.push(shape_dist{d, shape});
+            bool bigger = true;
+            shape_prio_temp.push(shape_dist{minDistance, closestShape});
+            if(minDistance < closest_shape_dist){
+                bigger = false;
             }
+            while(shape_prio.size() > 0){
+                shape = shape_prio.top().shape;
+                dist_before = shape_prio.top().distance;
+                shape_prio.pop();
+                d = shape->distanceFunction(ray);
+                if(d <= dist_before){
+                    bigger = false;
+                }
+                shape_prio_temp.push(shape_dist{d, shape});
+            }
+            if(bigger){
+                return false;
+            }
+            shape_prio = shape_prio_temp;
+            shape_prio_temp = std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp>();
             closestShape = shape_prio.top().shape;
             minDistance = shape_prio.top().distance;
+            closest_shape_dist = minDistance;
             totalDistance = 0;
             shape_prio.pop();
         }
