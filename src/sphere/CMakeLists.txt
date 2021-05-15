@@ -7,7 +7,7 @@ if (NOT TARGET sphere)
                          Scene.cpp
                          ImageClasses.cpp
                          Renderer.cpp
-                         CustomVector.cpp
+                         #CustomVector.cpp
     )
     # the benchmark object is only built if option SPHERE_WITH_BENCHMARKS is chosen
     if (SPHERE_WITH_BENCHMARKS)

@@ -210,7 +210,7 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
         // Vector refldir = ray_normalized - normal * 2 * (ray_normalized * normal);
         refldir = refldir.normalize();
         reflection_color = sphereTrace(ray + normal*REFLECTION_BIAS, refldir, distance);
-        if (reflection_color.equals(Color(0,0,0))){
+        if (reflection_color == Color(0,0,0)){
             reflection_weight = reflection_weight/4.0;
         }
     }
