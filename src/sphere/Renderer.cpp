@@ -118,7 +118,7 @@ void sphere::Renderer::renderPixels()
                 1
             };
             ray_direction = ray_direction.normalize();
-            Color col = sphereTrace(ray_origin, ray_direction, 0.0);
+            Color col = sphereTrace(ray_direction, 0.0);
             this->image->pixels[i * (this->image->width) + j].writeColor(col);
         }
     }
@@ -132,23 +132,30 @@ void sphere::Renderer::renderPixels()
  * @param distance distance already considered for this ray
  * @return sphere::Color with which the ray should be shaded
  */
-sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector const &ray_direction, ftype distance)
+sphere::Color sphere::Renderer::sphereTrace(Vector &ray_direction, ftype distance)
 {
+    Vector ray_origin(0,0,0);
     ftype t = 0, d = 0;
     Shape *closestShape;
     ftype minDistance;
     ftype totalDistance;
     std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp> shape_prio;
 
+    Vector dx = {NORMAL_DELTA, 0.0, 0.0}, dy = {0.0, NORMAL_DELTA, 0.0}, dz = {0.0, 0.0, NORMAL_DELTA};
+    Color final_Color = Color(0,0,0);
+    ftype reflectionFactor = 1.0;
+    ftype shadowFactor = 1.0;
+
+
     Vector ray = ray_origin + ray_direction * t;
     for (Shape *shape : this->scene->shapes) {
         d = shape->distanceFunction(ray);
         shape_prio.push(shape_dist{d, shape});
-    }
-    closestShape = shape_prio.top().shape;
-    minDistance = shape_prio.top().distance;
-    totalDistance = 0;
-    shape_prio.pop();
+        }
+        closestShape = shape_prio.top().shape;
+        minDistance = shape_prio.top().distance;
+        totalDistance = 0;
+        shape_prio.pop();
 
     while((distance + t) < MAX_DISTANCE) {
         ray = ray_origin + ray_direction * t;
@@ -165,12 +172,55 @@ sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector con
             shape_prio.pop();
         }
         if(minDistance <= TRACE_THRESHOLD * t){
-            return shade(ray, ray_direction, closestShape, distance + t);
+
+            Vector normal = Vector(
+            closestShape->distanceFunction(ray + dx) - closestShape->distanceFunction(ray - dx),
+            closestShape->distanceFunction(ray + dy) - closestShape->distanceFunction(ray - dy),
+            closestShape->distanceFunction(ray + dz) - closestShape->distanceFunction(ray - dz)
+            ).normalize();
+            // compute the color without reflection
+                // compute the shadow
+            Vector light_dir = (this->scene->lightPos - ray);
+            Vector light_dir_norm = light_dir.normalize();
+            ftype light_len = light_dir.length();
+            Color phongColor = shade(ray, ray_direction, normal, closestShape, distance + t);
+            ftype reflection_weight = closestShape->reflection;
+
+            // we don't reflect, no need to keep going
+            ftype shadow_weight = shadow(ray, light_dir_norm, light_len);
+
+            final_Color =  final_Color + phongColor * (1-reflection_weight) * reflectionFactor * shadowFactor * shadow_weight;
+
+
+            if(reflection_weight == 0){
+                return final_Color;
+            }
+            shadowFactor = shadow_weight;
+            reflectionFactor = reflection_weight;
+        
+            // we go reflecting
+            // exp version
+            Vector refldir = ray_direction + normal * 2 * std::exp((ray_direction * normal) + 1);
+            // normal version
+            // Vector refldir = ray_normalized - normal * 2 * (ray_normalized * normal);
+            refldir = refldir.normalize();
+            ray_origin = ray + normal * REFLECTION_BIAS;
+            ray_direction = refldir;
+            t = 0;
+            shape_prio = std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp>();
+            for (Shape *shape : this->scene->shapes) {
+                d = shape->distanceFunction(ray);
+                shape_prio.push(shape_dist{d, shape});
+            }
+            closestShape = shape_prio.top().shape;
+            minDistance = shape_prio.top().distance;
+            totalDistance = 0;
+            shape_prio.pop();
         }
         t = t + minDistance;
         totalDistance = totalDistance + minDistance;
     }
-    return Color(0,0,0);
+    return final_Color;
 }
 
 /**
@@ -183,17 +233,10 @@ sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector con
  * @param distance distance already considered
  * @return sphere::Color whith which the ray should be shaded
  */
-sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_normalized, Shape *shape, ftype distance)
+sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_normalized, Vector const &normal, Shape *shape, ftype distance)
 {
     // create delta vectors and use them to compute the normal vector of the 
     // tangential plane at the point where the ray and the shape intersect
-    Vector dx = {NORMAL_DELTA, 0.0, 0.0}, dy = {0.0, NORMAL_DELTA, 0.0}, dz = {0.0, 0.0, NORMAL_DELTA};
-    Vector normal = Vector(
-        shape->distanceFunction(ray + dx) - shape->distanceFunction(ray - dx),
-        shape->distanceFunction(ray + dy) - shape->distanceFunction(ray - dy),
-        shape->distanceFunction(ray + dz) - shape->distanceFunction(ray - dz)
-    );
-    normal = normal.normalize();
 
     // get the vector of the light point to the intersection point, and compute the
     // dot product of said vector with the normal vector of the tangential plane computed
@@ -217,36 +260,17 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
     specular_weight += ((1 - SPECULAR_BIAS)/3) * specular_weight_middle;
     specular_weight += ((1 - SPECULAR_BIAS)/3) * specular_weight_middle;
     Color specular = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0,specular_weight);
-    
-    // compute the reflection if object reflects
-    Color reflection_color = Color(0,0,0);
-    ftype reflection_weight = shape->reflection;
-    if(reflection_weight > 0){
-        // exp version
-        Vector refldir = ray_normalized + normal * 2 * std::exp((ray_normalized * normal) + 1);
-        // normal version
-        // Vector refldir = ray_normalized - normal * 2 * (ray_normalized * normal);
-        refldir = refldir.normalize();
-        reflection_color = sphereTrace(ray + normal*REFLECTION_BIAS, refldir, distance);
-        if (reflection_color.equals(Color(0,0,0))){
-            reflection_weight = reflection_weight/4.0;
-        }
-    }
-
-    // compute the shadow
-    ftype light_len = light_dir.length();
-    ftype shadow_weight = shadow(ray, light_dir_norm, light_len);
 
     // combine the different color values
     Color col = Color();
     //col += (ambient + diffuse + specular) * (1 - reflection_weight) * shadow_weight;
     //col += reflection_color               * reflection_weight       * (shadow_weight + (1-shadow_weight)/4.0);
-    col += (ambient + diffuse + specular) * (1 - reflection_weight);
-    col += reflection_color               * reflection_weight;
-    col.r = std::min(col.r, 1.0f);
-    col.g = std::min(col.g, 1.0f);
-    col.b = std::min(col.b, 1.0f);
-    return col * shadow_weight;
+    col += (ambient + diffuse + specular);// * (1 - reflection_weight);
+    //col += reflection_color               * reflection_weight;
+    //col.r = std::min(col.r, 1.0f);
+    //col.g = std::min(col.g, 1.0f);
+    //col.b = std::min(col.b, 1.0f);
+    return col;// * shadow_weight;
     //return col;
 }
 

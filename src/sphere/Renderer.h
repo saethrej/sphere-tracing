@@ -104,8 +104,8 @@ private:
     // private member functions
     void renderPixels();
     void writeImageToFile(std::string pathToFile);
-    Color sphereTrace(Vector const &ray_origin, Vector const &ray_direction, ftype distance);
-    Color shade(Vector const &ray_to_shape, Vector const &ray_normalized, Shape *shape, ftype distance);
+    Color sphereTrace(Vector &ray_direction, ftype distance);
+    Color shade(Vector const &ray_to_shape, Vector const &ray_normalized, Vector const &normal, Shape *shape, ftype distance);
     ftype shadow(Vector const &ray_to_shade, Vector const &lightDir, ftype dist);
     bool ObjectInBetween(Vector const &ray_origin, Vector const &ray_direction, ftype max_dist);
 };
