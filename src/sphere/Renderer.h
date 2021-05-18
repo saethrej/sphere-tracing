@@ -66,6 +66,21 @@ constexpr ftype SHADOW_DELTA = 2*10e-3;
 // max value that is subtracted from the shadow_weight (higher -> darker shadow)
 constexpr ftype SHADOW_MAX = 0.9;
 
+struct shape_dist
+{
+    ftype distance;
+    Shape *shape;
+};
+
+struct shape_dist_comp
+{
+    bool operator()(const shape_dist& lhs, const shape_dist& rhs) const
+    {
+        return lhs.distance > rhs.distance;
+    }
+};
+
+
 /**
  * @brief Renderer object that stores information about the scene it should render
  * and the image that should be produced.
