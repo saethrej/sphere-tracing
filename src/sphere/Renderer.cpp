@@ -183,7 +183,7 @@ sphere::Color sphere::Renderer::sphereTrace(Vector &ray_direction, ftype distanc
             Vector light_dir = (this->scene->lightPos - ray);
             Vector light_dir_norm = light_dir.normalize();
             ftype light_len = light_dir.length();
-            Color phongColor = shade(ray, ray_direction, normal, closestShape, distance + t);
+            Color phongColor = shade(ray, ray_direction, normal, light_dir_norm, closestShape);
             ftype reflection_weight = closestShape->reflection;
 
             // we don't reflect, no need to keep going
@@ -233,17 +233,15 @@ sphere::Color sphere::Renderer::sphereTrace(Vector &ray_direction, ftype distanc
  * @param distance distance already considered
  * @return sphere::Color whith which the ray should be shaded
  */
-sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_normalized, Vector const &normal, Shape *shape, ftype distance)
+sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_normalized, Vector const &normal, Vector const &light_dir_norm, Shape *shape)
 {
     // create delta vectors and use them to compute the normal vector of the 
     // tangential plane at the point where the ray and the shape intersect
 
     // get the vector of the light point to the intersection point, and compute the
     // dot product of said vector with the normal vector of the tangential plane computed
-    // above. If it's larger than zero, this indicates that the ray is hitting the 
+    // above. If it's larger than zero, this indicates that the ray is hitting the ó
     // shape from the front, which means it's important to our image
-    Vector light_dir = (this->scene->lightPos - ray);
-    Vector light_dir_norm = light_dir.normalize();
     ftype NdotL = (light_dir_norm * normal)/2;
     Color ambient = shape->color;
     Color diffuse = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0, NdotL);
