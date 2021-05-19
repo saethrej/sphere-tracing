@@ -80,13 +80,14 @@ public:
     static ShapeType getShapeType(std::string shapeName);
 
     // public member variables shared by all shapes
-    Vector position;
-    Vector rotation;
-    ftype reflection;
-    ftype shininess;
-    Color color;
-    ShapeType type;  
-    ftype inverseRotation[9];
+    Vector position;  //!< the shape's position
+    Vector rotation;  //!< the shape's rotation
+    ftype reflection; //!< the shape's reflection coefficient
+    ftype shininess;  //!< the shape's shininess value
+    Color color;      //!< the shape's color (RGB)
+    ShapeType type;   //!< the type of the shape
+    bool isRotated;   //!< indicates whether rotation is non-zero
+    ftype inverseRotation[9]; //!< inverse rotation matrix
 };
 
 /**
