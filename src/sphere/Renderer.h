@@ -66,6 +66,9 @@ constexpr ftype SHADOW_DELTA = 2*10e-3;
 // max value that is subtracted from the shadow_weight (higher -> darker shadow)
 constexpr ftype SHADOW_MAX = 0.9;
 
+// helper
+constexpr ftype shadow_step = SHADOW_MAX/(1.0 + SHADOW_CIRCLES*4.0);
+
 struct shape_dist
 {
     ftype distance;
