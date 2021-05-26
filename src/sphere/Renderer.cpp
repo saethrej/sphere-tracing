@@ -406,16 +406,19 @@ void sphere::Renderer::microbenchmarkDistanceFunctions()
     // microbenchmark the distance functions individually by looping over all
     // shapes in the container
     for (Shape *shape : this->scene->shapes) {
-        // microbenchmark the distance function
-        TSC_CLEAR();
-        //auto func = std::bind(&Shape::distanceFunction, shape, testVec);
-        auto func = [shape, testVec] () {
-            shape->distanceFunction(testVec);
-        };
-        TSC_MEASURE(func);
-        double cycles = TSC_GET();
-        
+        double cycles_sum = 0.0;
+        for (int i = 0; i < MICROBENCHMARK_ITERATIONS; ++i){
+            // microbenchmark the distance function
+            TSC_CLEAR();
+            //auto func = std::bind(&Shape::distanceFunction, shape, testVec);
+            auto func = [shape, testVec] () {
+                shape->distanceFunction(testVec);
+            };
+            TSC_MEASURE(func);
+            cycles_sum += TSC_GET();
+        }
         // determine the type of the shape and print the result to the file
+        double cycles = cycles_sum / MICROBENCHMARK_ITERATIONS;
         out << std::left << std::setw(12) << shape->name << std::right 
             << std::setw(12) << std::fixed << std::setprecision(1) << cycles << " cycles\n";
     }

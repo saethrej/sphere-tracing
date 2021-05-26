@@ -50,7 +50,8 @@ This can take a while, but the program reports its progress in stdout. After run
 ## Microbenchmarking SPHERE 
 To microbenchmark parts of SPHERE (currently only the distance functions) compile SPHERE with the option for microbenchmarks, i.e.
 ```bash
-cmake -DCMAKE_BUILD_TYPE=RELEASE -DSPHERE_WITH_MICROBENCHMARKS ..
+cmake -DCMAKE_BUILD_TYPE=RELEASE -DSPHERE_WITH_MICROBENCHMARKS=ON ..
+cd build && make -j 8
 ``` 
 and then run the sample microbenchmark program via
 ```bash

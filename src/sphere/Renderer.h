@@ -66,6 +66,8 @@ constexpr ftype SHADOW_CIRCLES = 0.0;
 constexpr ftype SHADOW_DELTA = 2*10e-3;
 // max value that is subtracted from the shadow_weight (higher -> darker shadow)
 constexpr ftype SHADOW_MAX = 0.9;
+// number of iterations per distance function in microbenchmarking
+constexpr int MICROBENCHMARK_ITERATIONS = 10;
 
 struct shape_dist
 {
