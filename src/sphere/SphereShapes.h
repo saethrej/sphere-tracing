@@ -86,6 +86,7 @@ public:
     ftype shininess;  //!< the shape's shininess value
     Color color;      //!< the shape's color (RGB)
     ShapeType type;   //!< the type of the shape
+    std::string name; //!< the shape's name
     bool isRotated;   //!< indicates whether rotation is non-zero
     ftype inverseRotation[9]; //!< inverse rotation matrix
 };
@@ -187,6 +188,9 @@ public:
 
     // additional public member fields
     Vector form;
+    Vector2 k1;
+    Vector2 k2;
+    ftype k2_dot_inv;
 };
 
 // overload stream operator for ShapeType

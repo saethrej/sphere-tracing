@@ -335,7 +335,7 @@ sphere::ftype sphere::Torus::distanceFunction(Vector pointPos)
         tr_point = Shape::translate_rotate(&pointPos);
     }
     // calculate distance in this coordinate system
-    Vect2D q = {std::sqrt(tr_point.x*tr_point.x + tr_point.z*tr_point.z) - this->r1, tr_point.y}; 
+    Vect2D q = {sqrt(tr_point.x*tr_point.x + tr_point.z*tr_point.z) - this->r1, tr_point.y};
     return sqrt(q.x * q.x + q.y * q.y) - this->r2;
 }
 
@@ -376,16 +376,24 @@ sphere::ftype sphere::Octahedron::distanceFunction(Vector pointPos)
     // calculate distance in this coordinate system
     Vector abs_tr_point = tr_point.absVal();
     ftype m = abs_tr_point.x + abs_tr_point.y + abs_tr_point.z - s;
-    Vector q = abs_tr_point * 3.0;
-    Vector b = Vector(ftype(q.x < m), ftype(q.y < m), ftype(q.z < m));
-    Vector bi = Vector(1.0,1.0,1.0) - b;
-    Vector p = abs_tr_point * b.x
-            + (Vector(abs_tr_point.y, abs_tr_point.z, abs_tr_point.x) * b.y
-            + (Vector(abs_tr_point.z, abs_tr_point.x, abs_tr_point.y) * b.z + bi.z) * bi.y) * bi.x;
-    ftype b2 = ftype(0.0 == (b.x + b.y + b.z));
-    ftype k = std::clamp(0.5*(p.z - p.y + s), 0.0, s);
-    ftype r = Vector(p.x, p.y - s + k, p.z - k).length();
-    return (1.0 - b2) * r + b2 * m * 0.57735027;
+    Vector r = abs_tr_point * 3.0 - m;
+    Vector q;
+    if (r.x < 0){
+        q = abs_tr_point;
+    }
+    else if(r.y < 0) {
+        q = Vector(abs_tr_point.y, abs_tr_point.z, abs_tr_point.x);
+    }
+    else if(r.z < 0) {
+        q = Vector(abs_tr_point.z, abs_tr_point.x, abs_tr_point.y);
+    }
+    else {
+        return m*0.57735027;
+    }
+    ftype y_s = q.y - s;
+    ftype to_clamp = 0.5*(q.z - y_s);
+    ftype k = to_clamp < 0.0 ? 0.0 : (to_clamp > s ? s : to_clamp);
+    return Vector(q.x, y_s + k, q.z - k).length();
 }
 
 /********************************* Cone **************************************/
@@ -400,6 +408,9 @@ sphere::Cone::Cone(json const &cone)
     try {
         json fm = cone["params"];
         this->form = {fm[0], fm[1], fm[2]};
+        this->k1 = {form.y, form.z};
+        this->k2 = {form.y - form.x, 2.0*form.z};
+        this->k2_dot_inv = 1/(k2*k2);
     }
     catch (const json::exception &e) {
         // print information on exception and rethrow as SphereException
@@ -426,15 +437,13 @@ sphere::ftype sphere::Cone::distanceFunction(Vector pointPos)
         rotP = Shape::translate_rotate(&pointPos);
     }
     // calculate the distance in this coordinate system
-    Vector2 q = Vector2(std::sqrt(rotP.x * rotP.x + rotP.z * rotP.z), rotP.y);
-    Vector2 k1 = Vector2(r2, h);
-    Vector2 k2 = Vector2(r2-r1, 2.0*h);
+    Vector2 q = Vector2(Vector2(rotP.x, rotP.z).length(), rotP.y);
 
     Vector2 ca = Vector2(
         q.x - std::min(q.x, q.y < 0 ? r1 : r2),
         std::fabs(q.y) - h
     );
-    Vector2 cb = q - k1 + k2 * std::clamp((k2 * (k1 - q)) / (k2 * k2), 0.0, 1.0);
+    Vector2 cb = q - this->k1 + this->k2 * std::clamp((this->k2 * (this->k1 - q)) *this->k2_dot_inv, 0.0, 1.0);
     ftype s = cb.x < 0.f && ca.y < 0.f ? -1.0 : 1.0;
     return s * std::sqrt(std::min(ca * ca, cb * cb));
 }
