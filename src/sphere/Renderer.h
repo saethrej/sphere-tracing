@@ -44,6 +44,7 @@
 #include "SphereTypes.h"
 #include "ImageClasses.h"
 #include "Scene.h"
+#include "SphereMicroBenchmark.h"
 
 namespace sphere {
 
@@ -95,6 +96,9 @@ public:
     // public member functions
     void addScene(std::string pathToSceneFile);
     void renderScene(std::string pathToOutputFile, itype width, itype height, bool noOutput = false);
+#ifdef SPHERE_WITH_MICROBENCHMARKS
+    void microbenchmarkDistanceFunctions();
+#endif // SPHERE_WITH_MICROBENCHMARKS
 
     // public member fields
     Scene *scene;

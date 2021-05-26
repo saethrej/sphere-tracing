@@ -27,6 +27,7 @@ Other build options are summarized in the following table:
 | `CMAKE_BUILD_TYPE`       | Type of the build, determines optimization levels, etc.                                                                                            | `Release`     | `DEBUG`, `MinSizeRel`, `RelWithDebInf` |
 | `SPHERE_WITH_PROFILING`  | Enables profiling the library with semiprof to generate a table where most of the time is spent.<br>Sets the `SPHERE_WITH_PROFILING` macro during compilation. | `OFF`         | `ON`                                   |
 | `SPHERE_WITH_BENCHMARKS` | Builds the library with the `SPHERE_WITH_BENCHMARKS` macro and builds all programs in the benchmarks directory.                                                 | `OFF`         | `ON`                                   |
+| `SPHERE_WITH_MICROBENCHMARKS` | Builds the library with `SPHERE_WITH_MICROBENCMARKS` macro and builds an application for microbenchmarking. Note that this option disables both `SPHERE_WITH_OPENMP` and `SPHERE_WITH_BENCHMARKS` as these are not compatible. | `OFF` | `ON` |
 | `BENCHMARKS_COUNT_OP`    | Builds the library with the `BENCHMARKS_COUNT_OP` macros. If activated, the  `FlopCounter` class will be built, otherwise the `Timer` class will be built. Note that this option will be ignored if `SPHERE_WITH_BENCHMARKS` is not set. | `OFF` | `ON`
 | `SPHERE_WITH_TESTS`      | Builds unit tests for the library relying on Google's C++ test infrastructure.                                                                     | `OFF`          | `ON`                                  |
 | `SPHERE_WITH_OPENMP`     | Builds the library with OpenMP activated if supported by your compiler. Run `export OMP_NUM_THREADS=XXX` to set the desired number of threads before running one of the SPHERE executables. | `ON` | `OFF` |
@@ -45,6 +46,17 @@ There's a benchmarking utility script written in Python, namely `benchmarks/run_
 ./benchmarks/run_benchmark.py --scene=0 --repetitions=5
 ```
 This can take a while, but the program reports its progress in stdout. After running, you'll find two csv files in the `benchmarks` folder. Each line represents one input size (the first and second entries are width and height, respectively), while the following entry/entries are measurements. Note that times are reported in [ms].
+
+## Microbenchmarking SPHERE 
+To microbenchmark parts of SPHERE (currently only the distance functions) compile SPHERE with the option for microbenchmarks, i.e.
+```bash
+cmake -DCMAKE_BUILD_TYPE=RELEASE -DSPHERE_WITH_MICROBENCHMARKS ..
+``` 
+and then run the sample microbenchmark program via
+```bash
+./benchmarks/sphere_microbenchmark
+``` 
+This creates a file `benchmarks/microbenchmarks-df.txt` with the number of cycles that were measured.
 
 ## Authors
 - [André Gaillard](mailto:andrega@ethz.ch)
