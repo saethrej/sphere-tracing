@@ -262,7 +262,7 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
         Shape *closestShape, *closest2Shape;
         Vector start_ray = ray + normal*REFLECTION_BIAS;
         for (Shape *shape : this->scene->shapes) {
-            d = shape->distanceFunction(ray);
+            d = shape->distanceFunction(start_ray);
             if (d < minDistance){
                 min2Distance = minDistance;
                 closest2Shape = closestShape;
