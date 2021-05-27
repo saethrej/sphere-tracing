@@ -207,7 +207,7 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
     ftype NdotL_half = NdotL * 0.5;
     Color ambient = shape->color;
     Color diffuse = scaledLightEmission * std::max(0.0, NdotL_half);
-    Vector refl = L_norm - normal * NdotL;
+    Vector refl =  L_norm - normal * 2 * (NdotL);//L_norm - normal * NdotL;
 
     // compute specular highlights
     Vector refl_norm = refl.normalize();
