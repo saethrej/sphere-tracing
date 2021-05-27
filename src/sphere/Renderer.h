@@ -69,20 +69,6 @@ constexpr ftype SHADOW_MAX = 0.9;
 // helper
 constexpr ftype shadow_step = SHADOW_MAX/(1.0 + SHADOW_CIRCLES*4.0);
 
-struct shape_dist
-{
-    ftype distance;
-    Shape *shape;
-};
-
-struct shape_dist_comp
-{
-    bool operator()(const shape_dist& lhs, const shape_dist& rhs) const
-    {
-        return lhs.distance > rhs.distance;
-    }
-};
-
 
 /**
  * @brief Renderer object that stores information about the scene it should render
@@ -107,7 +93,8 @@ private:
     // private member functions
     void renderPixels();
     void writeImageToFile(std::string pathToFile);
-    Color sphereTrace(Vector const &ray_origin, Vector const &ray_direction, ftype distance);
+    Color sphereTrace(Vector const &ray_origin, Vector const &ray_direction, ftype distance, 
+        Shape *const firstShape, Shape *const secondShape, ftype const firstDistance, ftype const secondDistance);
     Color shade(Vector const &ray_to_shape, Vector const &ray_normalized, Shape *shape, ftype distance);
     ftype shadow(Vector const &ray_to_shade, Vector const &lightDir, ftype dist);
     bool ObjectInBetween(Vector const &ray_origin, Vector const &ray_direction, ftype max_dist);
