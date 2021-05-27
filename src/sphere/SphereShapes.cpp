@@ -274,14 +274,30 @@ sphere::ftype sphere::Box::distanceFunction(Vector pointPos)
     // this is only done if required, i.e. if the object itself is rotated
     Vector tr_point;
     if (!isRotated) {
-         tr_point = pointPos - this->position;
+        tr_point = pointPos - this->position;
     } else {
         tr_point = Shape::translate_rotate(&pointPos);
     }
     // compute the distance in this new space
     Vector q = tr_point.absVal() - extents;
-    Vector zero = Vector(0,0,0);
-    return q.componentwiseMax(zero).length() + std::min(q.maxComponent(), 0.0);
+    bool in = true;
+    ftype ret_val = 0;
+    if(q.x >= 0.0){
+        ret_val += q.x * q.x;
+        in = false;
+    }
+    if(q.y >= 0.0){
+        ret_val += q.y * q.y;
+        in = false;
+    }
+    if(q.z >= 0.0){
+        ret_val += q.z * q.z;
+        in = false;
+    }
+    if(in) {
+        return -0.2;
+    }
+    return sqrt(ret_val);
 }
 
 /**
@@ -367,6 +383,9 @@ sphere::ftype sphere::Sphere::distanceFunctionSquared(Vector pointPos)
 
     // calculate distance in this coordinate system
     ftype ret_val = tr_point.length() - radius;
+    if(ret_val < 0){
+        return -0.1;
+    }
     return ret_val * ret_val;
 }
 
@@ -431,7 +450,7 @@ sphere::ftype sphere::Torus::distanceFunctionSquared(Vector pointPos)
     Vect2D q = {sqrt(tr_point.x*tr_point.x + tr_point.z*tr_point.z) - this->r1, tr_point.y};
     ftype ret_val = sqrt(q.x * q.x + q.y * q.y) - this->r2;
     if(ret_val < 0){
-        std::cout << ret_val << std::endl;
+        return -0.1;
     }
     return ret_val * ret_val;
 }
