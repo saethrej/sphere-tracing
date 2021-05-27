@@ -120,11 +120,11 @@ void sphere::MicroBenchmarker::measure(F func)
     // define local variables for the measurement first
     MicroBenchInt64 c0, c1 = 0;
     int i = 0; int numRuns = 1;
-    int requiredCycles = 2e9;
+    MicroBenchInt64 requiredCycles = 2e10;
 
     // establish the number of runs required to get an accurate measurement of 
     // the number of cycles (i.e. where overhead of timing is negligible)
-    while (numRuns < 100000000) {
+    while (numRuns < 300000000) {
         c0 = startMeasurement();
         for (i = 0; i < numRuns; ++i) {
             func();
