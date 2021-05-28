@@ -521,7 +521,7 @@ sphere::ftype sphere::Octahedron::distanceFunctionSquared(Vector pointPos)
         q = Vector(abs_tr_point.z, abs_tr_point.x, abs_tr_point.y);
     }
     else {
-        return m*0.57735027*m*0.57735027;
+        return m*m*0.3333333334;
     }
     ftype y_s = q.y - s;
     ftype to_clamp = 0.5*(q.z - y_s);
@@ -577,7 +577,7 @@ sphere::ftype sphere::Cone::distanceFunction(Vector pointPos)
         std::fabs(q.y) - h
     );
     Vector2 cb = q - this->k1 + this->k2 * std::clamp((this->k2 * (this->k1 - q)) *this->k2_dot_inv, 0.0, 1.0);
-    ftype s = cb.x < 0.f && ca.y < 0.f ? -1.0 : 1.0;
+    ftype s = cb.x < 0.0 && ca.y < 0.0 ? -1.0 : 1.0;
     return s * std::sqrt(std::min(ca * ca, cb * cb));
 }
 
@@ -606,6 +606,6 @@ sphere::ftype sphere::Cone::distanceFunctionSquared(Vector pointPos)
         std::fabs(q.y) - h
     );
     Vector2 cb = q - this->k1 + this->k2 * std::clamp((this->k2 * (this->k1 - q)) *this->k2_dot_inv, 0.0, 1.0);
-    ftype s = cb.x < 0.f && ca.y < 0.f ? -1.0 : 1.0;
-    return std::min(ca * ca, cb * cb);
+    ftype s = cb.x < 0.0 && ca.y < 0.0 ? -1.0 : 1.0;
+    return s * std::min(ca * ca, cb * cb);
 }
