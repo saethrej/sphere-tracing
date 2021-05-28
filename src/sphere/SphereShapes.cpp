@@ -232,7 +232,7 @@ sphere::ftype sphere::Plane::distanceFunctionSquared(Vector pointPos)
     // rotate only if there is a non-zero rotation
     if (!isRotated){
         // only compute distance with translation
-        ftype ret_val = std::abs((pointPos - this->position) * this->normal - this->displacement);
+        ftype ret_val = (pointPos - this->position) * this->normal - this->displacement;
         return ret_val * ret_val;
     } else {
         // translate, rotate and compute distance
@@ -280,22 +280,15 @@ sphere::ftype sphere::Box::distanceFunction(Vector pointPos)
     }
     // compute the distance in this new space
     Vector q = tr_point.absVal() - extents;
-    bool in = true;
     ftype ret_val = 0;
     if(q.x >= 0.0){
         ret_val += q.x * q.x;
-        in = false;
     }
     if(q.y >= 0.0){
         ret_val += q.y * q.y;
-        in = false;
     }
     if(q.z >= 0.0){
         ret_val += q.z * q.z;
-        in = false;
-    }
-    if(in) {
-        return -0.2;
     }
     return sqrt(ret_val);
 }
@@ -317,22 +310,15 @@ sphere::ftype sphere::Box::distanceFunctionSquared(Vector pointPos)
     }
     // compute the distance in this new space
     Vector q = tr_point.absVal() - extents;
-    bool in = true;
     ftype ret_val = 0;
     if(q.x >= 0.0){
         ret_val += q.x * q.x;
-        in = false;
     }
     if(q.y >= 0.0){
         ret_val += q.y * q.y;
-        in = false;
     }
     if(q.z >= 0.0){
         ret_val += q.z * q.z;
-        in = false;
-    }
-    if(in) {
-        return -0.2;
     }
     return ret_val;
 }
@@ -383,10 +369,7 @@ sphere::ftype sphere::Sphere::distanceFunctionSquared(Vector pointPos)
 
     // calculate distance in this coordinate system
     ftype ret_val = tr_point.length() - radius;
-    if(ret_val < 0){
-        return -0.1;
-    }
-    return ret_val * ret_val;
+    return ret_val * std::fabs(ret_val);
 }
 
 /********************************** Torus ************************************/
@@ -449,10 +432,7 @@ sphere::ftype sphere::Torus::distanceFunctionSquared(Vector pointPos)
     
     Vect2D q = {sqrt(tr_point.x*tr_point.x + tr_point.z*tr_point.z) - this->r1, tr_point.y};
     ftype ret_val = sqrt(q.x * q.x + q.y * q.y) - this->r2;
-    if(ret_val < 0){
-        return -0.1;
-    }
-    return ret_val * ret_val;
+    return ret_val * std::fabs(ret_val);
 }
 
 /******************************* Octahedron **********************************/
@@ -626,5 +606,6 @@ sphere::ftype sphere::Cone::distanceFunctionSquared(Vector pointPos)
         std::fabs(q.y) - h
     );
     Vector2 cb = q - this->k1 + this->k2 * std::clamp((this->k2 * (this->k1 - q)) *this->k2_dot_inv, 0.0, 1.0);
+    ftype s = cb.x < 0.f && ca.y < 0.f ? -1.0 : 1.0;
     return std::min(ca * ca, cb * cb);
 }
