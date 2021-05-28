@@ -75,6 +75,7 @@ public:
 
     // distance function
     virtual ftype distanceFunction(Vector pos) = 0;
+    virtual ftype distanceFunctionSquared(Vector pos) = 0;
 
     // static functions
     static ShapeType getShapeType(std::string shapeName);
@@ -102,6 +103,7 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
+    ftype distanceFunctionSquared(Vector pos);
 
     // additional public member fields
     Vector normal;
@@ -119,6 +121,7 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
+    ftype distanceFunctionSquared(Vector pos);
 
     // additional public member fields
     Vector extents;
@@ -135,6 +138,7 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
+    ftype distanceFunctionSquared(Vector pos);
 
     // additional public member fields
     ftype radius;
@@ -151,6 +155,7 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
+    ftype distanceFunctionSquared(Vector pos);
 
     // additional public member fields
     ftype r1;
@@ -168,6 +173,7 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
+    ftype distanceFunctionSquared(Vector pos);
 
     // additional public member fields
     ftype s;
@@ -184,10 +190,13 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
-    ftype distanceFunction2(Vector pos);
+    ftype distanceFunctionSquared(Vector pos);
 
     // additional public member fields
     Vector form;
+    Vector2 k1;
+    Vector2 k2;
+    ftype k2_dot_inv;
 };
 
 // overload stream operator for ShapeType
