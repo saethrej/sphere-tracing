@@ -103,6 +103,39 @@ void sphere::Renderer::renderScene(std::string pathToOutputFile, itype width, it
     } 
 }
 
+void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&closestShape, Vector const &ray){
+    ftype d;
+    for (Shape *shape : this->scene->shapes) {
+        d = shape->distanceFunction(ray);
+        if (d < minDist){
+            min2Dist = minDist;
+            minDist = d;
+            closestShape = shape;
+        }
+        else if (d < min2Dist){
+            min2Dist = d;
+        }
+    }
+
+    /*
+        Use code below for squared distance functios
+    */
+    //ftype d;
+    //for (Shape *shape : this->scene->shapes) {
+    //    d = shape->distanceFunctionSquared(ray);
+    //    if (d < minDist){
+    //        min2Dist = minDist;
+    //        minDist = d;
+    //        closestShape = shape;
+    //    }
+    //    else if (d < min2Dist){
+    //        min2Dist = d;
+    //    }
+    //}
+    //minDist = sqrt(minDist);
+    //min2Dist = sqrt(min2Dist);
+}
+
 /**
  * @brief Renders an image by performing sphere tracing for every pixel and writing its color.
  */
@@ -110,25 +143,10 @@ void sphere::Renderer::renderPixels()
 {
     Vector ray_origin = this->scene->cameraPos;
 
-    ftype d;
     ftype minDistance = std::numeric_limits<ftype>::max();
     ftype min2Distance = std::numeric_limits<ftype>::max();
-    Shape *closestShape, *closest2Shape;
-    Vector ray = ray_origin;
-    for (Shape *shape : this->scene->shapes) {
-        d = shape->distanceFunction(ray);
-        if (d < minDistance){
-            min2Distance = minDistance;
-            closest2Shape = closestShape;
-            minDistance = d;
-            closestShape = shape;
-        }
-        else if (d < min2Distance){
-            min2Distance = d;
-            closest2Shape = shape;
-        }
-    }
-
+    Shape *closestShape;
+    getMinDistances(minDistance, min2Distance, closestShape, ray_origin);
     #pragma omp parallel for
     for (itype i = 0; i < this->image->height; ++i){
         for (itype j = 0; j < this->image->width; ++j){
@@ -138,7 +156,7 @@ void sphere::Renderer::renderPixels()
                 1
             };
             ray_direction = ray_direction.normalize();
-            Color col = sphereTrace(ray_origin, ray_direction, 0.0, closestShape, closest2Shape, minDistance, min2Distance);
+            Color col = sphereTrace(ray_origin, ray_direction, 0.0, closestShape, minDistance, min2Distance);
             this->image->pixels[i * (this->image->width) + j].writeColor(col);
         }
     }
@@ -153,11 +171,9 @@ void sphere::Renderer::renderPixels()
  * @return sphere::Color with which the ray should be shaded
  */
 sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector const &ray_direction, ftype distance, 
-        Shape *const firstShape, Shape *const secondShape, ftype const firstDistance, ftype const secondDistance)
+        Shape *const firstShape, ftype const firstDistance, ftype const secondDistance)
 {
-    ftype d = 0;
     Shape *closestShape = firstShape;
-    Shape *closest2Shape = secondShape;
     ftype minDistance = firstDistance;
     ftype min2Distance = secondDistance;
     Vector ray = ray_origin;
@@ -175,19 +191,7 @@ sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector con
         if(min2Distance < totalDistance){
             minDistance = std::numeric_limits<ftype>::max();
             min2Distance = std::numeric_limits<ftype>::max();
-            for (Shape *shape : this->scene->shapes) {
-                d = shape->distanceFunction(ray);
-                if (d < minDistance){
-                    min2Distance = minDistance;
-                    closest2Shape = closestShape;
-                    minDistance = d;
-                    closestShape = shape;
-                }
-                else if (d < min2Distance){
-                    min2Distance = d;
-                    closest2Shape = shape;
-                }
-            }
+            getMinDistances(minDistance, min2Distance, closestShape, ray);
             totalDistance = minDistance;
         }
         if(minDistance <= TRACE_THRESHOLD * t){
@@ -257,26 +261,13 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
         Vector refldir = ray_normalized + normal * 2 * std::exp((ray_normalized * normal) + 1);
         refldir = refldir.normalize();
 
-        ftype d;
         ftype minDistance = std::numeric_limits<ftype>::max();
         ftype min2Distance = std::numeric_limits<ftype>::max();
-        Shape *closestShape, *closest2Shape;
+        Shape *closestShape;
         Vector start_ray = ray + normal*REFLECTION_BIAS;
-        for (Shape *shape : this->scene->shapes) {
-            d = shape->distanceFunction(start_ray);
-            if (d < minDistance){
-                min2Distance = minDistance;
-                closest2Shape = closestShape;
-                minDistance = d;
-                closestShape = shape;
-            }
-            else if (d < min2Distance){
-                min2Distance = d;
-                closest2Shape = shape;
-            }
-        }
+        getMinDistances(minDistance, min2Distance, closestShape, start_ray);
 
-        reflection_color = sphereTrace(start_ray, refldir, distance, closestShape, closest2Shape, minDistance, min2Distance);     
+        reflection_color = sphereTrace(start_ray, refldir, distance, closestShape, minDistance, min2Distance);     
         if (reflection_color.equals(Color(0,0,0))){
             reflection_weight = reflection_weight * 0.25;
         }
@@ -362,28 +353,17 @@ sphere::ftype sphere::Renderer::shadow(Vector const &ray_to_shade, Vector const 
  */
 bool sphere::Renderer::ObjectInBetween(Vector const &ray_origin, Vector const &ray_direction, ftype max_dist)
 {
-    ftype t = 0, d = 0;
     Shape *closestShape;
-    Shape *closest2Shape;
     ftype minDistance = std::numeric_limits<ftype>::max();
     ftype min2Distance = std::numeric_limits<ftype>::max();
-    ftype totalDistance;
+    Vector ray = ray_origin;
 
-    Vector ray = ray_origin + ray_direction * t;
-    for (Shape *shape : this->scene->shapes) {
-        d = shape->distanceFunction(ray);
-        if (d < minDistance){
-            min2Distance = minDistance;
-            closest2Shape = closestShape;
-            minDistance = d;
-            closestShape = shape;
-        }
-        else if (d < min2Distance){
-            min2Distance = d;
-            closest2Shape = shape;
-        }
+    getMinDistances(minDistance, min2Distance, closestShape, ray);
+    if(minDistance <= 0){
+        return true;
     }
-    totalDistance = 0;
+    ftype t = minDistance;
+    ftype totalDistance = minDistance;
 
     while(t < max_dist) {
         ray = ray_origin + ray_direction * t;
@@ -392,19 +372,7 @@ bool sphere::Renderer::ObjectInBetween(Vector const &ray_origin, Vector const &r
         if(min2Distance < (totalDistance)){
             minDistance = std::numeric_limits<ftype>::max();
             min2Distance = std::numeric_limits<ftype>::max();
-            for (Shape *shape : this->scene->shapes) {
-                d = shape->distanceFunction(ray);
-                if (d < minDistance){
-                    min2Distance = minDistance;
-                    closest2Shape = closestShape;
-                    minDistance = d;
-                    closestShape = shape;
-                }
-                else if (d < min2Distance){
-                    min2Distance = d;
-                    closest2Shape = shape;
-                }
-            }
+            getMinDistances(minDistance, min2Distance, closestShape, ray);
             totalDistance = minDistance;
         }
         if(minDistance <= SHADOW_THRESHOLD * t){
