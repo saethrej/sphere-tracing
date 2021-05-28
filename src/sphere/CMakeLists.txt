@@ -10,9 +10,16 @@ if (NOT TARGET sphere)
                          CustomVector.cpp
     )
     # the benchmark object is only built if option SPHERE_WITH_BENCHMARKS is chosen
-    if (SPHERE_WITH_BENCHMARKS)
+    # if microbenchmarks option is chosen, then SPHERE_WITH_BENCHMARKS is deactivated
+    if (SPHERE_WITH_BENCHMARKS AND NOT SPHERE_WITH_MICROBENCHMARKS)
         set (sphere_src_files ${sphere_src_files} SphereBenchmark.cpp)
     endif()
+
+    # the microbenchmark object is only built if option SPHERE_WITH_MICROBENCHMARKS is chosen
+    if (SPHERE_WITH_MICROBENCHMARKS)
+        set (sphere_src_files ${sphere_src_files} SphereMicroBenchmark.cpp)
+    endif()
+
     # add the accumulated source files to the library
     add_library(sphere ${sphere_src_files})
     
@@ -24,12 +31,17 @@ if (NOT TARGET sphere)
     target_link_libraries(sphere PRIVATE nlohmann_json::nlohmann_json)
 
     # set the BENCHMARK macro if in benchmark mode
-    if (SPHERE_WITH_BENCHMARKS)
+    if (SPHERE_WITH_BENCHMARKS AND NOT SPHERE_WITH_MICROBENCHMARKS)
         if (BENCHMARKS_COUNT_OP)
             target_compile_definitions(sphere PUBLIC "SPHERE_WITH_BENCHMARKS" "BENCHMARKS_COUNT_OP")
         else()
             target_compile_definitions(sphere PUBLIC "SPHERE_WITH_BENCHMARKS")
         endif()
+    endif()
+
+    # set the SPHERE_WITH_MICROBENCHMARKS macro if in microbenchmarking mode
+    if (SPHERE_WITH_MICROBENCHMARKS)
+        target_compile_definitions(sphere PUBLIC "SPHERE_WITH_MICROBENCHMARKS")
     endif()
 
     # link to the semiprof library if profiling build option is set
