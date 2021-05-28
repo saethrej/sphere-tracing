@@ -1,0 +1,6 @@
+plane               41.3 cycles
+box                120.0 cycles
+sphere              63.7 cycles
+cone               169.6 cycles
+torus               85.9 cycles
+octahedron          79.7 cycles

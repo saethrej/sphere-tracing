@@ -40,6 +40,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <queue>
 
 #ifdef SPHERE_WITH_OPENMP
@@ -352,7 +353,6 @@ bool sphere::Renderer::ObjectInBetween(Vector const &ray_origin, Vector const &r
     return false;
 }
 
-
 /**
  * @brief Writes the image into a file in .ppm format
  * 
@@ -372,3 +372,52 @@ void sphere::Renderer::writeImageToFile(std::string pathToFile)
     }
     outstream.close();
 }
+
+// microbenchmarking functionality
+#ifdef SPHERE_WITH_MICROBENCHMARKS
+
+/**
+ * @brief microbenchmarks all distance functions of shapes that are part
+ * of the current scene and prints them to a file
+ * 
+ * @details If you want to write your own microbenchmark function, you can
+ * follow the approach of this function. You have to do the following steps:
+ * 
+ * 1.) initialize the TSC (cycle counter) via TSC_INIT() macro
+ * 2.) prepare all of the arguments of the function you want to microbenchmark
+ * 3.) create a lambda function out of this function. There should be not arguments
+ *     because TSC_MEASURE() has to call the function without arguments, and thus
+ *     every argument has to be captured inside the [] clause.
+ * 4.) pass the function to the TSC_MEASURE() macro to start microbenchmarking
+ * 5.) get the number of cycles elapsed via TSC_GET() and clear via TSC_CLEAR()
+ *     to get ready for the next function
+ */
+void sphere::Renderer::microbenchmarkDistanceFunctions()
+{
+    // intialize microbenchmarking
+    TSC_INIT();
+
+    // use some hard-coded vector for the microbenchmarking
+    Vector testVec(M_PI, M_E, M_SQRT2);
+
+    // open a file to write the distance functions
+    std::ofstream out("../benchmarks/microbenchmark-df.txt", std::ios::out);
+
+    // microbenchmark the distance functions individually by looping over all
+    // shapes in the container
+    for (Shape *shape : this->scene->shapes) {
+        // microbenchmark the distance function
+        TSC_CLEAR();
+        auto func = [shape, testVec] () {
+            shape->distanceFunction(testVec);
+        };
+        TSC_MEASURE(func);
+        double cycles = TSC_GET();
+
+        out << std::left << std::setw(12) << shape->name << std::right 
+            << std::setw(12) << std::fixed << std::setprecision(1) << cycles << " cycles\n";
+    }
+    // close the file and end microbenchmarking
+    out.close();
+}
+#endif // SPHERE_WITH_MICROBENCHMARKS

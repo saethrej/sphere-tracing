@@ -13,6 +13,7 @@ include(cmake/build_type.cmake)
 option(SPHERE_WITH_TESTS "Generate the test targets." OFF)
 option(SPHERE_WITH_APPS "Generate the example targets." ${MASTER_PROJECT})
 option(SPHERE_WITH_BENCHMARKS "Generate the benchmark targets." OFF)
+option(SPHERE_WITH_MICROBENCHMARKS "Generate microbenchmark targets" OFF)
 option(SPHERE_WITH_PROFILING "Enables profiling." OFF)
 option(SPHERE_WITH_OPENMP "Enables the usage of OpenMP in SPHERE" ON)
 option(BUILD_SHARED_LIBS "Build shared libraries." OFF)
@@ -24,7 +25,8 @@ project(sphere VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 
 # if the library is to be built with OpenMP, check if it is available
-if (SPHERE_WITH_OPENMP)
+# note that in the presence of Microbenchmarks, OpenMP cannot be used
+if (SPHERE_WITH_OPENMP AND NOT SPHERE_WITH_MICROBENCHMARKS)
     find_package(OpenMP)
     if (OPENMP_FOUND)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -64,7 +66,7 @@ if (SPHERE_WITH_APPS)
     add_subdirectory(examples)
 endif()
 
-# if benchmarks are enabled, add the directory
-if (SPHERE_WITH_BENCHMARKS)
+# if (micro)benchmarks are enabled, add the directory
+if (SPHERE_WITH_BENCHMARKS OR SPHERE_WITH_MICROBENCHMARKS)
     add_subdirectory(benchmarks)
 endif()
