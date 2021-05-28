@@ -196,6 +196,7 @@ sphere::Plane::Plane(json const &plane)
         this->displacement = params.value("displacement", 0.0);
         json nor = params["normal"];
         this->normal = Vector(nor.value("x", 0.0), nor.value("y", 0.0), nor.value("z", 0.0)).normalize();
+        this->name = "plane";
     }
     catch (const json::exception &e) {
         // print information on exception and rethrow as SphereException
@@ -235,6 +236,7 @@ sphere::Box::Box(json const &box)
     try {
         json ext = box["params"]["extents"];
         this->extents = {ext.value("x", 0.0), ext.value("y", 0.0), ext.value("z", 0.0)};
+        this->name = "box";
     }
     catch (const json::exception &e) {
         // print information on exception and rethrow as SphereException
@@ -276,6 +278,7 @@ sphere::Sphere::Sphere(json const &sph)
     // try to load sphere-specific information
     try {
         this->radius = sph["params"].value("radius", 0.0);
+        this->name = "sphere";
     }
     catch (const json::exception &e) {
         // print information on exception and rethrow as SphereException
@@ -311,6 +314,7 @@ sphere::Torus::Torus(json const &torus)
     try {
         this->r1 = torus["params"].value("r1", 0.0);
         this->r2 = torus["params"].value("r2", 0.0);
+        this->name = "torus";
     }
     catch (const json::exception &e) {
         // print information on exception and rethrow as SphereException
@@ -351,6 +355,7 @@ sphere::Octahedron::Octahedron(json const &octa)
     // try to load octahedron-specific information
     try {
         this->s = octa["params"].value("s", 0.0);
+        this->name = "octahedron";
     }
     catch (const json::exception &e) {
         // print information on exception and rethrow as SphereException
@@ -413,6 +418,7 @@ sphere::Cone::Cone(json const &cone)
     try {
         json fm = cone["params"];
         this->form = {fm[0], fm[1], fm[2]};
+        this->name = "cone";
     }
     catch (const json::exception &e) {
         // print information on exception and rethrow as SphereException
