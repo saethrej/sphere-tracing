@@ -56,6 +56,8 @@ constexpr ftype TRACE_THRESHOLD = 10e-12;
 constexpr ftype NORMAL_DELTA = 10e-5;
 // weighting for broad vs central specular light effect (higher -> more central)
 constexpr ftype SPECULAR_BIAS = 0.5;
+// a third of the specular bias
+constexpr ftype SPECULAR_BIAS_THIRD = SPECULAR_BIAS / 3.0;
 // bias for reflection
 constexpr ftype REFLECTION_BIAS = 10e-1;
 // threshold for distance to object (shadow)
