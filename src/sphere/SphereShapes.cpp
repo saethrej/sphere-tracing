@@ -413,8 +413,8 @@ sphere::ftype sphere::Torus::distanceFunction(Vector pointPos)
         tr_point = Shape::translate_rotate(&pointPos);
     }
     // calculate distance in this coordinate system
-    Vect2D q = {sqrt(tr_point.x*tr_point.x + tr_point.z*tr_point.z) - this->r1, tr_point.y};
-    return sqrt(q.x * q.x + q.y * q.y) - this->r2;
+    Vector2 q(sqrt(tr_point.x*tr_point.x + tr_point.z*tr_point.z) - this->r1, tr_point.y);
+    return q.length() - this->r2;
 }
 
 /**
@@ -434,8 +434,8 @@ sphere::ftype sphere::Torus::distanceFunctionSquared(Vector pointPos)
     }
     // calculate distance in this coordinate system
     
-    Vect2D q = {sqrt(tr_point.x*tr_point.x + tr_point.z*tr_point.z) - this->r1, tr_point.y};
-    ftype ret_val = sqrt(q.x * q.x + q.y * q.y) - this->r2;
+    Vector2 q(sqrt(tr_point.x*tr_point.x + tr_point.z*tr_point.z) - this->r1, tr_point.y);
+    ftype ret_val = q.length() - this->r2;
     return ret_val * std::fabs(ret_val);
 }
 
