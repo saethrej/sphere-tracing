@@ -196,6 +196,7 @@ sphere::Plane::Plane(json const &plane)
         this->displacement = params.value("displacement", 0.0);
         json nor = params["normal"];
         this->normal = Vector(nor.value("x", 0.0), nor.value("y", 0.0), nor.value("z", 0.0)).normalize();
+        this->name = "plane";
     }
     catch (const json::exception &e) {
         // print information on exception and rethrow as SphereException
@@ -222,6 +223,26 @@ sphere::ftype sphere::Plane::distanceFunction(Vector pointPos)
     }
 }
 
+/**
+ * @brief computes squared distance from a point to this plane
+ * @param pointPos the position of the point
+ * @returns the distance between the point and this plane
+ */
+sphere::ftype sphere::Plane::distanceFunctionSquared(Vector pointPos)
+{
+    // rotate only if there is a non-zero rotation
+    if (!isRotated){
+        // only compute distance with translation
+        ftype ret_val = (pointPos - this->position) * this->normal - this->displacement;
+        return ret_val * ret_val;
+    } else {
+        // translate, rotate and compute distance
+        Vector tr_point = Shape::translate_rotate(&pointPos);
+        ftype ret_val = tr_point * this->normal - this->displacement;
+        return ret_val * ret_val;
+    }
+}
+
 /*********************************** Box *************************************/
 
 /**
@@ -235,6 +256,7 @@ sphere::Box::Box(json const &box)
     try {
         json ext = box["params"]["extents"];
         this->extents = {ext.value("x", 0.0), ext.value("y", 0.0), ext.value("z", 0.0)};
+        this->name = "box";
     }
     catch (const json::exception &e) {
         // print information on exception and rethrow as SphereException
@@ -254,14 +276,53 @@ sphere::ftype sphere::Box::distanceFunction(Vector pointPos)
     // this is only done if required, i.e. if the object itself is rotated
     Vector tr_point;
     if (!isRotated) {
-         tr_point = pointPos - this->position;
+        tr_point = pointPos - this->position;
     } else {
         tr_point = Shape::translate_rotate(&pointPos);
     }
     // compute the distance in this new space
     Vector q = tr_point.absVal() - extents;
-    Vector zero = Vector(0,0,0);
-    return q.componentwiseMax(zero).length() + std::min(q.maxComponent(), 0.0);
+    ftype ret_val = 0;
+    if(q.x >= 0.0){
+        ret_val += q.x * q.x;
+    }
+    if(q.y >= 0.0){
+        ret_val += q.y * q.y;
+    }
+    if(q.z >= 0.0){
+        ret_val += q.z * q.z;
+    }
+    return sqrt(ret_val);
+}
+
+/**
+ * @brief computes squared distance from a point to this box
+ * @param pointPos position of the point of interest
+ * @returns the distance between point and box
+ */
+sphere::ftype sphere::Box::distanceFunctionSquared(Vector pointPos)
+{
+    // translate and rotate point such that object is at origin and in normal position
+    // this is only done if required, i.e. if the object itself is rotated
+    Vector tr_point;
+    if (!isRotated) {
+        tr_point = pointPos - this->position;
+    } else {
+        tr_point = Shape::translate_rotate(&pointPos);
+    }
+    // compute the distance in this new space
+    Vector q = tr_point.absVal() - extents;
+    ftype ret_val = 0;
+    if(q.x >= 0.0){
+        ret_val += q.x * q.x;
+    }
+    if(q.y >= 0.0){
+        ret_val += q.y * q.y;
+    }
+    if(q.z >= 0.0){
+        ret_val += q.z * q.z;
+    }
+    return ret_val;
 }
 
 /********************************** Sphere ************************************/
@@ -276,6 +337,7 @@ sphere::Sphere::Sphere(json const &sph)
     // try to load sphere-specific information
     try {
         this->radius = sph["params"].value("radius", 0.0);
+        this->name = "sphere";
     }
     catch (const json::exception &e) {
         // print information on exception and rethrow as SphereException
@@ -298,6 +360,21 @@ sphere::ftype sphere::Sphere::distanceFunction(Vector pointPos)
     return tr_point.length() - radius;
 }
 
+/**
+ * @brief computes squared distance from a point to this sphere
+ * @param pointPos position of the point of interest
+ * @returns the distance between point and sphere
+ */
+sphere::ftype sphere::Sphere::distanceFunctionSquared(Vector pointPos)
+{
+    // translate and rotate point such that object is at origin and in normal position
+    Vector tr_point = pointPos - position;
+
+    // calculate distance in this coordinate system
+    ftype ret_val = tr_point.length() - radius;
+    return ret_val * std::fabs(ret_val);
+}
+
 /********************************** Torus ************************************/
 
 /**
@@ -311,6 +388,7 @@ sphere::Torus::Torus(json const &torus)
     try {
         this->r1 = torus["params"].value("r1", 0.0);
         this->r2 = torus["params"].value("r2", 0.0);
+        this->name = "torus";
     }
     catch (const json::exception &e) {
         // print information on exception and rethrow as SphereException
@@ -335,8 +413,30 @@ sphere::ftype sphere::Torus::distanceFunction(Vector pointPos)
         tr_point = Shape::translate_rotate(&pointPos);
     }
     // calculate distance in this coordinate system
-    Vect2D q = {Vector(tr_point.x, 0, tr_point.z).length() - this->r1, tr_point.y}; 
+    Vect2D q = {sqrt(tr_point.x*tr_point.x + tr_point.z*tr_point.z) - this->r1, tr_point.y};
     return sqrt(q.x * q.x + q.y * q.y) - this->r2;
+}
+
+/**
+ * @brief computes squared distance from a point to this torus
+ * @param pointPos position of the point of interest
+ * @returns the distance between point and torus
+ */
+sphere::ftype sphere::Torus::distanceFunctionSquared(Vector pointPos)
+{
+    // translate and rotate point such that object is at origin and in normal position
+    // this is only done if required, i.e. if the object itself is rotated
+    Vector tr_point;
+    if (!isRotated) {
+        tr_point =  pointPos - this->position;
+    } else {
+        tr_point = Shape::translate_rotate(&pointPos);
+    }
+    // calculate distance in this coordinate system
+    
+    Vect2D q = {sqrt(tr_point.x*tr_point.x + tr_point.z*tr_point.z) - this->r1, tr_point.y};
+    ftype ret_val = sqrt(q.x * q.x + q.y * q.y) - this->r2;
+    return ret_val * std::fabs(ret_val);
 }
 
 /******************************* Octahedron **********************************/
@@ -351,6 +451,7 @@ sphere::Octahedron::Octahedron(json const &octa)
     // try to load octahedron-specific information
     try {
         this->s = octa["params"].value("s", 0.0);
+        this->name = "octahedron";
     }
     catch (const json::exception &e) {
         // print information on exception and rethrow as SphereException
@@ -377,12 +478,6 @@ sphere::ftype sphere::Octahedron::distanceFunction(Vector pointPos)
     Vector abs_tr_point = tr_point.absVal();
     ftype m = abs_tr_point.x + abs_tr_point.y + abs_tr_point.z - s;
     Vector r = abs_tr_point * 3.0 - m;
-    //Vector zero = Vector(0.0, 0.0, 0.0);
-    //Vector o = r.componentwiseMin(zero);
-    //Vector p = zero.componentwiseMax(r*2 - 0*3 + (o.x + o.y + o.z));
-    //Vector n = p - o*this->s*(1.0/(o.x + o.y + o.z));
-    //return n.length();
-    
     Vector q;
     if (r.x < 0){
         q = abs_tr_point;
@@ -396,9 +491,47 @@ sphere::ftype sphere::Octahedron::distanceFunction(Vector pointPos)
     else {
         return m*0.57735027;
     }
-    
-    ftype k = std::clamp(0.5*(q.z - q.y + s), 0.0, s);
-    return Vector(q.x, q.y - s + k, q.z - k).length();
+    ftype y_s = q.y - s;
+    ftype to_clamp = 0.5*(q.z - y_s);
+    ftype k = to_clamp < 0.0 ? 0.0 : (to_clamp > s ? s : to_clamp);
+    return Vector(q.x, y_s + k, q.z - k).length();
+}
+
+/**
+ * @brief computes squared distance from a point to this octahedron
+ * @param pointPos position of the point of interest
+ * @returns the distance between point and octahedron
+ */
+sphere::ftype sphere::Octahedron::distanceFunctionSquared(Vector pointPos)
+{
+    // translate and rotate point such that object is at origin and in normal position
+    Vector tr_point;
+    if (!isRotated) {
+        tr_point = pointPos - this->position;
+    } else {
+        tr_point = Shape::translate_rotate(&pointPos);
+    }
+    // calculate distance in this coordinate system
+    Vector abs_tr_point = tr_point.absVal();
+    ftype m = abs_tr_point.x + abs_tr_point.y + abs_tr_point.z - s;
+    Vector r = abs_tr_point * 3.0 - m;
+    Vector q;
+    if (r.x < 0){
+        q = abs_tr_point;
+    }
+    else if(r.y < 0) {
+        q = Vector(abs_tr_point.y, abs_tr_point.z, abs_tr_point.x);
+    }
+    else if(r.z < 0) {
+        q = Vector(abs_tr_point.z, abs_tr_point.x, abs_tr_point.y);
+    }
+    else {
+        return m*m*0.3333333334;
+    }
+    ftype y_s = q.y - s;
+    ftype to_clamp = 0.5*(q.z - y_s);
+    ftype k = to_clamp < 0.0 ? 0.0 : (to_clamp > s ? s : to_clamp);
+    return q.x * q.x + (y_s + k)*(y_s + k) + (q.z - k)*(q.z - k);
 }
 
 /********************************* Cone **************************************/
@@ -413,39 +546,16 @@ sphere::Cone::Cone(json const &cone)
     try {
         json fm = cone["params"];
         this->form = {fm[0], fm[1], fm[2]};
+        this->k1 = {form.y, form.z};
+        this->k2 = {form.y - form.x, 2.0*form.z};
+        this->k2_dot_inv = 1/(k2*k2);
+        this->name = "cone";
     }
     catch (const json::exception &e) {
         // print information on exception and rethrow as SphereException
         std::cerr << e.what() << std::endl;
         throw SphereException(SphereException::ErrorCode::JsonSyntaxError);
     }
-}
-
-/**
- * @brief computes distance from a point to this cone
- * @param pointPos position of the point of interest
- * @returns the distance between point and cone
- */
-sphere::ftype sphere::Cone::distanceFunction2(Vector pointPos)
-{
-    // translate and rotate point such that object is at origin and in normal position
-    Vector tr_point;
-    if (!isRotated) {
-        tr_point = pointPos - this->position;
-    } else {
-        tr_point = Shape::translate_rotate(&pointPos);
-    }
-    // calculate distance in this coordinate system
-    // Vect2D q = {this->form.x / this->form.y * this->form.z, -1.0};
-    Vect2D q = {std::sqrt(tr_point.x * tr_point.x + tr_point.z * tr_point.z), tr_point.y};
-    Vect2D k1 = {this->form.z, this->form.x};
-    Vect2D k2 = {this->form.z - this->form.y, 2.0 * this->form.x};
-    Vect2D ca = {q.x - std::min(q.x, (q.y<0.0) ? this->form.y : this->form.z), 
-                    std::abs(q.y) - this->form.x};
-    ftype clamped = std::clamp(((k1.x - q.x)*k2.x + (k1.y - q.y)*k2.y)/(k2.x*k2.x + k2.y*k2.y), 0.0, 1.0);
-    Vect2D cb = {q.x - k1.x - k2.x*clamped, q.y - k1.y - k2.y*clamped};
-    ftype s = (cb.x<0.0 && ca.y<0.0) ? -1.0 : 1.0;
-    return s*std::sqrt(std::min((ca.x*ca.x + ca.y*ca.y),(cb.x*cb.x + cb.y*cb.y)));
 }
 
 /**
@@ -467,14 +577,41 @@ sphere::ftype sphere::Cone::distanceFunction(Vector pointPos)
     }
     // calculate the distance in this coordinate system
     Vector2 q = Vector2(Vector2(rotP.x, rotP.z).length(), rotP.y);
-    Vector2 k1 = Vector2(r2, h);
-    Vector2 k2 = Vector2(r2-r1, 2.0*h);
 
     Vector2 ca = Vector2(
         q.x - std::min(q.x, q.y < 0 ? r1 : r2),
         std::fabs(q.y) - h
     );
-    Vector2 cb = q - k1 + k2 * std::clamp((k2 * (k1 - q)) / (k2 * k2), 0.0, 1.0);
-    ftype s = cb.x < 0.f && ca.y < 0.f ? -1.0 : 1.0;
+    Vector2 cb = q - this->k1 + this->k2 * std::clamp((this->k2 * (this->k1 - q)) *this->k2_dot_inv, 0.0, 1.0);
+    ftype s = cb.x < 0.0 && ca.y < 0.0 ? -1.0 : 1.0;
     return s * std::sqrt(std::min(ca * ca, cb * cb));
+}
+
+/**
+ * @brief returns the squared signed distance to a cone
+ * @param pointPos the position of the point 
+ * @return the signed distance
+ */
+sphere::ftype sphere::Cone::distanceFunctionSquared(Vector pointPos)
+{
+    // extract the relevant values from the form param of the cone
+    VectorVal h = this->form.z, r1 = this->form.x, r2 = this->form.y;
+
+    // translate and rotate point such that the object is at the origin
+    Vector rotP;
+    if (!isRotated){
+        rotP = pointPos - this->position;
+    } else {
+        rotP = Shape::translate_rotate(&pointPos);
+    }
+    // calculate the distance in this coordinate system
+    Vector2 q = Vector2(Vector2(rotP.x, rotP.z).length(), rotP.y);
+
+    Vector2 ca = Vector2(
+        q.x - std::min(q.x, q.y < 0 ? r1 : r2),
+        std::fabs(q.y) - h
+    );
+    Vector2 cb = q - this->k1 + this->k2 * std::clamp((this->k2 * (this->k1 - q)) *this->k2_dot_inv, 0.0, 1.0);
+    ftype s = cb.x < 0.0 && ca.y < 0.0 ? -1.0 : 1.0;
+    return s * std::min(ca * ca, cb * cb);
 }

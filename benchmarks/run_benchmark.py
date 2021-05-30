@@ -64,17 +64,20 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--scene', type=int, help='the scene to benchmark on')
     parser.add_argument('-r', '--repetitions', type=int, help='number of repetitions per input size')
+    parser.add_argument('--no_opscount', action='store_true', help='disables counting of ops', default=False)
     args = vars(parser.parse_args())
     scene = args['scene']
     reps = args["repetitions"]
+    opscount = not args["no_opscount"]
 
-    # 2.) build the library with BENCHMARKS_COUNT_OP on
-    log.info("**** Building SPHERE with BENCHMARKS_COUNT_OP")
-    build_sphere_library(True, True)
+    if(opscount):
+        # 2.) build the library with BENCHMARKS_COUNT_OP on
+        log.info("**** Building SPHERE with BENCHMARKS_COUNT_OP")
+        build_sphere_library(True, True)
 
-    # 3.) run SPHERE benchmarks with --countops
-    log.info("**** Running SPHERE benchmark with --countops")
-    run_benchmark_app(scene, reps, True)
+        # 3.) run SPHERE benchmarks with --countops
+        log.info("**** Running SPHERE benchmark with --countops")
+        run_benchmark_app(scene, reps, True)
 
     # 4.) rebuild the library without BENCHMARKS_COUNT_OP
     log.info("**** Rebuilding SPHERE without BENCHMARKS_COUNT_OP")
