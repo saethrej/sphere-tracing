@@ -22,11 +22,14 @@ if (NOT TARGET sphere)
 
     # add the accumulated source files to the library
     add_library(sphere ${sphere_src_files})
+
+    # add link-time optimization for this target
+    set_property(TARGET sphere PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
     
     # specify compiler options that are valid in any case
     target_include_directories(sphere PUBLIC $<BUILD_INTERFACE:${sphere_SOURCE_DIR}/src> 
                                       PUBLIC "${sphere_SOURCE_DIR}/libs/json/single_include/nlohmann/")
-    target_compile_options(sphere PRIVATE -O3 -march=native)
+    target_compile_options(sphere PRIVATE -O3 -march=native -ffast-math)
     target_compile_features(sphere PUBLIC cxx_std_17)
     target_link_libraries(sphere PRIVATE nlohmann_json::nlohmann_json)
 
