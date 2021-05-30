@@ -40,6 +40,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <queue>
 
 #ifdef SPHERE_WITH_OPENMP
@@ -103,22 +104,69 @@ void sphere::Renderer::renderScene(std::string pathToOutputFile, itype width, it
 }
 
 /**
+ * @brief computes the min-distances among all shapes for the current ray
+ * 
+ * @param minDist [OUT] the computed minimum distance
+ * @param min2Dist [OUT] the computed second minimum distance
+ * @param closestShape [OUT] pointer to the closest shape
+ * @param ray [IN] current ray position for which to compute distance
+ */
+void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&closestShape, Vector const &ray){
+    ftype d;
+    for (Shape *shape : this->scene->shapes) {
+        d = shape->distanceFunction(ray);
+        if (d < minDist){
+            min2Dist = minDist;
+            minDist = d;
+            closestShape = shape;
+        }
+        else if (d < min2Dist){
+            min2Dist = d;
+        }
+    }
+
+    /*
+        Use code below for squared distance functios
+    */
+    //ftype d;
+    //for (Shape *shape : this->scene->shapes) {
+    //    d = shape->distanceFunctionSquared(ray);
+    //    if (d < minDist){
+    //        min2Dist = minDist;
+    //        minDist = d;
+    //        closestShape = shape;
+    //    }
+    //    else if (d < min2Dist){
+    //        min2Dist = d;
+    //    }
+    //}
+    //minDist = sqrt(minDist);
+    //min2Dist = sqrt(min2Dist);
+}
+
+/**
  * @brief Renders an image by performing sphere tracing for every pixel and writing its color.
  */
 void sphere::Renderer::renderPixels()
 {
+    // pre-compute min-distances in the first sphere tracing step
     Vector ray_origin = this->scene->cameraPos;
+    ftype minDistance = std::numeric_limits<ftype>::max();
+    ftype min2Distance = std::numeric_limits<ftype>::max();
+    Shape *closestShape;
+    getMinDistances(minDistance, min2Distance, closestShape, ray_origin);
 
+    // render each pixel individually, with OpenMP threads
     #pragma omp parallel for
-    for (itype i = 0; i < this->image->height; ++i){
-        for (itype j = 0; j < this->image->width; ++j){
-            Vector ray_direction = {
-                (VectorVal) image->pixels[i * this->image->width +j].cameraCoord.x, 
-                (VectorVal) image->pixels[i * this->image->width +j].cameraCoord.y, 
-                1
-            };
+    for (itype i = 0; i < this->image->height; ++i) {
+        for (itype j = 0; j < this->image->width; ++j) {
+            Vector ray_direction(
+                image->pixels[i * this->image->width +j].cameraCoord.x, 
+                image->pixels[i * this->image->width +j].cameraCoord.y, 
+                1.0
+            );
             ray_direction = ray_direction.normalize();
-            Color col = sphereTrace(ray_origin, ray_direction, 0.0);
+            Color col = sphereTrace(ray_origin, ray_direction, 0.0, closestShape, minDistance, min2Distance);
             this->image->pixels[i * (this->image->width) + j].writeColor(col);
         }
     }
@@ -132,43 +180,34 @@ void sphere::Renderer::renderPixels()
  * @param distance distance already considered for this ray
  * @return sphere::Color with which the ray should be shaded
  */
-sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector const &ray_direction, ftype distance)
+sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector const &ray_direction, ftype distance, 
+        Shape *const firstShape, ftype const firstDistance, ftype const secondDistance)
 {
-    ftype t = 0, d = 0;
-    Shape *closestShape;
-    ftype minDistance;
-    ftype totalDistance;
-    std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp> shape_prio;
+    Shape *closestShape = firstShape;
+    ftype minDistance = firstDistance;
+    ftype min2Distance = secondDistance;
+    Vector ray = ray_origin;
 
-    Vector ray = ray_origin + ray_direction * t;
-    for (Shape *shape : this->scene->shapes) {
-        d = shape->distanceFunction(ray);
-        shape_prio.push(shape_dist{d, shape});
+    if (minDistance <= 0.0) {
+        return shade(ray, ray_direction, closestShape, distance);
     }
-    closestShape = shape_prio.top().shape;
-    minDistance = shape_prio.top().distance;
-    totalDistance = 0;
-    shape_prio.pop();
+    ftype t = minDistance;
+    ftype totalDistance = minDistance;
 
-    while((distance + t) < MAX_DISTANCE) {
+    while ((distance + t) < MAX_DISTANCE) {
         ray = ray_origin + ray_direction * t;
         minDistance = closestShape->distanceFunction(ray);
-        if(shape_prio.top().distance < (totalDistance + minDistance)){
-            shape_prio = std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp>();
-            for (Shape *shape : this->scene->shapes) {
-                d = shape->distanceFunction(ray);
-                shape_prio.push(shape_dist{d, shape});
-            }
-            closestShape = shape_prio.top().shape;
-            minDistance = shape_prio.top().distance;
-            totalDistance = 0;
-            shape_prio.pop();
+        totalDistance = totalDistance + minDistance;
+        if (min2Distance < totalDistance) {
+            minDistance = std::numeric_limits<ftype>::max();
+            min2Distance = std::numeric_limits<ftype>::max();
+            getMinDistances(minDistance, min2Distance, closestShape, ray);
+            totalDistance = minDistance;
         }
-        if(minDistance <= TRACE_THRESHOLD * t){
+        if (minDistance <= TRACE_THRESHOLD * t) {
             return shade(ray, ray_direction, closestShape, distance + t);
         }
         t = t + minDistance;
-        totalDistance = totalDistance + minDistance;
     }
     return Color(0,0,0);
 }
@@ -187,8 +226,8 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
 {
     // create delta vectors and use them to compute the normal vector of the 
     // tangential plane at the point where the ray and the shape intersect
-    Vector dx = {NORMAL_DELTA, 0.0, 0.0}, dy = {0.0, NORMAL_DELTA, 0.0}, dz = {0.0, 0.0, NORMAL_DELTA};
-    Vector normal = Vector(
+    Vector dx(NORMAL_DELTA, 0.0, 0.0), dy(0.0, NORMAL_DELTA, 0.0), dz(0.0, 0.0, NORMAL_DELTA);
+    Vector normal(
         shape->distanceFunction(ray + dx) - shape->distanceFunction(ray - dx),
         shape->distanceFunction(ray + dy) - shape->distanceFunction(ray - dy),
         shape->distanceFunction(ray + dz) - shape->distanceFunction(ray - dz)
@@ -199,50 +238,62 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
     // dot product of said vector with the normal vector of the tangential plane computed
     // above. If it's larger than zero, this indicates that the ray is hitting the 
     // shape from the front, which means it's important to our image
-    Vector light_dir = (this->scene->lightPos - ray);
-    Vector light_dir_norm = light_dir.normalize();
-    ftype NdotL = (light_dir_norm * normal)/2;
+    constexpr ftype colorScale = 1.0/255.;
+    Vector scaledLightEmission = scene->lightEmi * colorScale;
+    Vector L = (this->scene->lightPos - ray);
+    Vector L_norm = L.normalize();
+    ftype NdotL = L_norm * normal;
+    ftype NdotL_half = NdotL * 0.5;
     Color ambient = shape->color;
-    Color diffuse = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0, NdotL);
+    Color diffuse = scaledLightEmission * std::max(0.0, NdotL_half);
+    Vector refl =  L_norm - normal * (2.0 * NdotL);//L_norm - normal * NdotL;
 
     // compute specular highlights
-    Vector lightrefl = light_dir_norm - normal * 2 * (light_dir_norm * normal);
-    lightrefl = lightrefl.normalize();
-    ftype specular_weight_central = pow(lightrefl * ray_normalized, 100.0/shape->shininess);
-    ftype specular_weight_middle = pow(lightrefl * ray_normalized, shape->shininess)/2;
-    ftype specular_weight_wide = pow(lightrefl * ray_normalized, 2);
-    ftype specular_weight_broad = lightrefl * ray_normalized;
-    ftype specular_weight = SPECULAR_BIAS * specular_weight_central;
-    specular_weight += ((1 - SPECULAR_BIAS)/3) * specular_weight_broad;
-    specular_weight += ((1 - SPECULAR_BIAS)/3) * specular_weight_middle;
-    specular_weight += ((1 - SPECULAR_BIAS)/3) * specular_weight_middle;
-    Color specular = Vector(scene->lightEmi.x/255., scene->lightEmi.y/255., scene->lightEmi.z/255.) * std::max(0.0,specular_weight);
-    
+    Vector refl_norm = refl.normalize();
+    ftype RefldotRay = refl_norm * ray_normalized;
+    ftype scaledShininess = 100.0/shape->shininess;
+
+    ftype specular_weight_central = pow(RefldotRay, scaledShininess);
+    ftype specular_weight_middle = pow(RefldotRay, shape->shininess) * 0.5;
+    ftype specular_weight_wide = RefldotRay * RefldotRay;
+    ftype specular_weight_broad = RefldotRay;
+    constexpr ftype specularFactor = 0.33333333333333 - SPECULAR_BIAS_THIRD;
+    ftype specularMiddleSummand = specularFactor * specular_weight_middle * 2.0;
+    ftype specular_weight = SPECULAR_BIAS * specular_weight_central 
+                            + specularFactor * specular_weight_broad 
+                            + specularMiddleSummand;
+
+    Color specular = scaledLightEmission * std::max(0.0, specular_weight);  //cannot be negative std::max(0.0,specular_weight);
+
     // compute the reflection if object reflects
-    Color reflection_color = Color(0,0,0);
+    Color reflection_color(0.f, 0.f, 0.f);
     ftype reflection_weight = shape->reflection;
-    if(reflection_weight > 0){
-        // exp version
-        Vector refldir = ray_normalized + normal * 2 * std::exp((ray_normalized * normal) + 1);
-        // normal version
-        // Vector refldir = ray_normalized - normal * 2 * (ray_normalized * normal);
+    if (reflection_weight > 0) {
+        Vector refldir = ray_normalized + normal * (2.0 * std::exp((ray_normalized * normal) + 1.0));
         refldir = refldir.normalize();
-        reflection_color = sphereTrace(ray + normal*REFLECTION_BIAS, refldir, distance);
-        if (reflection_color.equals(Color(0,0,0))){
-            reflection_weight = reflection_weight/4.0;
+
+        ftype minDistance = std::numeric_limits<ftype>::max();
+        ftype min2Distance = std::numeric_limits<ftype>::max();
+        Shape *closestShape;
+        Vector start_ray = ray + normal*REFLECTION_BIAS;
+        getMinDistances(minDistance, min2Distance, closestShape, start_ray);
+
+        reflection_color = sphereTrace(start_ray, refldir, distance, closestShape, minDistance, min2Distance);     
+        if (reflection_color.equals(Color(0.f, 0.f, 0.f))) {
+            reflection_weight = reflection_weight * 0.25;
         }
     }
 
     // compute the shadow
-    ftype light_len = light_dir.length();
-    ftype shadow_weight = shadow(ray, light_dir_norm, light_len);
+    ftype light_len = L.length();
+    ftype shadow_weight = shadow(ray, L_norm, light_len);
 
     // combine the different color values
-    Color col = Color();
+    Color col = (ambient + diffuse + specular) * (1.0 - reflection_weight) + reflection_color * reflection_weight;
     //col += (ambient + diffuse + specular) * (1 - reflection_weight) * shadow_weight;
     //col += reflection_color               * reflection_weight       * (shadow_weight + (1-shadow_weight)/4.0);
-    col += (ambient + diffuse + specular) * (1 - reflection_weight);
-    col += reflection_color               * reflection_weight;
+
+    // @TODO: do we need this here?
     col.r = std::min(col.r, 1.0f);
     col.g = std::min(col.g, 1.0f);
     col.b = std::min(col.b, 1.0f);
@@ -262,39 +313,38 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
 sphere::ftype sphere::Renderer::shadow(Vector const &ray_to_shade, Vector const &lightDir, ftype dist)
 {
     ftype shadow_weight = 1.0;
-    ftype shadow_step = SHADOW_MAX/(1.0 + SHADOW_CIRCLES*4.0);
-    std::tuple<bool, bool, bool> axes = lightDir.shadowAxes();
+    std::tuple<bool,bool,bool> axes = lightDir.shadowAxes();
 
     // always shoot at least one ray and determine if object in between
-    if(ObjectInBetween(ray_to_shade, lightDir, dist)){
-        shadow_weight -= shadow_step;
+    if (ObjectInBetween(ray_to_shade, lightDir, dist)) {
+        shadow_weight -= SHADOW_STEP;
     }
 
     // shoot four more rays per circle defined
-    Vector dx = {SHADOW_DELTA, 0.0, 0.0}, dy = {0.0, SHADOW_DELTA, 0.0}, dz = {0.0, 0.0, SHADOW_DELTA};
-    for(itype i = 0; i < SHADOW_CIRCLES; ++i){
-        if(std::get<0>(axes)){
-            if(ObjectInBetween(ray_to_shade, lightDir + dx * (i + 1), dist)){
-                shadow_weight -= shadow_step;
+    Vector dx(SHADOW_DELTA, 0.0, 0.0), dy(0.0, SHADOW_DELTA, 0.0), dz(0.0, 0.0, SHADOW_DELTA);
+    for (itype i = 0; i < SHADOW_CIRCLES; ++i) {
+        if (std::get<0>(axes)) {
+            if (ObjectInBetween(ray_to_shade, lightDir + dx * (i + 1), dist)) {
+                shadow_weight -= SHADOW_STEP;
             }
-            if(ObjectInBetween(ray_to_shade, lightDir - dx * (i + 1), dist)){
-                shadow_weight -= shadow_step;
-            }
-        }
-        if(std::get<1>(axes)){
-            if(ObjectInBetween(ray_to_shade, lightDir + dy * (i + 1), dist)){
-                shadow_weight -= shadow_step;
-            }
-            if(ObjectInBetween(ray_to_shade, lightDir - dy * (i + 1), dist)){
-                shadow_weight -= shadow_step;
+            if (ObjectInBetween(ray_to_shade, lightDir - dx * (i + 1), dist)) {
+                shadow_weight -= SHADOW_STEP;
             }
         }
-        if(std::get<2>(axes)){
-            if(ObjectInBetween(ray_to_shade, lightDir + dz * (i + 1), dist)){
-                shadow_weight -= shadow_step;
+        if (std::get<1>(axes)) {
+            if (ObjectInBetween(ray_to_shade, lightDir + dy * (i + 1), dist)) {
+                shadow_weight -= SHADOW_STEP;
             }
-            if(ObjectInBetween(ray_to_shade, lightDir - dz * (i + 1), dist)){
-                shadow_weight -= shadow_step;
+            if (ObjectInBetween(ray_to_shade, lightDir - dy * (i + 1), dist)) {
+                shadow_weight -= SHADOW_STEP;
+            }
+        }
+        if (std::get<2>(axes)) {
+            if (ObjectInBetween(ray_to_shade, lightDir + dz * (i + 1), dist)) {
+                shadow_weight -= SHADOW_STEP;
+            }
+            if (ObjectInBetween(ray_to_shade, lightDir - dz * (i + 1), dist)) {
+                shadow_weight -= SHADOW_STEP;
             }
         }
     }
@@ -313,45 +363,35 @@ sphere::ftype sphere::Renderer::shadow(Vector const &ray_to_shade, Vector const 
  */
 bool sphere::Renderer::ObjectInBetween(Vector const &ray_origin, Vector const &ray_direction, ftype max_dist)
 {
-    ftype t = 0, d = 0;
     Shape *closestShape;
-    ftype minDistance;
-    ftype totalDistance;
-    std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp> shape_prio;
+    ftype minDistance = std::numeric_limits<ftype>::max();
+    ftype min2Distance = std::numeric_limits<ftype>::max();
+    Vector ray = ray_origin;
 
-    Vector ray = ray_origin + ray_direction * t;
-    for (Shape *shape : this->scene->shapes) {
-        d = shape->distanceFunction(ray);
-        shape_prio.push(shape_dist{d, shape});
+    getMinDistances(minDistance, min2Distance, closestShape, ray);
+    if (minDistance <= 0) {
+        return true;
     }
-    closestShape = shape_prio.top().shape;
-    minDistance = shape_prio.top().distance;
-    totalDistance = 0;
-    shape_prio.pop();
+    ftype t = minDistance;
+    ftype totalDistance = minDistance;
 
-    while(t < max_dist) {
+    while (t < max_dist) {
         ray = ray_origin + ray_direction * t;
         minDistance = closestShape->distanceFunction(ray);
-        if(shape_prio.top().distance < (totalDistance + minDistance)){
-            shape_prio = std::priority_queue<shape_dist, std::vector<shape_dist>, shape_dist_comp>();
-            for (Shape *shape : this->scene->shapes) {
-                d = shape->distanceFunction(ray);
-                shape_prio.push(shape_dist{d, shape});
-            }
-            closestShape = shape_prio.top().shape;
-            minDistance = shape_prio.top().distance;
-            totalDistance = 0;
-            shape_prio.pop();
+        totalDistance = totalDistance + minDistance;
+        if (min2Distance < (totalDistance)) {
+            minDistance = std::numeric_limits<ftype>::max();
+            min2Distance = std::numeric_limits<ftype>::max();
+            getMinDistances(minDistance, min2Distance, closestShape, ray);
+            totalDistance = minDistance;
         }
-        if(minDistance <= SHADOW_THRESHOLD * t){
+        if (minDistance <= SHADOW_THRESHOLD * t) {
             return true;
         }
         t = t + minDistance;
-        totalDistance = totalDistance + minDistance;
     }
     return false;
 }
-
 
 /**
  * @brief Writes the image into a file in .ppm format
@@ -360,15 +400,67 @@ bool sphere::Renderer::ObjectInBetween(Vector const &ray_origin, Vector const &r
  */
 void sphere::Renderer::writeImageToFile(std::string pathToFile)
 {
+    // open a file stream and write image metadata
     unsigned char r, g, b;
     std::ofstream outstream;
     outstream.open(pathToFile);
     outstream << "P6\n" << this->image->width << " " << this->image->height << "\n255\n";
-    for(itype i = 0; i < this->image->width*this->image->height; ++i) {
-        r = static_cast<unsigned char>(std::max(1.0f, this->image->pixels[i].color.r * 255));
-        g = static_cast<unsigned char>(std::max(1.0f, this->image->pixels[i].color.g * 255));
-        b = static_cast<unsigned char>(std::max(1.0f, this->image->pixels[i].color.b * 255));
+    
+    // write the individual pixel values
+    for (itype i = 0; i < this->image->width*this->image->height; ++i) {
+        r = static_cast<unsigned char>(std::clamp(this->image->pixels[i].color.r * 255., 0., 255.));
+        g = static_cast<unsigned char>(std::clamp(this->image->pixels[i].color.g * 255., 0., 255.));
+        b = static_cast<unsigned char>(std::clamp(this->image->pixels[i].color.b * 255., 0., 255.));
         outstream << r << g << b;
     }
     outstream.close();
 }
+
+// microbenchmarking functionality
+#ifdef SPHERE_WITH_MICROBENCHMARKS
+
+/**
+ * @brief microbenchmarks all distance functions of shapes that are part
+ * of the current scene and prints them to a file
+ * 
+ * @details If you want to write your own microbenchmark function, you can
+ * follow the approach of this function. You have to do the following steps:
+ * 
+ * 1.) initialize the TSC (cycle counter) via TSC_INIT() macro
+ * 2.) prepare all of the arguments of the function you want to microbenchmark
+ * 3.) create a lambda function out of this function. There should be not arguments
+ *     because TSC_MEASURE() has to call the function without arguments, and thus
+ *     every argument has to be captured inside the [] clause.
+ * 4.) pass the function to the TSC_MEASURE() macro to start microbenchmarking
+ * 5.) get the number of cycles elapsed via TSC_GET() and clear via TSC_CLEAR()
+ *     to get ready for the next function
+ */
+void sphere::Renderer::microbenchmarkDistanceFunctions()
+{
+    // intialize microbenchmarking
+    TSC_INIT();
+
+    // use some hard-coded vector for the microbenchmarking
+    Vector testVec(M_PI, M_E, M_SQRT2);
+
+    // open a file to write the distance functions
+    std::ofstream out("../benchmarks/microbenchmark-df.txt", std::ios::out);
+
+    // microbenchmark the distance functions individually by looping over all
+    // shapes in the container
+    for (Shape *shape : this->scene->shapes) {
+        // microbenchmark the distance function
+        TSC_CLEAR();
+        auto func = [shape, testVec] () {
+            shape->distanceFunction(testVec);
+        };
+        TSC_MEASURE(func);
+        double cycles = TSC_GET();
+
+        out << std::left << std::setw(12) << shape->name << std::right 
+            << std::setw(12) << std::fixed << std::setprecision(1) << cycles << " cycles\n";
+    }
+    // close the file and end microbenchmarking
+    out.close();
+}
+#endif // SPHERE_WITH_MICROBENCHMARKS

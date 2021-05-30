@@ -44,6 +44,7 @@
 #include "SphereTypes.h"
 #include "ImageClasses.h"
 #include "Scene.h"
+#include "SphereMicroBenchmark.h"
 
 namespace sphere {
 
@@ -55,6 +56,8 @@ constexpr ftype TRACE_THRESHOLD = 10e-12;
 constexpr ftype NORMAL_DELTA = 10e-5;
 // weighting for broad vs central specular light effect (higher -> more central)
 constexpr ftype SPECULAR_BIAS = 0.5;
+// a third of the specular bias
+constexpr ftype SPECULAR_BIAS_THIRD = SPECULAR_BIAS / 3.0;
 // bias for reflection
 constexpr ftype REFLECTION_BIAS = 10e-1;
 // threshold for distance to object (shadow)
@@ -65,20 +68,11 @@ constexpr ftype SHADOW_CIRCLES = 0.0;
 constexpr ftype SHADOW_DELTA = 2*10e-3;
 // max value that is subtracted from the shadow_weight (higher -> darker shadow)
 constexpr ftype SHADOW_MAX = 0.9;
+// number of iterations per distance function in microbenchmarking
+constexpr int MICROBENCHMARK_ITERATIONS = 10;
 
-struct shape_dist
-{
-    ftype distance;
-    Shape *shape;
-};
-
-struct shape_dist_comp
-{
-    bool operator()(const shape_dist& lhs, const shape_dist& rhs) const
-    {
-        return lhs.distance > rhs.distance;
-    }
-};
+// helper
+constexpr ftype SHADOW_STEP = SHADOW_MAX/(1.0 + SHADOW_CIRCLES*4.0);
 
 
 /**
@@ -95,6 +89,9 @@ public:
     // public member functions
     void addScene(std::string pathToSceneFile);
     void renderScene(std::string pathToOutputFile, itype width, itype height, bool noOutput = false);
+#ifdef SPHERE_WITH_MICROBENCHMARKS
+    void microbenchmarkDistanceFunctions();
+#endif // SPHERE_WITH_MICROBENCHMARKS
 
     // public member fields
     Scene *scene;
@@ -103,8 +100,10 @@ public:
 private:
     // private member functions
     void renderPixels();
+    void getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&closestShape, Vector const &ray);
     void writeImageToFile(std::string pathToFile);
-    Color sphereTrace(Vector const &ray_origin, Vector const &ray_direction, ftype distance);
+    Color sphereTrace(Vector const &ray_origin, Vector const &ray_direction, ftype distance, 
+        Shape *const firstShape, ftype const firstDistance, ftype const secondDistance);
     Color shade(Vector const &ray_to_shape, Vector const &ray_normalized, Shape *shape, ftype distance);
     ftype shadow(Vector const &ray_to_shade, Vector const &lightDir, ftype dist);
     bool ObjectInBetween(Vector const &ray_origin, Vector const &ray_direction, ftype max_dist);

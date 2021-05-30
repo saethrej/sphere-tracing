@@ -75,6 +75,7 @@ public:
 
     // distance function
     virtual ftype distanceFunction(Vector pos) = 0;
+    virtual ftype distanceFunctionSquared(Vector pos) = 0;
 
     // static functions
     static ShapeType getShapeType(std::string shapeName);
@@ -86,6 +87,7 @@ public:
     ftype shininess;  //!< the shape's shininess value
     Color color;      //!< the shape's color (RGB)
     ShapeType type;   //!< the type of the shape
+    std::string name; //!< the shape's name
     bool isRotated;   //!< indicates whether rotation is non-zero
     ftype inverseRotation[9]; //!< inverse rotation matrix
 };
@@ -101,6 +103,7 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
+    ftype distanceFunctionSquared(Vector pos);
 
     // additional public member fields
     Vector normal;
@@ -118,6 +121,7 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
+    ftype distanceFunctionSquared(Vector pos);
 
     // additional public member fields
     Vector extents;
@@ -134,6 +138,7 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
+    ftype distanceFunctionSquared(Vector pos);
 
     // additional public member fields
     ftype radius;
@@ -150,6 +155,7 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
+    ftype distanceFunctionSquared(Vector pos);
 
     // additional public member fields
     ftype r1;
@@ -167,6 +173,7 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
+    ftype distanceFunctionSquared(Vector pos);
 
     // additional public member fields
     ftype s;
@@ -183,10 +190,13 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
-    ftype distanceFunction2(Vector pos);
+    ftype distanceFunctionSquared(Vector pos);
 
     // additional public member fields
     Vector form;
+    Vector2 k1;
+    Vector2 k2;
+    ftype k2_dot_inv;
 };
 
 // overload stream operator for ShapeType
