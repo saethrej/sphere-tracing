@@ -72,7 +72,7 @@ constexpr ftype SHADOW_MAX = 0.9;
 constexpr int MICROBENCHMARK_ITERATIONS = 10;
 
 // helper
-constexpr ftype shadow_step = SHADOW_MAX/(1.0 + SHADOW_CIRCLES*4.0);
+constexpr ftype SHADOW_STEP = SHADOW_MAX/(1.0 + SHADOW_CIRCLES*4.0);
 
 
 /**

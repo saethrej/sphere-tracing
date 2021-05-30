@@ -163,7 +163,7 @@ void sphere::Renderer::renderPixels()
             Vector ray_direction(
                 image->pixels[i * this->image->width +j].cameraCoord.x, 
                 image->pixels[i * this->image->width +j].cameraCoord.y, 
-                1
+                1.0
             );
             ray_direction = ray_direction.normalize();
             Color col = sphereTrace(ray_origin, ray_direction, 0.0, closestShape, minDistance, min2Distance);
@@ -188,7 +188,7 @@ sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector con
     ftype min2Distance = secondDistance;
     Vector ray = ray_origin;
 
-    if (minDistance <= 0) {
+    if (minDistance <= 0.0) {
         return shade(ray, ray_direction, closestShape, distance);
     }
     ftype t = minDistance;
@@ -198,7 +198,7 @@ sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector con
         ray = ray_origin + ray_direction * t;
         minDistance = closestShape->distanceFunction(ray);
         totalDistance = totalDistance + minDistance;
-        if(min2Distance < totalDistance){
+        if (min2Distance < totalDistance) {
             minDistance = std::numeric_limits<ftype>::max();
             min2Distance = std::numeric_limits<ftype>::max();
             getMinDistances(minDistance, min2Distance, closestShape, ray);
@@ -227,7 +227,7 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
     // create delta vectors and use them to compute the normal vector of the 
     // tangential plane at the point where the ray and the shape intersect
     Vector dx(NORMAL_DELTA, 0.0, 0.0), dy(0.0, NORMAL_DELTA, 0.0), dz(0.0, 0.0, NORMAL_DELTA);
-    Vector normal = Vector(
+    Vector normal(
         shape->distanceFunction(ray + dx) - shape->distanceFunction(ray - dx),
         shape->distanceFunction(ray + dy) - shape->distanceFunction(ray - dy),
         shape->distanceFunction(ray + dz) - shape->distanceFunction(ray - dz)
@@ -258,18 +258,18 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
     ftype specular_weight_wide = RefldotRay * RefldotRay;
     ftype specular_weight_broad = RefldotRay;
     constexpr ftype specularFactor = 0.33333333333333 - SPECULAR_BIAS_THIRD;
-    ftype specularMiddleSummand = specularFactor * specular_weight_middle * 2;
+    ftype specularMiddleSummand = specularFactor * specular_weight_middle * 2.0;
     ftype specular_weight = SPECULAR_BIAS * specular_weight_central 
                             + specularFactor * specular_weight_broad 
                             + specularMiddleSummand;
 
-    Color specular = scaledLightEmission * std::max(0.0,specular_weight);  //cannot be negative std::max(0.0,specular_weight);
+    Color specular = scaledLightEmission * std::max(0.0, specular_weight);  //cannot be negative std::max(0.0,specular_weight);
 
     // compute the reflection if object reflects
-    Color reflection_color = Color(0,0,0);
+    Color reflection_color(0.f, 0.f, 0.f);
     ftype reflection_weight = shape->reflection;
-    if(reflection_weight > 0){
-        Vector refldir = ray_normalized + normal * (2.0 * std::exp((ray_normalized * normal) + 1));
+    if (reflection_weight > 0) {
+        Vector refldir = ray_normalized + normal * (2.0 * std::exp((ray_normalized * normal) + 1.0));
         refldir = refldir.normalize();
 
         ftype minDistance = std::numeric_limits<ftype>::max();
@@ -279,7 +279,7 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
         getMinDistances(minDistance, min2Distance, closestShape, start_ray);
 
         reflection_color = sphereTrace(start_ray, refldir, distance, closestShape, minDistance, min2Distance);     
-        if (reflection_color.equals(Color(0,0,0))) {
+        if (reflection_color.equals(Color(0.f, 0.f, 0.f))) {
             reflection_weight = reflection_weight * 0.25;
         }
     }
@@ -289,7 +289,7 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
     ftype shadow_weight = shadow(ray, L_norm, light_len);
 
     // combine the different color values
-    Color col = (ambient + diffuse + specular) * (1 - reflection_weight) + reflection_color * reflection_weight;
+    Color col = (ambient + diffuse + specular) * (1.0 - reflection_weight) + reflection_color * reflection_weight;
     //col += (ambient + diffuse + specular) * (1 - reflection_weight) * shadow_weight;
     //col += reflection_color               * reflection_weight       * (shadow_weight + (1-shadow_weight)/4.0);
 
@@ -317,34 +317,34 @@ sphere::ftype sphere::Renderer::shadow(Vector const &ray_to_shade, Vector const 
 
     // always shoot at least one ray and determine if object in between
     if (ObjectInBetween(ray_to_shade, lightDir, dist)) {
-        shadow_weight -= shadow_step;
+        shadow_weight -= SHADOW_STEP;
     }
 
     // shoot four more rays per circle defined
-    Vector dx = {SHADOW_DELTA, 0.0, 0.0}, dy = {0.0, SHADOW_DELTA, 0.0}, dz = {0.0, 0.0, SHADOW_DELTA};
+    Vector dx(SHADOW_DELTA, 0.0, 0.0), dy(0.0, SHADOW_DELTA, 0.0), dz(0.0, 0.0, SHADOW_DELTA);
     for (itype i = 0; i < SHADOW_CIRCLES; ++i) {
         if (std::get<0>(axes)) {
             if (ObjectInBetween(ray_to_shade, lightDir + dx * (i + 1), dist)) {
-                shadow_weight -= shadow_step;
+                shadow_weight -= SHADOW_STEP;
             }
             if (ObjectInBetween(ray_to_shade, lightDir - dx * (i + 1), dist)) {
-                shadow_weight -= shadow_step;
+                shadow_weight -= SHADOW_STEP;
             }
         }
         if (std::get<1>(axes)) {
             if (ObjectInBetween(ray_to_shade, lightDir + dy * (i + 1), dist)) {
-                shadow_weight -= shadow_step;
+                shadow_weight -= SHADOW_STEP;
             }
             if (ObjectInBetween(ray_to_shade, lightDir - dy * (i + 1), dist)) {
-                shadow_weight -= shadow_step;
+                shadow_weight -= SHADOW_STEP;
             }
         }
         if (std::get<2>(axes)) {
             if (ObjectInBetween(ray_to_shade, lightDir + dz * (i + 1), dist)) {
-                shadow_weight -= shadow_step;
+                shadow_weight -= SHADOW_STEP;
             }
             if (ObjectInBetween(ray_to_shade, lightDir - dz * (i + 1), dist)) {
-                shadow_weight -= shadow_step;
+                shadow_weight -= SHADOW_STEP;
             }
         }
     }
