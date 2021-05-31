@@ -77,22 +77,13 @@ public:
     std::vector<Shape*> shapes; //!< vector of shape objects
     itype numShapes;  //!< number of shapes in this scene
 
-    // container for individual shape types
-    std::vector<Plane*> planes; //!< vector of all plane shapes
-    std::vector<Box*> boxes; //!< vector of all box shapes
-    std::vector<Sphere*> spheres; //!< vector of all sphere shapes
-    std::vector<Torus*> tori; //!< vector of all tori shapes
-    std::vector<Octahedron*> octas; //!< vector of all octahedron shapes
-    std::vector<Cone*> cones; //!< vector of all cone shapes
-
-    // counters for all shape types
-    itype numPlanes; //!< number of planes in this scene
-    itype numBoxes; //!< number of boxes in this scene
-    itype numSpheres; //!< number of spheres in this scene
-    itype numTori; //!< number of tori in this scene
-    itype numOctas; //!< number of octahedrons in this scene
-    itype numCones; //!< number of cones in this scene
-
+    // wrappers for individual shape types
+    BoxWrapper *wBox;       //!< wrapper object for all boxes
+    ConeWrapper *wCone;     //!< wrapper object for all cones
+    OctaWrapper *wOcta;     //!< wrapper object for all octahedrons
+    PlaneWrapper *wPlane;   //!< wrapper object for all planes
+    SphereWrapper *wSphere; //!< wrapper object for all spheres
+    TorusWrapper *wTorus;   //!< wrapper object for all tori
 
 private:
     // private member fields
