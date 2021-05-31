@@ -148,8 +148,6 @@ sphere::Scene::Scene(std::string pathToFile)
         std::cerr << e.what() << std::endl;
         throw SphereException(SphereException::ErrorCode::JsonSyntaxError);
     }
-
-    std::cout << "this->wBox->xPos[0] = " << this->wBox->xPos[0] << std::endl;
 }
 
 /**

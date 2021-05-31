@@ -56,11 +56,33 @@ namespace sphere {
 // maximum number of objects per shape type 
 constexpr itype MAX_OBJECTS = 16;
 
+// forward declarations
+class ShapeWrapper; class BoxWrapper; class ConeWrapper; class OctaWrapper;
+class PlaneWrapper; class SphereWrapper; class TorusWrapper;
+
 /**
  * @brief enum class defining the different shapes we can render. Each
  * shape has exactly one of the types in this enum.
  */
 enum class ShapeType {PLANE, BOX, SPHERE, TORUS, OCTAHEDRON, CONE, UNKNOWN};
+
+/**
+ * @brief simple class that stores four distances for the vectorized 
+ * distance functions
+ */
+class Distances
+{
+public: 
+    // constructor
+    Distances(ftype dd0, ftype dd1, ftype dd2, ftype dd3) 
+        : d0(dd0), d1(dd1), d2(dd2), d3(dd3) {}
+
+    // public member fields
+    ftype d0;
+    ftype d1;
+    ftype d2;
+    ftype d3;
+};
 
 /******************************* Shape Classes *******************************/
 
