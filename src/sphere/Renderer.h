@@ -101,6 +101,7 @@ private:
     // private member functions
     void renderPixels();
     void getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&closestShape, Vector const &ray);
+    void getMinDistancesVectorized(ftype &minDist, ftype &min2Dist, Shape *&closestShape, Vector const &ray);
     void writeImageToFile(std::string pathToFile);
     Color sphereTrace(Vector const &ray_origin, Vector const &ray_direction, ftype distance, 
         Shape *const firstShape, ftype const firstDistance, ftype const secondDistance);

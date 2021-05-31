@@ -95,31 +95,43 @@ sphere::Scene::Scene(std::string pathToFile)
                 case ShapeType::BOX: { 
                     Box *box = new Box(shp);
                     this->shapes.push_back(box);
+                    this->boxes.push_back(box);
+                    this->numBoxes++;
                     break;
                 }
                 case ShapeType::CONE: {
                     Cone *cone = new Cone(shp);
                     this->shapes.push_back(cone);
+                    this->cones.push_back(cone);
+                    this->numCones++;
                     break;
                 }
                 case ShapeType::OCTAHEDRON: {
                     Octahedron *oct = new Octahedron(shp);
                     this->shapes.push_back(oct);
+                    this->octas.push_back(oct);
+                    this->numOctas++;
                     break;
                 }
                 case ShapeType::PLANE: {
                     Plane *plane = new Plane(shp);
                     this->shapes.push_back(plane);
+                    this->planes.push_back(plane);
+                    this->numPlanes++;
                     break;
                 }
                 case ShapeType::SPHERE: {
-                    Sphere *sphere = new Sphere(shp);
-                    this->shapes.push_back(sphere);
+                    Sphere *sphe = new Sphere(shp);
+                    this->shapes.push_back(sphe);
+                    this->spheres.push_back(sphe);
+                    this->numSpheres++;
                     break;
                 }
                 case ShapeType::TORUS: {
                     Torus *torus = new Torus(shp);
                     this->shapes.push_back(torus);
+                    this->tori.push_back(torus);
+                    this->numTori++;
                     break;
                 }
                 default:
@@ -145,28 +157,63 @@ sphere::Scene::~Scene()
     for (size_t i = 0; i < this->numShapes; ++i) {
         delete this->shapes[i];
     }
+
+    // empty all of the containers
+    this->shapes.clear();
+    this->boxes.clear();
+    this->cones.clear();
+    this->octas.clear();
+    this->planes.clear();
+    this->spheres.clear();
+    this->tori.clear();
 }
 
 /**
  * @brief add new shape to the scene
  * @param shape pointer to the new shape
+ * 
+ * @note deletes the shape if its type is not supported
  */
 void sphere::Scene::addShape(sphere::Shape *shape)
 {
     shapes.push_back(shape);
     numShapes++;
-}
 
-/**
- * @brief removes a shape with a certain index
- * @param index the index of the shape to be removed. No action is performed
- * if index is out of bounds
- */ 
-void sphere::Scene::removeShape(itype index)
-{
-    // only perform operation if index is in correct range
-    if (index >= 0 && index < numShapes) {
-        shapes.erase(shapes.begin() + index);
-        numShapes--;
+    switch (shape->type) {
+        case ShapeType::BOX: { 
+            this->boxes.push_back(dynamic_cast<Box*>(shape));
+            this->numBoxes++;
+            break;
+        }
+        case ShapeType::CONE: {
+            this->cones.push_back(dynamic_cast<Cone*>(shape));
+            this->numCones++;
+            break;
+        }
+        case ShapeType::OCTAHEDRON: {
+            this->octas.push_back(dynamic_cast<Octahedron*>(shape));
+            this->numOctas++;
+            break;
+        }
+        case ShapeType::PLANE: {
+            this->planes.push_back(dynamic_cast<Plane*>(shape));
+            this->numPlanes++;
+            break;
+        }
+        case ShapeType::SPHERE: {
+            this->spheres.push_back(dynamic_cast<Sphere*>(shape));
+            this->numSpheres++;
+            break;
+        }
+        case ShapeType::TORUS: {
+            this->tori.push_back(dynamic_cast<Torus*>(shape));
+            this->numTori++;
+            break;
+        }
+        default:
+            // counter the ++ and remove shape
+            this->numShapes--;
+            this->shapes.pop_back();
+            delete shape;
     }
 }

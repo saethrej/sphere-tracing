@@ -60,6 +60,17 @@ namespace sphere {
 enum class ShapeType {PLANE, BOX, SPHERE, TORUS, OCTAHEDRON, CONE, UNKNOWN};
 
 /**
+ * @brief struct storing four distances to be used for AVX versions of 
+ * the distance function
+ */
+typedef struct Distances {
+    ftype d0; 
+    ftype d1;
+    ftype d2;
+    ftype d3;
+} Distances;
+
+/**
  * @brief abstract class that provides the template for the different shapes
  * to be rendered.
  */

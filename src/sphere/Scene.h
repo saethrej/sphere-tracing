@@ -65,7 +65,6 @@ public:
 
     // public member functions
     void addShape(Shape *newShape);
-    void removeShape(itype index);
 
     // public member fields
     ftype cameraFov;  //!< field of view of the camera
@@ -73,8 +72,27 @@ public:
     Vector cameraRot; //!< rotation of the camera
     Vector lightPos;  //!< position of the pointlight
     Vector lightEmi;  //!< emission of the pointlight
+
+    // container and counter for all shapes
     std::vector<Shape*> shapes; //!< vector of shape objects
     itype numShapes;  //!< number of shapes in this scene
+
+    // container for individual shape types
+    std::vector<Plane*> planes; //!< vector of all plane shapes
+    std::vector<Box*> boxes; //!< vector of all box shapes
+    std::vector<Sphere*> spheres; //!< vector of all sphere shapes
+    std::vector<Torus*> tori; //!< vector of all tori shapes
+    std::vector<Octahedron*> octas; //!< vector of all octahedron shapes
+    std::vector<Cone*> cones; //!< vector of all cone shapes
+
+    // counters for all shape types
+    itype numPlanes; //!< number of planes in this scene
+    itype numBoxes; //!< number of boxes in this scene
+    itype numSpheres; //!< number of spheres in this scene
+    itype numTori; //!< number of tori in this scene
+    itype numOctas; //!< number of octahedrons in this scene
+    itype numCones; //!< number of cones in this scene
+
 
 private:
     // private member fields

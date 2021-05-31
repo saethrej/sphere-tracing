@@ -111,7 +111,8 @@ void sphere::Renderer::renderScene(std::string pathToOutputFile, itype width, it
  * @param closestShape [OUT] pointer to the closest shape
  * @param ray [IN] current ray position for which to compute distance
  */
-void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&closestShape, Vector const &ray){
+void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&closestShape, Vector const &ray)
+{
     ftype d;
     for (Shape *shape : this->scene->shapes) {
         d = shape->distanceFunction(ray);
@@ -142,6 +143,22 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
     //}
     //minDist = sqrt(minDist);
     //min2Dist = sqrt(min2Dist);
+}
+
+/**
+ * @brief computes the min distances among all shapes in a vectorized way
+ * 
+ * @param minDist [OUT] the minimum distance that was encountered
+ * @param min2Dist [OUT] the second minimum distance encountered
+ * @param closest pointer to the closest shape
+ * @param ray the ray to compute distance to objects
+ */
+void sphere::Renderer::getMinDistancesVectorized(ftype &minDist, ftype &min2Dist, Shape *&closest, Vector const &ray)
+{
+    ftype d = std::numeric_limits<ftype>::max();
+
+    // iterate over each types of shapes individually
+    
 }
 
 /**
