@@ -615,3 +615,320 @@ sphere::ftype sphere::Cone::distanceFunctionSquared(Vector pointPos)
     ftype s = cb.x < 0.0 && ca.y < 0.0 ? -1.0 : 1.0;
     return s * std::min(ca * ca, cb * cb);
 }
+
+/*****************************************************************************/
+/******************************* WRAPPERS ************************************/
+/*****************************************************************************/
+
+/**
+ * @brief allocates arrays in new ShapeWrapper object
+ */
+sphere::ShapeWrapper::ShapeWrapper()
+{
+    // allocate space for the position data
+    xPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    yPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    zPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+
+    // allocate 12*MAX_OBJECTS elements for rotation matrix
+    rotMatrix = new (std::align_val_t(32)) ftype[12 * MAX_OBJECTS];
+    
+    // initially there are 0 elements
+    numElems = 0;
+}
+
+/**
+ * @brief frees the allocated memory in ShapeWrapper
+ */
+sphere::ShapeWrapper::~ShapeWrapper()
+{
+    delete[] xPos;
+    delete[] yPos;
+    delete[] zPos;
+    delete[] rotMatrix;
+}
+
+/**
+ * @brief adds a new shape to the wrapper
+ * @param shape shape to add to wrapper
+ */
+void sphere::ShapeWrapper::addShape(Shape *shape)
+{
+    // add the shape position 
+    xPos[numElems] = shape->position.x;
+    yPos[numElems] = shape->position.y;
+    zPos[numElems] = shape->position.z;
+
+    // add the shape's rotation matrix (in col-major order)
+    size_t idx = numElems * 12;
+    // first column
+    rotMatrix[idx] = shape->inverseRotation[0];
+    rotMatrix[idx+1] = shape->inverseRotation[3];
+    rotMatrix[idx+2] = shape->inverseRotation[6];
+    rotMatrix[idx+3] = 0.0; // padding
+    // second column
+    rotMatrix[idx+4] = shape->inverseRotation[1];
+    rotMatrix[idx+5] = shape->inverseRotation[4];
+    rotMatrix[idx+6] = shape->inverseRotation[7];
+    rotMatrix[idx+7] = 0.0; // padding
+    // third column
+    rotMatrix[idx+8] = shape->inverseRotation[2];
+    rotMatrix[idx+9] = shape->inverseRotation[5];
+    rotMatrix[idx+10] = shape->inverseRotation[8];
+    rotMatrix[idx+11] = 0.0; // padding
+}
+
+/**
+ * @brief constructs a PlaneWrapper 
+ */
+sphere::PlaneWrapper::PlaneWrapper()
+{
+    xNor = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    yNor = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    zNor = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    displacement = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    planes.reserve(MAX_OBJECTS);
+}
+
+/**
+ * @brief destroys a PlaneWrapper object
+ */
+sphere::PlaneWrapper::~PlaneWrapper()
+{
+    delete[] xNor;
+    delete[] yNor;
+    delete[] zNor;
+    delete[] displacement;
+}
+
+/**
+ * @brief adds a plane to the wrapper
+ * @param plane plane object to be added
+ */
+void sphere::PlaneWrapper::addPlane(Plane *plane)
+{
+    // call base class addShape function
+    ShapeWrapper::addShape(plane);
+
+    // add the plane to the vector
+    planes.push_back(plane);
+
+    // initialize the remaining fields
+    xNor[numElems] = plane->normal.x;
+    yNor[numElems] = plane->normal.y;
+    zNor[numElems] = plane->normal.z;
+    displacement[numElems] = plane->displacement;
+
+    // increase the shape counter
+    numElems++;
+}
+
+/**
+ * @brief constructs a BoxWrapper 
+ */
+sphere::BoxWrapper::BoxWrapper()
+{
+    xExt = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    yExt = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    zExt = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    boxes.reserve(MAX_OBJECTS);
+}
+
+/**
+ * @brief destroys a BoxWrapper object
+ */
+sphere::BoxWrapper::~BoxWrapper()
+{
+    delete[] xExt;
+    delete[] yExt;
+    delete[] zExt;
+}
+
+/**
+ * @brief adds a box to the wrapper
+ * @param box the box to be added
+ */
+void sphere::BoxWrapper::addBox(Box *box)
+{
+    // call base class addShape function
+    ShapeWrapper::addShape(box);
+
+    // add the plane to the vector
+    boxes.push_back(box);
+
+    // initialize the remaining fields
+    xExt[numElems] = box->extents.x;
+    yExt[numElems] = box->extents.y;
+    zExt[numElems] = box->extents.z;
+
+    // increase the shape counter
+    numElems++;    
+}
+
+/**
+ * @brief constructs a SphereWrapper 
+ */
+sphere::SphereWrapper::SphereWrapper()
+{
+    radiuses = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    spheres.reserve(MAX_OBJECTS);
+}
+
+/**
+ * @brief destroys a BoxWrapper object
+ */
+sphere::SphereWrapper::~SphereWrapper()
+{
+    delete[] radiuses;
+}
+
+/**
+ * @brief adds a sphere to the wrapper
+ * @param sphere the sphere to be added
+ */
+void sphere::SphereWrapper::addSphere(Sphere *sph)
+{
+    // call base class addShape function
+    ShapeWrapper::addShape(sph);
+
+    // add the plane to the vector
+    spheres.push_back(sph);
+
+    // initialize the remaining fields
+    radiuses[numElems] = sph->radius;
+
+    // increase the shape counter
+    numElems++;    
+}
+
+/**
+ * @brief constructs a TorusWrapper 
+ */
+sphere::TorusWrapper::TorusWrapper()
+{
+    r1s = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    r2s = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    tori.reserve(MAX_OBJECTS);
+}
+
+/**
+ * @brief destroys a TorusWrapper object
+ */
+sphere::TorusWrapper::~TorusWrapper()
+{
+    delete[] r1s;
+    delete[] r2s;
+}
+
+/**
+ * @brief adds a torus to the wrapper
+ * @param torus the torus to be added
+ */
+void sphere::TorusWrapper::addTorus(Torus *torus)
+{
+    // call base class addShape function
+    ShapeWrapper::addShape(torus);
+
+    // add the plane to the vector
+    tori.push_back(torus);
+
+    // initialize the remaining fields
+    r1s[numElems] = torus->r1;
+    r2s[numElems] = torus->r2;
+
+    // increase the shape counter
+    numElems++;    
+}
+
+/**
+ * @brief constructs a OctaWrapper 
+ */
+sphere::OctaWrapper::OctaWrapper()
+{
+    s = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    octas.reserve(MAX_OBJECTS);
+}
+
+/**
+ * @brief destroys a OctaWrapper object
+ */
+sphere::OctaWrapper::~OctaWrapper()
+{
+    delete[] s;
+}
+
+/**
+ * @brief adds a octahedron to the wrapper
+ * @param octa the octahedron to be added
+ */
+void sphere::OctaWrapper::addOcta(Octahedron *octa)
+{
+    // call base class addShape function
+    ShapeWrapper::addShape(octa);
+
+    // add the plane to the vector
+    octas.push_back(octa);
+
+    // initialize the remaining fields
+    s[numElems] = octa->s;
+
+    // increase the shape counter
+    numElems++;    
+}
+
+/**
+ * @brief constructs a ConeWrapper 
+ */
+sphere::ConeWrapper::ConeWrapper()
+{
+    xForm = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    yForm = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    zForm = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    xK1 = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    yK1 = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    xK2 = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    yK2 = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    k2DotInv = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    cones.reserve(MAX_OBJECTS);
+}
+
+/**
+ * @brief destroys a ConeWrapper object
+ */
+sphere::ConeWrapper::~ConeWrapper()
+{
+    delete[] xForm;
+    delete[] yForm;
+    delete[] zForm;
+    delete[] xK1;
+    delete[] yK1;
+    delete[] xK2;
+    delete[] yK2;
+    delete[] k2DotInv;
+}
+
+/**
+ * @brief adds a cone to the wrapper
+ * @param cone the octahedron to be added
+ */
+void sphere::ConeWrapper::addCone(Cone *cone)
+{
+    // call base class addShape function
+    ShapeWrapper::addShape(cone);
+
+    // add the plane to the vector
+    cones.push_back(cone);
+
+    // initialize the remaining fields
+    xForm[numElems] = cone->form.x;
+    yForm[numElems] = cone->form.y;
+    zForm[numElems] = cone->form.z;
+    xK1[numElems] = cone->k1.x;
+    yK1[numElems] = cone->k1.y;
+    xK2[numElems] = cone->k2.x;
+    yK2[numElems] = cone->k2.y;
+    k2DotInv[numElems] = cone->k2_dot_inv;
+
+    // increase the shape counter
+    numElems++;    
+}
