@@ -59,16 +59,6 @@ namespace sphere {
  */
 enum class ShapeType {PLANE, BOX, SPHERE, TORUS, OCTAHEDRON, CONE, UNKNOWN};
 
-/**
- * @brief struct storing four distances to be used for AVX versions of 
- * the distance function
- */
-typedef struct Distances {
-    ftype d0; 
-    ftype d1;
-    ftype d2;
-    ftype d3;
-} Distances;
 
 /**
  * @brief abstract class that provides the template for the different shapes
@@ -153,6 +143,7 @@ public:
 
     // additional public member fields
     ftype radius;
+
 };
 
 /**
@@ -213,6 +204,59 @@ public:
 // overload stream operator for ShapeType
 std::ostream& operator<<(std::ostream &out, ShapeType const &type);
 
+/**
+ * @brief struct storing four distances to be used for AVX versions of 
+ * the distance function
+ */
+typedef struct Distances {
+    ftype d0; 
+    ftype d1;
+    ftype d2;
+    ftype d3;
+} Distances;
+
+/**
+ * @brief struct storing four Shapes we want to compute distance functions on
+ * 
+ */
+typedef struct Spheres {
+    Sphere *s0;
+    Sphere *s1;
+    Sphere *s2;
+    Sphere *s3;
+} Spheres;
+
+typedef struct Tori {
+    Torus *s0;
+    Torus *s1;
+    Torus *s2;
+    Torus *s3;
+} Tori;
+
+typedef struct Cones {
+    Cone *s0;
+    Cone *s1;
+    Cone *s2;
+    Cone *s3;
+} Cones;
+
+typedef struct Planes {
+    Plane *s0;
+    Plane *s1;
+    Plane *s2;
+    Plane *s3;
+} Planes;
+
+typedef struct Octahedrons {
+    Octahedron *s0;
+    Octahedron *s1;
+    Octahedron *s2;
+    Octahedron *s3;
+} Octahedrons;
+
 } // namespace sphere
+
+
+
 
 #endif // SPHERE_SHAPES_H
