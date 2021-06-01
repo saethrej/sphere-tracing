@@ -635,6 +635,8 @@ sphere::ShapeWrapper::ShapeWrapper()
     
     // initially there are 0 elements
     numElems = 0;
+    numIters = 0;
+    iterCounter = 0.0;
 }
 
 /**
@@ -669,6 +671,24 @@ void sphere::ShapeWrapper::addShape(Shape *shape)
     rotMatrix[numElems + 6 * MAX_OBJECTS] = shape->inverseRotation[6];
     rotMatrix[numElems + 7 * MAX_OBJECTS] = shape->inverseRotation[7];
     rotMatrix[numElems + 8 * MAX_OBJECTS] = shape->inverseRotation[8];
+
+    // add to the iter counter
+    iterCounter += 0.25;
+    numIters = static_cast<itype>(std::ceil(iterCounter));
+}
+
+/**
+ * @brief fills empty positions with very large values such that the computed
+ * distance for these entries will certainly be large
+ */
+void sphere::ShapeWrapper::fillEmptyPositions()
+{
+    constexpr ftype lrgVal = 12481248;
+    for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
+        xPos[idx] = lrgVal;
+        yPos[idx] = lrgVal;
+        zPos[idx] = lrgVal;
+    }
 }
 
 /**

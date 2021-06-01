@@ -245,12 +245,20 @@ public:
     // function to add a shape
     void addShape(Shape *shp);
 
+    // function to fill position arrays with large numbers when elements
+    // are left empty (to fully use SIMD lanes)
+    void fillEmptyPositions();
+
     // public member fields (arrays for aligned access)
     ftype *xPos; //!< x-axis positions of all shapes
     ftype *yPos; //!< y-axis positions of all shapes
     ftype *zPos; //!< z-axis positions of all shapes
     ftype *rotMatrix; //!< the rotation matrices of all shapes 
     itype numElems; //!< number of elements of this type in scene
+    itype numIters; //!< number of vectorized iterations for this shape type
+
+private:
+    ftype iterCounter; //!< counts the number of iterations
 };
 
 /**
