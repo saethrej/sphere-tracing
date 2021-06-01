@@ -274,6 +274,8 @@ sphere::Distances sphere::Box::vectDistFunc(BoxWrapper const *boxWrap, Vector co
     //std::cout << "Veeeeeeeeeeector" << std::endl;
     //std::cout << pos << std::endl;
     __m256d rotx, roty,rotz;
+    __m256d rotx2, roty2, rotz2;
+    __m256d rotx3, roty3, rotz3;
     __m256d xCoords,yCoords,zCoords;
     __m256d xTrPoint, yTrPoint, zTrPoint;
     __m256d xRotPoint, yRotPoint, zRotPoint;
@@ -299,17 +301,17 @@ sphere::Distances sphere::Box::vectDistFunc(BoxWrapper const *boxWrap, Vector co
 
     xRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
 
-    rotx = _mm256_load_pd(boxWrap->rotMatrix + idx + 3* MAX_OBJECTS);
-    roty = _mm256_load_pd(boxWrap->rotMatrix + idx + 4*MAX_OBJECTS);
-    rotz = _mm256_load_pd(boxWrap->rotMatrix + idx + 5*MAX_OBJECTS);
+    rotx2 = _mm256_load_pd(boxWrap->rotMatrix + idx + 3* MAX_OBJECTS);
+    roty2 = _mm256_load_pd(boxWrap->rotMatrix + idx + 4*MAX_OBJECTS);
+    rotz2 = _mm256_load_pd(boxWrap->rotMatrix + idx + 5*MAX_OBJECTS);
 
-    yRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
+    yRotPoint = _mm256_fmadd_pd(rotz2, zTrPoint, _mm256_fmadd_pd(roty2, yTrPoint, _mm256_mul_pd(rotx2, xTrPoint)));
 
-    rotx = _mm256_load_pd(boxWrap->rotMatrix + idx + 6*MAX_OBJECTS);
-    roty = _mm256_load_pd(boxWrap->rotMatrix + idx + 7*MAX_OBJECTS);
-    rotz = _mm256_load_pd(boxWrap->rotMatrix + idx+ 8*MAX_OBJECTS);
+    rotx3 = _mm256_load_pd(boxWrap->rotMatrix + idx + 6*MAX_OBJECTS);
+    roty3 = _mm256_load_pd(boxWrap->rotMatrix + idx + 7*MAX_OBJECTS);
+    rotz3 = _mm256_load_pd(boxWrap->rotMatrix + idx+ 8*MAX_OBJECTS);
 
-    zRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
+    zRotPoint = _mm256_fmadd_pd(rotz3, zTrPoint, _mm256_fmadd_pd(roty3, yTrPoint, _mm256_mul_pd(rotx3, xTrPoint)));
 
 
     // calculate the absolute value
