@@ -59,6 +59,7 @@ constexpr itype MAX_OBJECTS = 16;
 // forward declarations
 class ShapeWrapper; class BoxWrapper; class ConeWrapper; class OctaWrapper;
 class PlaneWrapper; class SphereWrapper; class TorusWrapper;
+class Distances;
 
 /**
  * @brief enum class defining the different shapes we can render. Each
@@ -149,6 +150,8 @@ public:
     // distance function
     ftype distanceFunction(Vector pos);
     ftype distanceFunctionSquared(Vector pos);
+    static Distances vectDistFunc(BoxWrapper const *boxWrap, Vector const &pos, const itype numShapes, itype idx);
+
 
     // additional public member fields
     Vector extents;
@@ -166,8 +169,8 @@ public:
     // distance function
     ftype distanceFunction(Vector pos);
     ftype distanceFunctionSquared(Vector pos);
-
-    // additional public member fields
+    static Distances vecDistFunc(SphereWrapper const *sphereWrap, Vector const &pos, itype idx);
+        // additional public member fields
     ftype radius;
 
 };
