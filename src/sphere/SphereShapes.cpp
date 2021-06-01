@@ -588,7 +588,10 @@ sphere::Distances sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vec
     __m256d zRotPoint = _mm256_fmadd_pd(zPos, rotCol22, _mm256_fmadd_pd(yPos, rotCol21, _mm256_mul_pd(xPos, rotCol20))); 
 
     // load s value
-    __m256d s_vect = _mm256_set_pd(wOcta->s[idx], wOcta->s[idx + 1], wOcta->s[idx + 2], wOcta->s[idx + 3]);
+    //__m256d s_vect = _mm256_set_pd(wOcta->s[idx], wOcta->s[idx + 1], wOcta->s[idx + 2], wOcta->s[idx + 3]);
+    /*NOTE: set_pd above would store the values in the following order: wOcta->s[idx + 3],  wOcta->s[idx + 2], wOcta->s[idx + 1], wOcta->s[idx]
+    which is different from load_pd below*/
+    __m256d s_vect = _mm256_load_pd(wOcta->s + idx);
 
     //compute abs value
     __m256d abs_mask = _mm256_set1_pd(-0.0);
