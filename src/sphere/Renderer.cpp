@@ -96,6 +96,12 @@ void sphere::Renderer::addScene(std::string pathToSceneFile)
                   + rndToFour(scene->wPlane->numElems) + rndToFour(scene->wOcta->numElems)
                   + rndToFour(scene->wSphere->numElems) + rndToFour(scene->wTorus->numElems);
     this->distances = new (std::align_val_t(32)) ftype[this->numDist];
+    
+    // fill the distances with random large values that are later overwritten if 
+    // there is a valid shape at this position
+    for (itype i = 0; i < this->numDist; ++i) {
+        this->distances[i] = 12481241241.12412;
+    }
 
     // compute the thresholds to assign a shape to an index
     this->threshBox = 0;
