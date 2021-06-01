@@ -150,7 +150,7 @@ public:
     // distance function
     ftype distanceFunction(Vector pos);
     ftype distanceFunctionSquared(Vector pos);
-    static Distances vectDistFunc(BoxWrapper const *boxWrap, Vector const &pos, const itype numShapes, itype idx);
+    static Distances vectDistFunc(BoxWrapper const *boxWrap, Vector const &pos, itype idx);
 
 
     // additional public member fields

@@ -145,8 +145,8 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
 
     std::vector<ftype> dists;//(scene->numShapes);
     dists.reserve(scene->numShapes);
-    for (uint8_t i = 0; i < scene->wSphere->numElems; i+=4) {
-        Distances d = Sphere::vecDistFunc(scene->wSphere, ray, i);
+    for (uint8_t i = 0; i < scene->wBox->numElems; i+=4) {
+        Distances d = Box::vectDistFunc(scene->wBox, ray, i);
         dists.push_back(d.d0);
         dists.push_back(d.d1);
         dists.push_back(d.d2);
@@ -165,7 +165,7 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
         if (dist < minDist){
             min2Dist = minDist;
             minDist = dist;
-            closestShape = scene->wSphere->spheres[i];
+            closestShape = scene->wBox->boxes[i];
         }
         else if (dist< min2Dist){
             min2Dist = dist;
@@ -189,42 +189,9 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
         idx++;
     }
 
-    //std::cout << __LINE__ << std::endl;
-
-
-    /*
-    if (d.d2 < minDist) {
-        closestShape = scene->wSphere->spheres[2];
-        min2Dist = minDist;
-        minDist = d.d2;
-    }
-
-    else if (d.d2 < min2Dist && d.d2 >= minDist) {
-        min2Dist = d.d2;
-    }
-
-    if (d.d3 < minDist) {
-        closestShape = scene->wSphere->spheres[3];
-        min2Dist = minDist;
-        minDist = d.d3;
-    }
-
-    else if (d.d3 < min2Dist && d.d3 >= minDist) {
-        min2Dist = d.d3;
-    }
-
-    if (planeDist < minDist){
-        closestShape = scene->wPlane->planes[0];
-        min2Dist = minDist;
-        minDist = planeDist;
-    }
-
-    else if (planeDist < min2Dist) {
-        min2Dist = planeDist;
-    }
-    */
+    //std::cout << __LINE__ << std::endl
     
-    /*
+
     ftype d_nv;
     ftype minDist_nv = std::numeric_limits<double>::max();
     ftype min2Dist_nv = std::numeric_limits<double>::max();
@@ -240,7 +207,7 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
             min2Dist_nv = d_nv;
         }
     }
-    
+    /*
     if (std::abs(min2Dist - min2Dist_nv) > 0.00001 || std::abs(minDist - minDist_nv) > 0.00001) {
     std::cout << "=============Vectorized===============" << std::endl;
     //std::cout << d.d0 << ", " << d.d1 << ", " << d.d2 << ", " << d.d3<< ", " <<  planeDist << std::endl;
@@ -250,7 +217,6 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
     std::cout << minDist_nv << " " << min2Dist_nv<< std::endl;
     }
     */
-
     /*
         Use code below for squared distance functios
     */

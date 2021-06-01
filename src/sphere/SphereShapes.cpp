@@ -266,7 +266,7 @@ sphere::Box::Box(json const &box)
     }
 }
 
-sphere::Distances sphere::Box::vectDistFunc(BoxWrapper const *boxWrap, Vector const &pos, const itype numShapes, itype idx)
+sphere::Distances sphere::Box::vectDistFunc(BoxWrapper const *boxWrap, Vector const &pos, itype idx)
 {
 
 
@@ -276,7 +276,7 @@ sphere::Distances sphere::Box::vectDistFunc(BoxWrapper const *boxWrap, Vector co
     __m256d rotx, roty,rotz;
     __m256d xCoords,yCoords,zCoords;
     __m256d xTrPoint, yTrPoint, zTrPoint;
-    __m256d xRotPoint, yrotPoint, zRotPoint;
+    __m256d xRotPoint, yRotPoint, zRotPoint;
     __m256d xext, yext, zext;
     __m256d zero = _mm256_setzero_pd();
 
@@ -293,23 +293,23 @@ sphere::Distances sphere::Box::vectDistFunc(BoxWrapper const *boxWrap, Vector co
     zTrPoint = _mm256_sub_pd(zPos, zCoords);
 
     rotx = _mm256_load_pd(boxWrap->rotMatrix + idx);
-    roty = _mm256_load_pd(boxWrap->rotMatrix + idx + numShapes);
-    rotz = _mm256_load_pd(boxWrap->rotMatrix + idx + numShapes + numShapes);
+    roty = _mm256_load_pd(boxWrap->rotMatrix + idx + MAX_OBJECTS);
+    rotz = _mm256_load_pd(boxWrap->rotMatrix + idx + MAX_OBJECTS + MAX_OBJECTS);
 
 
-    __m256d xRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
+    xRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
 
-    rotx = _mm256_load_pd(boxWrap->rotMatrix + idx+1);
-    roty = _mm256_load_pd(boxWrap->rotMatrix + idx+1 + numShapes);
-    rotz = _mm256_load_pd(boxWrap->rotMatrix + idx+1 + numShapes + numShapes);
+    rotx = _mm256_load_pd(boxWrap->rotMatrix + idx + 3* MAX_OBJECTS);
+    roty = _mm256_load_pd(boxWrap->rotMatrix + idx + 4*MAX_OBJECTS);
+    rotz = _mm256_load_pd(boxWrap->rotMatrix + idx + 5*MAX_OBJECTS);
 
-    __m256d yRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
+    yRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
 
-    rotx = _mm256_load_pd(boxWrap->rotMatrix + idx+2);
-    roty = _mm256_load_pd(boxWrap->rotMatrix + idx+2 + numShapes);
-    rotz = _mm256_load_pd(boxWrap->rotMatrix + idx+2 + numShapes + numShapes);
+    rotx = _mm256_load_pd(boxWrap->rotMatrix + idx + 6*MAX_OBJECTS);
+    roty = _mm256_load_pd(boxWrap->rotMatrix + idx + 7*MAX_OBJECTS);
+    rotz = _mm256_load_pd(boxWrap->rotMatrix + idx+ 8*MAX_OBJECTS);
 
-    __m256d zRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
+    zRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
 
 
     // calculate the absolute value
@@ -318,14 +318,6 @@ sphere::Distances sphere::Box::vectDistFunc(BoxWrapper const *boxWrap, Vector co
     __m256d  abs_y = _mm256_andnot_pd(abs_mask, yRotPoint);
     __m256d  abs_z = _mm256_andnot_pd(abs_mask, zRotPoint);
 
-    /*
-    std::cout << "*************absolute values***********" << std::endl;
-
-    std::cout << abs_x[0] << " " << abs_x[1] << " " << abs_x[2] << " " << std::endl;
-    std::cout << abs_y[0] << " " << abs_y[1] << " " << abs_y[2] << " " << std::endl;
-    std::cout << abs_z[0] << " " << abs_z[1] << " " << abs_z[2] << " " << std::endl;
-
-    */
 
 
     xext = _mm256_load_pd(boxWrap->xExt + idx);
@@ -337,36 +329,25 @@ sphere::Distances sphere::Box::vectDistFunc(BoxWrapper const *boxWrap, Vector co
     // abs - extent
 
     __m256d xq = _mm256_sub_pd(abs_x, xext);
-    __m256d yq = _mm256_sub_pd(abs_y, xext);
-    __m256d zq = _mm256_sub_pd(abs_z, xext);
+    __m256d yq = _mm256_sub_pd(abs_y, yext);
+    __m256d zq = _mm256_sub_pd(abs_z, zext);
 
-    /*
-    
-    std::cout << "*************sub extent***********" << std::endl;
-
-    std::cout << xq[0] << " " << xq[1] << " " << xq[2] << " " << std::endl;
-    std::cout << yq[0] << " " << yq[1] << " " << yq[2] << " " << std::endl;
-    std::cout << zq[0] << " " << zq[1] << " " << zq[2] << " " << std::endl;
-
-    */
 
     __m256d xMask = _mm256_cmp_pd(xq, zero, _CMP_GE_OQ);
     __m256d yMask = _mm256_cmp_pd(yq, zero, _CMP_GE_OQ);
     __m256d zMask = _mm256_cmp_pd(zq, zero, _CMP_GE_OQ);
 
-    __m256d xtmp = _mm256_fmadd_pd(xq, xq, zero);
+    __m256d xtmp = _mm256_mul_pd(xq, xq);
     __m256d res0 = _mm256_and_pd(xtmp, xMask);
-    __m256d ytmp = _mm256_fmadd_pd(yq, yq, res0);
-    __m256d res1 = _mm256_and_pd(ytmp, xMask);
-    __m256d ztmp = _mm256_fmadd_pd(zq, zq, res0);
+    zero = _mm256_add_pd(res0, zero);
+    __m256d ytmp = _mm256_mul_pd(yq, yq);
+    __m256d res1 = _mm256_and_pd(ytmp, yMask);
+    zero = _mm256_add_pd(res1, zero);
+    __m256d ztmp = _mm256_mul_pd(zq, zq);
     __m256d res2 = _mm256_and_pd(ztmp, zMask);
+    zero = _mm256_add_pd(res2, zero);
 
-    __m256d res = _mm256_sqrt_pd(_mm256_add_pd(res0, _mm256_add_pd(res1, res2)));
-
-    /*
-    std::cout << "============Result============" << std::endl;
-    std::cout << res[0] << " " << res[1] << " " << res[2] << " " << res[3] << std::endl;
-    */
+    __m256d res = _mm256_sqrt_pd(zero);
 
     return Distances{res[0], res[1], res[2], res[3]};
 
