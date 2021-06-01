@@ -202,7 +202,7 @@ public:
     // distance function
     ftype distanceFunction(Vector pos);
     ftype distanceFunctionSquared(Vector pos);
-    static Distances vectDistFunc(OctaWrapper const *wOcta, Vector const &ray, itype idx);
+    void vectDistFunc(OctaWrapper const *wOcta, Vector const &ray, itype idx, ftype *destPtr);
 
     // additional public member fields
     ftype s;

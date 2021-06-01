@@ -542,7 +542,7 @@ sphere::ftype sphere::Octahedron::distanceFunctionSquared(Vector pointPos)
  * @param pos the position to compute distance from
  * @return sphere::Distances the four distances of each octahedron
  */
-sphere::Distances sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vector const &ray, itype idx)
+void sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vector const &ray, itype idx, ftype *destPtr)
 {
     __m256d zero = _mm256_setzero_pd();
     __m128i rotOffsets = _mm_set_epi32(0, 3, 6, 0);
@@ -649,8 +649,7 @@ sphere::Distances sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vec
     __m256d ret_val = _mm256_blendv_pd(m_ret, sqrt_root, m_mask);
 
     // return dist object
-    return Distances{ret_val[0], ret_val[1], ret_val[2], ret_val[3]};
-}
+    _mm256_store_pd(destPtr, ret_val);  
 
 /********************************* Cone **************************************/
 
