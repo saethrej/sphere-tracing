@@ -588,9 +588,6 @@ sphere::Distances sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vec
     __m256d zRotPoint = _mm256_fmadd_pd(zPos, rotCol22, _mm256_fmadd_pd(yPos, rotCol21, _mm256_mul_pd(xPos, rotCol20))); 
 
     // load s value
-    //__m256d s_vect = _mm256_set_pd(wOcta->s[idx], wOcta->s[idx + 1], wOcta->s[idx + 2], wOcta->s[idx + 3]);
-    /*NOTE: set_pd above would store the values in the following order: wOcta->s[idx + 3],  wOcta->s[idx + 2], wOcta->s[idx + 1], wOcta->s[idx]
-    which is different from load_pd below*/
     __m256d s_vect = _mm256_load_pd(wOcta->s + idx);
 
     //compute abs value
@@ -619,16 +616,16 @@ sphere::Distances sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vec
 
     // create new vectors depending on masks
     __m256d new_y_0 = _mm256_blendv_pd(zero, x_abs, z_mask);
-    __m256d new_y_1 = _mm256_blendv_pd(zero, z_abs, y_mask);
-    __m256d new_y = _mm256_blendv_pd(zero, y_abs, x_mask);
+    __m256d new_y_1 = _mm256_blendv_pd(new_y_0, z_abs, y_mask);
+    __m256d new_y = _mm256_blendv_pd(new_y_1, y_abs, x_mask);
 
     __m256d new_x_0 = _mm256_blendv_pd(zero, z_abs, z_mask);
-    __m256d new_x_1 = _mm256_blendv_pd(zero, y_abs, y_mask);
-    __m256d new_x = _mm256_blendv_pd(zero, x_abs, x_mask);
+    __m256d new_x_1 = _mm256_blendv_pd(new_x_0, y_abs, y_mask);
+    __m256d new_x = _mm256_blendv_pd(new_x_1, x_abs, x_mask);
 
     __m256d new_z_0 = _mm256_blendv_pd(zero, y_abs, z_mask);
-    __m256d new_z_1 = _mm256_blendv_pd(zero, x_abs, y_mask);
-    __m256d new_z = _mm256_blendv_pd(zero, z_abs, x_mask);
+    __m256d new_z_1 = _mm256_blendv_pd(new_z_0, x_abs, y_mask);
+    __m256d new_z = _mm256_blendv_pd(new_z_1, z_abs, x_mask);
 
     // compute y_s
     __m256d y_s = _mm256_sub_pd(new_y, s_vect);
@@ -639,7 +636,7 @@ sphere::Distances sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vec
     __m256d sub_mask = _mm256_cmp_pd(clamp, zero, _CMP_LT_OQ);
     __m256d top_mask = _mm256_cmp_pd(s_vect, clamp, _CMP_LT_OQ);
     __m256d k_0 = _mm256_blendv_pd(clamp, zero, sub_mask);
-    __m256d k = _mm256_blendv_pd(clamp, s_vect, top_mask);
+    __m256d k = _mm256_blendv_pd(k_0, s_vect, top_mask);
 
     // compute square root
     __m256d x_squared = _mm256_mul_pd(new_x, new_x);
@@ -647,7 +644,6 @@ sphere::Distances sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vec
     __m256d y_squared = _mm256_mul_pd(y_squared_0, y_squared_0);
     __m256d z_squared_0 = _mm256_sub_pd(new_z, k);
     __m256d x_y_squared = _mm256_add_pd(x_squared, y_squared);
-    // __m256d x_y_squared = _mm256_fmadd_pd(new_x, new_x, y_squared);
     __m256d all_squared = _mm256_fmadd_pd(z_squared_0, z_squared_0, x_y_squared);
     __m256d sqrt_root = _mm256_sqrt_pd(all_squared);
     __m256d ret_val = _mm256_blendv_pd(m_ret, sqrt_root, m_mask);
