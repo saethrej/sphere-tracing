@@ -643,6 +643,23 @@ sphere::Distances sphere::Cone::vectDistFunc(ConeWrapper const *wCone, Vector co
     yPos = _mm256_sub_pd(yPos, conePosY);
     zPos = _mm256_sub_pd(zPos, conePosZ);
 
+    // load rotation matrix values
+    ftype *rotPtr = wCone->rotMatrix + idx;
+    __m256d rot0 = _mm256_load_pd(rotPtr);
+    __m256d rot1 = _mm256_load_pd(rotPtr + MAX_OBJECTS);
+    __m256d rot2 = _mm256_load_pd(rotPtr + 2 * MAX_OBJECTS);
+    __m256d rot3 = _mm256_load_pd(rotPtr + 3 * MAX_OBJECTS);
+    __m256d rot4 = _mm256_load_pd(rotPtr + 4 * MAX_OBJECTS);
+    __m256d rot5 = _mm256_load_pd(rotPtr + 5 * MAX_OBJECTS);
+    __m256d rot6 = _mm256_load_pd(rotPtr + 6 * MAX_OBJECTS);
+    __m256d rot7 = _mm256_load_pd(rotPtr + 7 * MAX_OBJECTS);
+    __m256d rot8 = _mm256_load_pd(rotPtr + 8 * MAX_OBJECTS);
+
+    // rotate the matrix
+    xPos = _mm256_fmadd_pd(zPos, rot2, _mm256_fmadd_pd(yPos, rot1, _mm256_mul_pd(xPos, rot0)));
+    yPos = _mm256_fmadd_pd(zPos, rot5, _mm256_fmadd_pd(yPos, rot4, _mm256_mul_pd(xPos, rot3)));
+    zPos = _mm256_fmadd_pd(zPos, rot8, _mm256_fmadd_pd(yPos, rot7, _mm256_mul_pd(xPos, rot6)));
+
     // load the
 
     
