@@ -631,7 +631,7 @@ sphere::ShapeWrapper::ShapeWrapper()
     zPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
 
     // allocate 12*MAX_OBJECTS elements for rotation matrix
-    rotMatrix = new (std::align_val_t(32)) ftype[12 * MAX_OBJECTS];
+    rotMatrix = new (std::align_val_t(32)) ftype[MAX_OBJECTS * 9];
     
     // initially there are 0 elements
     numElems = 0;
@@ -659,23 +659,16 @@ void sphere::ShapeWrapper::addShape(Shape *shape)
     yPos[numElems] = shape->position.y;
     zPos[numElems] = shape->position.z;
 
-    // add the shape's rotation matrix (in col-major order)
-    size_t idx = numElems * 12;
-    // first column
-    rotMatrix[idx] = shape->inverseRotation[0];
-    rotMatrix[idx+1] = shape->inverseRotation[3];
-    rotMatrix[idx+2] = shape->inverseRotation[6];
-    rotMatrix[idx+3] = 0.0; // padding
-    // second column
-    rotMatrix[idx+4] = shape->inverseRotation[1];
-    rotMatrix[idx+5] = shape->inverseRotation[4];
-    rotMatrix[idx+6] = shape->inverseRotation[7];
-    rotMatrix[idx+7] = 0.0; // padding
-    // third column
-    rotMatrix[idx+8] = shape->inverseRotation[2];
-    rotMatrix[idx+9] = shape->inverseRotation[5];
-    rotMatrix[idx+10] = shape->inverseRotation[8];
-    rotMatrix[idx+11] = 0.0; // padding
+    // add the shape's rotation matrix
+    rotMatrix[numElems] = shape->inverseRotation[0];
+    rotMatrix[numElems + 1 * MAX_OBJECTS] = shape->inverseRotation[1];
+    rotMatrix[numElems + 2 * MAX_OBJECTS] = shape->inverseRotation[2];
+    rotMatrix[numElems + 3 * MAX_OBJECTS] = shape->inverseRotation[3];
+    rotMatrix[numElems + 4 * MAX_OBJECTS] = shape->inverseRotation[4];
+    rotMatrix[numElems + 5 * MAX_OBJECTS] = shape->inverseRotation[5];
+    rotMatrix[numElems + 6 * MAX_OBJECTS] = shape->inverseRotation[6];
+    rotMatrix[numElems + 7 * MAX_OBJECTS] = shape->inverseRotation[7];
+    rotMatrix[numElems + 8 * MAX_OBJECTS] = shape->inverseRotation[8];
 }
 
 /**

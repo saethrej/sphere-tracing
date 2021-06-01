@@ -249,7 +249,7 @@ public:
     ftype *xPos; //!< x-axis positions of all shapes
     ftype *yPos; //!< y-axis positions of all shapes
     ftype *zPos; //!< z-axis positions of all shapes
-    ftype *rotMatrix; //!< the rotation matrices in col-major format + 1 extra row  
+    ftype *rotMatrix; //!< the rotation matrices of all shapes 
     itype numElems; //!< number of elements of this type in scene
 };
 
