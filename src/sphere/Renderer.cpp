@@ -113,17 +113,103 @@ void sphere::Renderer::renderScene(std::string pathToOutputFile, itype width, it
  */
 void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&closestShape, Vector const &ray)
 {
-    ftype d;
+    
+    //ftype d;
+
+    TorusWrapper *s = scene->wTorus;
+    Torus *torus = scene->wTorus->tori[0];
+    itype i = 0;
+    Distances d = Torus::vectDistFunc(s, ray, i);
+    Plane *plane = scene->wPlane->planes[0];
+    ftype planeDist = plane->distanceFunction(ray);
+    minDist = d.d0;
+    min2Dist = std::numeric_limits<double>::max();
+    closestShape = scene->wTorus->tori[0];
+    //std::cout << "here"  << std::endl;
+
+    //std::cout << d.d0 << ", " << d.d1 << ", " << d.d2 << ", " << d.d3<< std::endl;
+    /*
+    std::priority_queue<ftype> queue;
+    queue.push(d.d0);
+    queue.push(d.d1);
+    queue.push(d.d2);
+    queue.push(d.d3);
+    queue.push(planeDist);
+    queue.pop();
+    queue.pop();
+    queue.pop();
+    min2Dist = queue.top();
+    queue.pop();
+    minDist = queue.top();
+
+    */
+
+    
+    if (d.d1 < minDist) {
+        min2Dist = minDist;
+        minDist = d.d1;
+        closestShape = scene->wTorus->tori[1];
+    }
+
+    else if (d.d1 < min2Dist && d.d1 >= minDist) {
+        min2Dist = d.d1;
+    }
+
+    if (d.d2 < minDist) {
+        closestShape = scene->wTorus->tori[2];
+        min2Dist = minDist;
+        minDist = d.d2;
+    }
+
+    else if (d.d2 < min2Dist && d.d2 >= minDist) {
+        min2Dist = d.d2;
+    }
+
+    if (d.d3 < minDist) {
+        closestShape = scene->wTorus->tori[3];
+        min2Dist = minDist;
+        minDist = d.d3;
+    }
+
+    else if (d.d3 < min2Dist && d.d3 >= minDist) {
+        min2Dist = d.d3;
+    }
+
+    if (planeDist < minDist){
+        closestShape = scene->wPlane->planes[0];
+        min2Dist = minDist;
+        minDist = planeDist;
+    }
+
+    else if (planeDist < min2Dist) {
+        min2Dist = planeDist;
+    }
+
+    
+    ftype d_nv;
+    ftype minDist_nv = std::numeric_limits<double>::max();
+    ftype min2Dist_nv = std::numeric_limits<double>::max();
+
     for (Shape *shape : this->scene->shapes) {
-        d = shape->distanceFunction(ray);
-        if (d < minDist){
-            min2Dist = minDist;
-            minDist = d;
+        d_nv= shape->distanceFunction(ray);
+       // std::cout << " correct: " << d_nv << std::endl;
+        if (d_nv < minDist_nv){
+            min2Dist_nv = minDist_nv;
+            minDist_nv = d_nv;
             closestShape = shape;
         }
-        else if (d < min2Dist){
-            min2Dist = d;
+        else if (d_nv < min2Dist_nv){
+            min2Dist_nv = d_nv;
         }
+    }
+    
+    if (std::abs(min2Dist - min2Dist_nv) > 0.00001 || std::abs(minDist - minDist_nv) > 0.00001) {
+    std::cout << "=============Vectorized===============" << std::endl;
+    //std::cout << " d0 : "<< d.d0 << ", d1 " << d.d1 << ",d2 " << d.d2 << ", d3 " << d.d3<< ", plane " <<  planeDist << std::endl;
+    std::cout << minDist << " " << min2Dist<< std::endl;
+
+    std::cout << "=========Non Vectorized==============" << std::endl;
+    std::cout << minDist_nv << " " << min2Dist_nv<< std::endl;
     }
 
     /*
@@ -167,6 +253,7 @@ void sphere::Renderer::getMinDistancesVectorized(ftype &minDist, ftype &min2Dist
 void sphere::Renderer::renderPixels()
 {
     // pre-compute min-distances in the first sphere tracing step
+
     Vector ray_origin = this->scene->cameraPos;
     ftype minDistance = std::numeric_limits<ftype>::max();
     ftype min2Distance = std::numeric_limits<ftype>::max();
@@ -465,17 +552,22 @@ void sphere::Renderer::microbenchmarkDistanceFunctions()
 
     // microbenchmark the distance functions individually by looping over all
     // shapes in the container
+    ftype dist = 0.0;
     for (Shape *shape : this->scene->shapes) {
         // microbenchmark the distance function
         TSC_CLEAR();
-        auto func = [shape, testVec] () {
-            shape->distanceFunction(testVec);
+        auto func = [this, &testVec, &dist] () {
+            //Torus s = {this->scene->torus[0], this->scene->torus[1], this->scene->torus[2], this->scene->torus[3]};
+            TorusWrapper *s = scene->wTorus;
+            Distances d = Torus::vectDistFunc(s, testVec,0);
+            dist += d.d0;
         };
         TSC_MEASURE(func);
         double cycles = TSC_GET();
 
         out << std::left << std::setw(12) << shape->name << std::right 
-            << std::setw(12) << std::fixed << std::setprecision(1) << cycles << " cycles\n";
+            << std::setw(12) << std::fixed << std::setprecision(1) << cycles << " cycles\n"
+            << "dist = " << dist << "\n";
     }
     // close the file and end microbenchmarking
     out.close();

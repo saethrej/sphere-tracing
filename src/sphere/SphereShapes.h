@@ -184,7 +184,7 @@ public:
     // distance function
     ftype distanceFunction(Vector pos);
     ftype distanceFunctionSquared(Vector pos);
-    static Distances vectDistFunc(TorusWrapper *wTorus, Vector const &ray, itype idx);
+    static Distances vectDistFunc(TorusWrapper const *wTorus, Vector const &ray, itype idx);
 
     // additional public member fields
     ftype r1;
