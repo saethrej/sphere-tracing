@@ -44,6 +44,7 @@
 #include <algorithm>
 #include <math.h>
 #include <cmath>
+#include <immintrin.h>
 
 #include "SphereTypes.h"
 #include "SphereShapes.h"
@@ -614,6 +615,43 @@ sphere::ftype sphere::Cone::distanceFunctionSquared(Vector pointPos)
     Vector2 cb = q - this->k1 + this->k2 * std::clamp((this->k2 * (this->k1 - q)) *this->k2_dot_inv, 0.0, 1.0);
     ftype s = cb.x < 0.0 && ca.y < 0.0 ? -1.0 : 1.0;
     return s * std::min(ca * ca, cb * cb);
+}
+
+/**
+ * @brief computes the distance function for four cones starting at index idx
+ * in a vectorized manner
+ * 
+ * @param wCone pointer to the ConeWrapper
+ * @param pos position to compute distance to
+ * @param idx idx to start computations at
+ * @returns the four distances
+ */
+sphere::Distances sphere::Cone::vectDistFunc(ConeWrapper const *wCone, Vector const &pos, itype idx)
+{
+    // broadcast the components of the position vector to avx registers
+    __m256d xPos = _mm256_broadcast_sd(&pos.x);
+    __m256d yPos = _mm256_broadcast_sd(&pos.y);
+    __m256d zPos = _mm256_broadcast_sd(&pos.z);
+
+    // load the cone positions
+    __m256d conePosX = _mm256_load_pd(wCone->xPos + idx);
+    __m256d conePosY = _mm256_load_pd(wCone->yPos + idx);
+    __m256d conePosZ = _mm256_load_pd(wCone->zPos + idx);
+
+    // translate the vector to the center of the cone
+    xPos = _mm256_sub_pd(xPos, conePosX);
+    yPos = _mm256_sub_pd(yPos, conePosY);
+    zPos = _mm256_sub_pd(zPos, conePosZ);
+
+    // load the
+
+    
+
+    // load the form parameters 
+    __m256d heights = _mm256_load_pd(wCone->zForm + idx);
+    __m256d rad1 = _mm256_load_pd(wCone->xForm + idx);
+    __m256d rad2 = _mm256_load_pd(wCone->yForm + idx);
+
 }
 
 /*****************************************************************************/

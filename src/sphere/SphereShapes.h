@@ -219,6 +219,7 @@ public:
     // distance function
     ftype distanceFunction(Vector pos);
     ftype distanceFunctionSquared(Vector pos);
+    static Distances vectDistFunc(ConeWrapper const *wCone, Vector const &pos, itype idx);
 
     // additional public member fields
     Vector form;
