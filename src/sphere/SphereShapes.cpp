@@ -650,7 +650,7 @@ void sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vector const &ra
 
     // return dist object
     _mm256_store_pd(destPtr, ret_val);  
-
+}
 /********************************* Cone **************************************/
 
 /**
