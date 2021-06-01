@@ -132,6 +132,8 @@ public:
     // distance function
     ftype distanceFunction(Vector pos);
     ftype distanceFunctionSquared(Vector pos);
+    static void vectDistFunc(PlaneWrapper const *planeWrap, Vector const &pos, itype idx, ftype *destPtr);
+
 
     // additional public member fields
     Vector normal;
@@ -150,7 +152,7 @@ public:
     // distance function
     ftype distanceFunction(Vector pos);
     ftype distanceFunctionSquared(Vector pos);
-    static Distances vectDistFunc(BoxWrapper const *boxWrap, Vector const &pos, itype idx);
+    static void vectDistFunc(BoxWrapper const *boxWrap, Vector const &pos, itype idx, ftype *destPtr);
 
 
     // additional public member fields
@@ -169,7 +171,7 @@ public:
     // distance function
     ftype distanceFunction(Vector pos);
     ftype distanceFunctionSquared(Vector pos);
-    static Distances vecDistFunc(SphereWrapper const *sphereWrap, Vector const &pos, itype idx);
+    static void vectDistFunc(SphereWrapper const *sphereWrap, Vector const &pos, itype idx, ftype *destPtr);
         // additional public member fields
     ftype radius;
 

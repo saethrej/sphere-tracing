@@ -206,6 +206,63 @@ sphere::Plane::Plane(json const &plane)
     }    
 }
 
+void sphere::Plane::vectDistFunc(PlaneWrapper const *planeWrap, Vector const &pos, itype idx, ftype *dstPtr) {
+    __m256d rotx, roty,rotz;
+    __m256d rotx2, roty2, rotz2;
+    __m256d rotx3, roty3, rotz3;
+    __m256d xCoords,yCoords,zCoords;
+    __m256d xTrPoint, yTrPoint, zTrPoint;
+    __m256d xRotPoint, yRotPoint, zRotPoint;
+
+
+
+    __m256d xPos = _mm256_broadcast_sd(&pos.x);
+    __m256d yPos = _mm256_broadcast_sd(&pos.y);
+    __m256d zPos = _mm256_broadcast_sd(&pos.z);
+    __m256d displacement = _mm256_load_pd(planeWrap->displacement + idx);
+    __m256d abs_mask = _mm256_set1_pd(-0.0);
+
+
+
+    xCoords = _mm256_load_pd(planeWrap->xPos + idx);
+    yCoords = _mm256_load_pd(planeWrap->yPos + idx);
+    zCoords = _mm256_load_pd(planeWrap->zPos + idx);
+
+    xTrPoint = _mm256_sub_pd(xPos, xCoords);
+    yTrPoint = _mm256_sub_pd(yPos, yCoords);
+    zTrPoint = _mm256_sub_pd(zPos, zCoords);
+
+    rotx = _mm256_load_pd(planeWrap->rotMatrix + idx);
+    roty = _mm256_load_pd(planeWrap->rotMatrix + idx + MAX_OBJECTS);
+    rotz = _mm256_load_pd(planeWrap->rotMatrix + idx + MAX_OBJECTS + MAX_OBJECTS);
+
+
+    xRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
+
+    rotx2 = _mm256_load_pd(planeWrap->rotMatrix + idx + 3* MAX_OBJECTS);
+    roty2 = _mm256_load_pd(planeWrap->rotMatrix + idx + 4*MAX_OBJECTS);
+    rotz2 = _mm256_load_pd(planeWrap->rotMatrix + idx + 5*MAX_OBJECTS);
+
+    yRotPoint = _mm256_fmadd_pd(rotz2, zTrPoint, _mm256_fmadd_pd(roty2, yTrPoint, _mm256_mul_pd(rotx2, xTrPoint)));
+
+    rotx3 = _mm256_load_pd(planeWrap->rotMatrix + idx + 6*MAX_OBJECTS);
+    roty3 = _mm256_load_pd(planeWrap->rotMatrix + idx + 7*MAX_OBJECTS);
+    rotz3 = _mm256_load_pd(planeWrap->rotMatrix + idx+ 8*MAX_OBJECTS);
+
+    zRotPoint = _mm256_fmadd_pd(rotz3, zTrPoint, _mm256_fmadd_pd(roty3, yTrPoint, _mm256_mul_pd(rotx3, xTrPoint)));
+
+    __m256d xNormal = _mm256_load_pd(planeWrap->xNor + idx);
+    __m256d yNormal = _mm256_load_pd(planeWrap->yNor + idx);
+    __m256d zNormal = _mm256_load_pd(planeWrap->zNor + idx);
+
+
+    __m256d xScal = _mm256_mul_pd(xRotPoint, xNormal);
+    __m256d yScal = _mm256_fmadd_pd(yRotPoint, yNormal, xScal);
+    __m256d scalProd = _mm256_fmadd_pd(zRotPoint, zNormal, yScal);
+    _mm256_store_pd(dstPtr, _mm256_andnot_pd(abs_mask, _mm256_sub_pd(scalProd, displacement)));
+}
+
+
 /**
  * @brief computes distance from a point to this plane
  * @param pointPos the position of the point
@@ -266,13 +323,10 @@ sphere::Box::Box(json const &box)
     }
 }
 
-sphere::Distances sphere::Box::vectDistFunc(BoxWrapper const *boxWrap, Vector const &pos, itype idx)
+void sphere::Box::vectDistFunc(BoxWrapper const *boxWrap, Vector const &pos, itype idx, ftype *dstPtr)
 {
 
 
-
-    //std::cout << "Veeeeeeeeeeector" << std::endl;
-    //std::cout << pos << std::endl;
     __m256d rotx, roty,rotz;
     __m256d rotx2, roty2, rotz2;
     __m256d rotx3, roty3, rotz3;
@@ -341,17 +395,19 @@ sphere::Distances sphere::Box::vectDistFunc(BoxWrapper const *boxWrap, Vector co
 
     __m256d xtmp = _mm256_mul_pd(xq, xq);
     __m256d res0 = _mm256_and_pd(xtmp, xMask);
-    zero = _mm256_add_pd(res0, zero);
+    __m256d tmp1 = _mm256_add_pd(res0, zero);
     __m256d ytmp = _mm256_mul_pd(yq, yq);
     __m256d res1 = _mm256_and_pd(ytmp, yMask);
-    zero = _mm256_add_pd(res1, zero);
+    __m256d tmp2 = _mm256_add_pd(res1, zero);
     __m256d ztmp = _mm256_mul_pd(zq, zq);
     __m256d res2 = _mm256_and_pd(ztmp, zMask);
-    zero = _mm256_add_pd(res2, zero);
+    __m256d tmp3 = _mm256_add_pd(res2, zero);
 
-    __m256d res = _mm256_sqrt_pd(zero);
+    __m256d squaredRes = _mm256_add_pd(_mm256_add_pd(tmp1,tmp2), tmp3);
 
-    return Distances{res[0], res[1], res[2], res[3]};
+    __m256d res = _mm256_sqrt_pd(squaredRes);
+
+    _mm256_store_pd(dstPtr, res);
 
 
 }
@@ -437,7 +493,7 @@ sphere::Sphere::Sphere(json const &sph)
     }
 }
 
-sphere::Distances sphere::Sphere::vecDistFunc(SphereWrapper const *sphereWrap, Vector const &pos, itype idx) {
+void sphere::Sphere::vectDistFunc(SphereWrapper const *sphereWrap, Vector const &pos, itype idx, ftype *dstPtr) {
     __m256d xCoords, yCoords, zCoords;
     __m256d xRay, yRay, zRay;
     __m256d xTrPoint, yTrPoint, zTrPoint;
@@ -467,7 +523,7 @@ sphere::Distances sphere::Sphere::vecDistFunc(SphereWrapper const *sphereWrap, V
 
     __m256d res = _mm256_sub_pd(vectorLength, vRadius);
 
-    return Distances{res[0], res[1], res[2], res[3]};
+    _mm256_store_pd(dstPtr, res);
 }
 
 
