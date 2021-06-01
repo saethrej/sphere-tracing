@@ -1,0 +1,149 @@
+{
+  "camera": {
+    "fov": 30,
+    "position": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    }
+  },
+  "pointlight": {
+    "position": {
+      "x": 0,
+      "y": 100,
+      "z": 0
+    },
+    "emission": {
+      "x": 200,
+      "y": 200,
+      "z": 200
+    }
+  },
+  "objects": [
+    {
+      "kind": "plane",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "reflection": 0,
+      "shininess": 15,
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "params": {
+        "normal": {
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        "displacement": -3
+      }
+    },
+    {
+      "kind": "octahedron",
+      "position": {
+        "x": -2,
+        "y": -1.5,
+        "z": 20
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 50
+      },
+      "reflection": 0,
+      "shininess": 15,
+      "color": {
+        "x": 0,
+        "y": 0.6,
+        "z": 0.1
+      },
+      "params": {
+        "s": 1
+      }
+    },
+	    {
+      "kind": "octahedron",
+      "position": {
+        "x": 0,
+        "y": -1.5,
+        "z": 20
+      },
+      "rotation": {
+        "x": 40,
+        "y": 0,
+        "z": 0
+      },
+      "reflection": 0,
+      "shininess": 15,
+      "color": {
+        "x": 0,
+        "y": 0.6,
+        "z": 0.1
+      },
+      "params": {
+        "s": 1
+      }
+    },
+		    {
+      "kind": "octahedron",
+      "position": {
+        "x": 2,
+        "y": -1.5,
+        "z": 20
+      },
+      "rotation": {
+        "x": 0,
+        "y": 10,
+        "z": 0
+      },
+      "reflection": 0,
+      "shininess": 15,
+      "color": {
+        "x": 0,
+        "y": 0.6,
+        "z": 0.1
+      },
+      "params": {
+        "s": 1
+      }
+    },
+			    {
+      "kind": "octahedron",
+      "position": {
+        "x": 4,
+        "y": -1.5,
+        "z": 20
+      },
+      "rotation": {
+        "x": 10,
+        "y": 10,
+        "z": 10
+      },
+      "reflection": 0,
+      "shininess": 15,
+      "color": {
+        "x": 0,
+        "y": 0.6,
+        "z": 0.1
+      },
+      "params": {
+        "s": 1
+      }
+    }
+  ]
+}

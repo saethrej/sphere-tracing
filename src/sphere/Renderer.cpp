@@ -113,17 +113,102 @@ void sphere::Renderer::renderScene(std::string pathToOutputFile, itype width, it
  */
 void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&closestShape, Vector const &ray)
 {
-    ftype d;
+   
+    //ftype d;
+
+    OctaWrapper *s = scene->wOcta;
+    itype i = 0;
+    Distances d = Octahedron::vectDistFunc(s, ray, i);
+    Plane *plane = scene->wPlane->planes[0];
+    ftype planeDist = plane->distanceFunction(ray);
+    minDist = d.d0;
+    min2Dist = std::numeric_limits<double>::max();
+    closestShape = scene->wOcta->octas[0];
+    //std::cout << "here"  << std::endl;
+
+    //std::cout << d.d0 << ", " << d.d1 << ", " << d.d2 << ", " << d.d3<< std::endl;
+    /*
+    std::priority_queue<ftype> queue;
+    queue.push(d.d0);
+    queue.push(d.d1);
+    queue.push(d.d2);
+    queue.push(d.d3);
+    queue.push(planeDist);
+    queue.pop();
+    queue.pop();
+    queue.pop();
+    min2Dist = queue.top();
+    queue.pop();
+    minDist = queue.top();
+
+    */
+
+    
+    if (d.d1 < minDist) {
+        min2Dist = minDist;
+        minDist = d.d1;
+        closestShape = scene->wOcta->octas[1];
+    }
+
+    else if (d.d1 < min2Dist && d.d1 >= minDist) {
+        min2Dist = d.d1;
+    }
+
+    if (d.d2 < minDist) {
+        closestShape = scene->wOcta->octas[2];
+        min2Dist = minDist;
+        minDist = d.d2;
+    }
+
+    else if (d.d2 < min2Dist && d.d2 >= minDist) {
+        min2Dist = d.d2;
+    }
+
+    if (d.d3 < minDist) {
+        closestShape = scene->wOcta->octas[3];
+        min2Dist = minDist;
+        minDist = d.d3;
+    }
+
+    else if (d.d3 < min2Dist && d.d3 >= minDist) {
+        min2Dist = d.d3;
+    }
+
+    if (planeDist < minDist){
+        closestShape = scene->wPlane->planes[0];
+        min2Dist = minDist;
+        minDist = planeDist;
+    }
+
+    else if (planeDist < min2Dist) {
+        min2Dist = planeDist;
+    }
+
+    
+    ftype d_nv;
+    ftype minDist_nv = std::numeric_limits<double>::max();
+    ftype min2Dist_nv = std::numeric_limits<double>::max();
+
     for (Shape *shape : this->scene->shapes) {
-        d = shape->distanceFunction(ray);
-        if (d < minDist){
-            min2Dist = minDist;
-            minDist = d;
+        d_nv= shape->distanceFunction(ray);
+       // std::cout << " correct: " << d_nv << std::endl;
+        if (d_nv < minDist_nv){
+            min2Dist_nv = minDist_nv;
+            minDist_nv = d_nv;
             closestShape = shape;
         }
-        else if (d < min2Dist){
-            min2Dist = d;
+        else if (d_nv < min2Dist_nv){
+            min2Dist_nv = d_nv;
         }
+    }
+    
+    if (std::abs(min2Dist - min2Dist_nv) > 0.00001 || std::abs(minDist - minDist_nv) > 0.00001) {
+    std::cout << "=============Vectorized===============" << std::endl;
+    //std::cout << " d0 : "<< d.d0 << ", d1 " << d.d1 << ",d2 " << d.d2 << ", d3 " << d.d3<< ", plane " <<  planeDist << std::endl;
+    std::cout << minDist << " " << min2Dist<< std::endl;
+
+    std::cout << "=========Non Vectorized==============" << std::endl;
+    std::cout << minDist_nv << " " << min2Dist_nv<< std::endl;
     }
 
     /*
@@ -143,6 +228,7 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
     //}
     //minDist = sqrt(minDist);
     //min2Dist = sqrt(min2Dist);
+
 }
 
 /**

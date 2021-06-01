@@ -563,55 +563,38 @@ sphere::Distances sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vec
     yPos = _mm256_sub_pd(yPos, octaPosY);
     zPos = _mm256_sub_pd(zPos, octaPosZ);
 
-    // load rotation matrix of octa 0 and multiply with ray position
-    __m256d rotCol00 = _mm256_load_pd(wOcta->rotMatrix + idx);
-    __m256d rotCol01 = _mm256_load_pd(wOcta->rotMatrix + idx + 4);
-    __m256d rotCol02 = _mm256_load_pd(wOcta->rotMatrix + idx + 8);
-    __m256d xRot0 = _mm256_mul_pd(xPos, rotCol00);
-    __m256d yRot0 = _mm256_mul_pd(yPos, rotCol01);
-    __m256d zRot0 = _mm256_mul_pd(zPos, rotCol02);
-    __m256d rot0 = _mm256_add_pd(_mm256_add_pd(xRot0, yRot0), zRot0);
+     //load rotMatrix
+    __m256d rotCol00 = _mm256_load_pd(wOcta->rotMatrix +idx);
+    __m256d rotCol01 = _mm256_load_pd(wOcta->rotMatrix + idx + MAX_OBJECTS);
+    __m256d rotCol02 = _mm256_load_pd(wOcta->rotMatrix + idx + 2*MAX_OBJECTS);
 
-    // load rotation matrix of octa 1 and multiply with ray position
-    __m256d rotCol10 = _mm256_load_pd(wOcta->rotMatrix + idx + 16);
-    __m256d rotCol11 = _mm256_load_pd(wOcta->rotMatrix + idx + 20);
-    __m256d rotCol12 = _mm256_load_pd(wOcta->rotMatrix + idx + 24);
-    __m256d xRot1 = _mm256_mul_pd(xPos, rotCol10);
-    __m256d yRot1 = _mm256_mul_pd(yPos, rotCol11);
-    __m256d zRot1 = _mm256_mul_pd(zPos, rotCol12);
-    __m256d rot1 = _mm256_add_pd(_mm256_add_pd(xRot1, yRot1), zRot1);
+    //compute rotation
+    __m256d xRotPoint = _mm256_fmadd_pd(zPos, rotCol02, _mm256_fmadd_pd(yPos, rotCol01, _mm256_mul_pd(xPos, rotCol00))); 
 
-    // load rotation matrix of octa 2 and multiply with ray position
-    __m256d rotCol20 = _mm256_load_pd(wOcta->rotMatrix + idx + 32);
-    __m256d rotCol21 = _mm256_load_pd(wOcta->rotMatrix + idx + 36);
-    __m256d rotCol22 = _mm256_load_pd(wOcta->rotMatrix + idx + 40);
-    __m256d xRot2 = _mm256_mul_pd(xPos, rotCol20);
-    __m256d yRot2 = _mm256_mul_pd(yPos, rotCol21);
-    __m256d zRot2 = _mm256_mul_pd(zPos, rotCol22);
-    __m256d rot2 = _mm256_add_pd(_mm256_add_pd(xRot2, yRot2), zRot2);
+    //load rotMax
+    __m256d rotCol10 = _mm256_load_pd(wOcta->rotMatrix + idx + 3*MAX_OBJECTS);
+    __m256d rotCol11 = _mm256_load_pd(wOcta->rotMatrix + idx + 4*MAX_OBJECTS);
+    __m256d rotCol12 = _mm256_load_pd(wOcta->rotMatrix + idx + 5*MAX_OBJECTS);
 
-    // load rotation matrix of octa 3 and multiply with ray position
-    __m256d rotCol30 = _mm256_load_pd(wOcta->rotMatrix + idx + 48);
-    __m256d rotCol31 = _mm256_load_pd(wOcta->rotMatrix + idx + 52);
-    __m256d rotCol32 = _mm256_load_pd(wOcta->rotMatrix + idx + 56);
-    __m256d xRot3 = _mm256_mul_pd(xPos, rotCol30);
-    __m256d yRot3 = _mm256_mul_pd(yPos, rotCol31);
-    __m256d zRot3 = _mm256_mul_pd(zPos, rotCol32);
-    __m256d rot3 = _mm256_add_pd(_mm256_add_pd(xRot3, yRot3), zRot3);
+    //compute rotation
+     __m256d yRotPoint = _mm256_fmadd_pd(zPos, rotCol12, _mm256_fmadd_pd(yPos, rotCol11, _mm256_mul_pd(xPos, rotCol10))); 
+    
+    //load rotMax
+    __m256d rotCol20 = _mm256_load_pd(wOcta->rotMatrix +idx + 6*MAX_OBJECTS);
+    __m256d rotCol21 = _mm256_load_pd(wOcta->rotMatrix + idx +7*MAX_OBJECTS);
+    __m256d rotCol22 = _mm256_load_pd(wOcta->rotMatrix + idx + 8*MAX_OBJECTS);
 
-    // transform all of them to 4 vectors
-    __m256d x_vals = _mm256_set_pd(rot0[0], rot1[0], rot2[0], rot3[0]);
-    __m256d y_vals = _mm256_set_pd(rot0[1], rot1[1], rot2[1], rot3[1]);
-    __m256d z_vals = _mm256_set_pd(rot0[2], rot1[2], rot2[2], rot3[2]);
+    //load rotMax
+    __m256d zRotPoint = _mm256_fmadd_pd(zPos, rotCol22, _mm256_fmadd_pd(yPos, rotCol21, _mm256_mul_pd(xPos, rotCol20))); 
 
     // load s value
     __m256d s_vect = _mm256_set_pd(wOcta->s[idx], wOcta->s[idx + 1], wOcta->s[idx + 2], wOcta->s[idx + 3]);
 
     //compute abs value
     __m256d abs_mask = _mm256_set1_pd(-0.0);
-    __m256d x_abs = _mm256_andnot_pd(abs_mask, x_vals);
-    __m256d y_abs = _mm256_andnot_pd(abs_mask, y_vals);
-    __m256d z_abs = _mm256_andnot_pd(abs_mask, z_vals);
+    __m256d x_abs = _mm256_andnot_pd(abs_mask, xRotPoint);
+    __m256d y_abs = _mm256_andnot_pd(abs_mask, yRotPoint);
+    __m256d z_abs = _mm256_andnot_pd(abs_mask, zRotPoint);
 
     //compute m
     __m256d m_0 = _mm256_add_pd(_mm256_add_pd(x_abs, y_abs), z_abs);
@@ -661,6 +644,7 @@ sphere::Distances sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vec
     __m256d y_squared = _mm256_mul_pd(y_squared_0, y_squared_0);
     __m256d z_squared_0 = _mm256_sub_pd(new_z, k);
     __m256d x_y_squared = _mm256_add_pd(x_squared, y_squared);
+    // __m256d x_y_squared = _mm256_fmadd_pd(new_x, new_x, y_squared);
     __m256d all_squared = _mm256_fmadd_pd(z_squared_0, z_squared_0, x_y_squared);
     __m256d sqrt_root = _mm256_sqrt_pd(all_squared);
     __m256d ret_val = _mm256_blendv_pd(m_ret, sqrt_root, m_mask);
