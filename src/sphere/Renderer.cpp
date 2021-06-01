@@ -57,6 +57,7 @@ sphere::Renderer::Renderer()
 {
     this->scene = nullptr;
     this->image = nullptr;
+    this->distances = nullptr;
 }
 
 /**
@@ -71,6 +72,9 @@ sphere::Renderer::~Renderer()
     if (this->image != nullptr) {
         delete this->image;
     }
+    if (this->distances != nullptr) {
+        delete this->distances;
+    }
 }
 
 /**
@@ -80,7 +84,32 @@ sphere::Renderer::~Renderer()
  */
 void sphere::Renderer::addScene(std::string pathToSceneFile)
 {
+    // add new scene
     this->scene = new Scene(pathToSceneFile);
+    
+    // determine how many spaces are required for the distances - We use a lambda
+    // function for it
+    auto rndToFour = [] (itype numShapes) -> itype {
+        return 4 * (numShapes / 4 + ((numShapes % 4) == 0 ? 0 : 1));
+    };
+    this->numDist = rndToFour(scene->wBox->numElems) + rndToFour(scene->wCone->numElems)
+                  + rndToFour(scene->wPlane->numElems) + rndToFour(scene->wOcta->numElems)
+                  + rndToFour(scene->wSphere->numElems) + rndToFour(scene->wTorus->numElems);
+    this->distances = new (std::align_val_t(32)) ftype[this->numDist];
+    
+    // fill the distances with random large values that are later overwritten if 
+    // there is a valid shape at this position
+    for (itype i = 0; i < this->numDist; ++i) {
+        this->distances[i] = 12481241241.12412;
+    }
+
+    // compute the thresholds to assign a shape to an index
+    this->threshBox = 0;
+    this->threshCone = this->threshBox + rndToFour(scene->wCone->numElems);
+    this->threshOcta = this->threshCone + rndToFour(scene->wOcta->numElems);
+    this->threshPlane = this->threshOcta + rndToFour(scene->wPlane->numElems);
+    this->threshSphere = this->threshPlane + rndToFour(scene->wSphere->numElems);
+    this->threshTorus = this->threshSphere + rndToFour(scene->wTorus->numElems);
 }
 
 /**
@@ -113,128 +142,67 @@ void sphere::Renderer::renderScene(std::string pathToOutputFile, itype width, it
  */
 void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&closestShape, Vector const &ray)
 {
-    
-    //ftype d;
-    
-    //SphereWrapper *s = scene->wSphere;
-    //Distances d = Sphere::vecDistFunc(s, ray, 0);
-    //ftype planeDist = scene->wPlane->planes[0]->distanceFunction(ray);
-    //minDist = std::numeric_limits<double>::max();
-    //min2Dist = std::numeric_limits<double>::max();
-    //std::cout << "here"  << std::endl;
-    
+    // compute distances to all shape types individually
+    ftype *destPtr = this->distances;
 
-    //std::cout << d.d0 << ", " << d.d1 << ", " << d.d2 << ", " << d.d3<< std::endl;
-    /*
-    std::priority_queue<ftype> queue;
-    queue.push(d.d0);
-    queue.push(d.d1);
-    queue.push(d.d2);
-    queue.push(d.d3);
-    queue.push(planeDist);
-    queue.pop();
-    queue.pop();
-    queue.pop();
-    min2Dist = queue.top();
-    queue.pop();
-    minDist = queue.top();
-    
-
-    */
-    //std::cout << __LINE__ << std::endl;
-
-    std::vector<ftype> dists;//(scene->numShapes);
-    dists.reserve(scene->numShapes);
-    for (uint8_t i = 0; i < scene->wBox->numElems; i+=4) {
-        Distances d = Box::vectDistFunc(scene->wBox, ray, i);
-        dists.push_back(d.d0);
-        dists.push_back(d.d1);
-        dists.push_back(d.d2);
-        dists.push_back(d.d3);
+    BoxWrapper *box = scene->wBox;
+    for (itype i = 0; i < box->numIters; ++i) {
+        // Box::vectDistFunc(box, ray, i * 4, destPtr);
+        destPtr += 4;
+    }
+    ConeWrapper *cone = scene->wCone;
+    for (itype i = 0; i < cone->numIters; ++i) {
+        // Cone::vectDistFunc(cone, ray, i * 4, destPtr);
+        destPtr += 4;
+    }
+    OctaWrapper *octa = scene->wOcta;
+    for (itype i = 0; i < octa->numIters; ++i) {
+        // Octahedron::vectDistFunc(octa, ray, i * 4, destPtr);
+        destPtr += 4;
+    }
+    PlaneWrapper *plane = scene->wPlane;
+    for (itype i = 0; i < plane->numIters; ++i) {
+        // Plane::vectDistFunc(octa, ray, i * 4, destPtr);
+        destPtr += 4;
+    }
+    SphereWrapper *sphe = scene->wSphere;
+    for (itype i = 0; i < sphe->numIters; ++i) {
+        Sphere::vectDistFunc(sphe, ray, i * 4, destPtr);
+        destPtr += 4;
+    }
+    TorusWrapper *torus = scene->wTorus;
+    for (itype i = 0; i < torus->numIters; ++i) {
+        // Torus::vectDistFunc(torus, ray, i * 4, destPtr);
+        destPtr += 4;
     }
 
-    //std::cout << __LINE__ << std::endl;
-
-
-    dists.push_back(scene->wPlane->planes[0]->distanceFunction(ray));
-    dists.push_back(scene->wPlane->planes[1]->distanceFunction(ray));
-    ftype dist;
-    uint8_t i;
-    for (i = 0; i < dists.size()-2; i++){
-        dist = dists[i];
-        if (dist < minDist){
+    // get the minimum distance, second minimum distance
+    minDist = min2Dist = std::numeric_limits<ftype>::max();
+    itype minIdx = 0;
+    for (itype i = 0; i < numDist; ++i) {
+        if (distances[i] < minDist) {
             min2Dist = minDist;
-            minDist = dist;
-            closestShape = scene->wBox->boxes[i];
-        }
-        else if (dist< min2Dist){
-            min2Dist = dist;
-        }
-    }
+            minDist = distances[i];
+            minIdx = i;
 
-    //std::cout << __LINE__ << std::endl;
-
-
-    uint8_t idx = 0; 
-    for (;i < dists.size(); i++) {
-        dist = dists[i];
-        if (dist < minDist){
-            min2Dist = minDist;
-            minDist = dist;
-            closestShape = scene->wPlane->planes[idx];
-        }
-        else if (dist< min2Dist){
-            min2Dist = dist;
-        }
-        idx++;
-    }
-
-    //std::cout << __LINE__ << std::endl
-    /*
-
-    ftype d_nv;
-    ftype minDist_nv = std::numeric_limits<double>::max();
-    ftype min2Dist_nv = std::numeric_limits<double>::max();
-
-    for (Shape *shape : this->scene->shapes) {
-        d_nv= shape->distanceFunction(ray);
-        if (d_nv < minDist_nv){
-            min2Dist_nv = minDist_nv;
-            minDist_nv = d_nv;
-            closestShape = shape;
-        }
-        else if (d_nv < min2Dist_nv){
-            min2Dist_nv = d_nv;
+        } else if (distances[i] < min2Dist) {
+            min2Dist = distances[i];
         }
     }
-    */
-    /*
-    if (std::abs(min2Dist - min2Dist_nv) > 0.00001 || std::abs(minDist - minDist_nv) > 0.00001) {
-    std::cout << "=============Vectorized===============" << std::endl;
-    //std::cout << d.d0 << ", " << d.d1 << ", " << d.d2 << ", " << d.d3<< ", " <<  planeDist << std::endl;
-    std::cout << minDist << " " << min2Dist<< std::endl;
-
-    std::cout << "=========Non Vectorized==============" << std::endl;
-    std::cout << minDist_nv << " " << min2Dist_nv<< std::endl;
+    // determine the closest shape
+    if (minIdx >= threshTorus && torus->numElems > 0) {
+        closestShape = torus->tori[minIdx - threshTorus];
+    } else if (minIdx >= threshSphere && sphe->numElems > 0) {
+        closestShape = sphe->spheres[minIdx - threshSphere];
+    } else if (minIdx >= threshPlane && plane->numElems > 0) {
+        closestShape = plane->planes[minIdx - threshPlane];
+    } else if (minIdx >= threshOcta && octa->numElems > 0) {
+        closestShape = octa->octas[minIdx - threshOcta];
+    } else if (minIdx >= threshCone && cone->numElems > 0) {
+        closestShape = cone->cones[minIdx - threshCone];
+    } else {
+        closestShape = box->boxes[minIdx];
     }
-    */
-    /*
-        Use code below for squared distance functios
-    */
-    //ftype d;
-    //for (Shape *shape : this->scene->shapes) {
-    //    d = shape->distanceFunctionSquared(ray);
-    //    if (d < minDist){
-    //        min2Dist = minDist;
-    //        minDist = d;
-    //        closestShape = shape;
-    //    }
-    //    else if (d < min2Dist){
-    //        min2Dist = d;
-    //    }
-    //}
-    //minDist = sqrt(minDist);
-    //min2Dist = sqrt(min2Dist);
 }
 
 /**
