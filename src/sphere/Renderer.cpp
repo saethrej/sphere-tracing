@@ -190,7 +190,7 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
     }
 
     //std::cout << __LINE__ << std::endl
-    
+    /*
 
     ftype d_nv;
     ftype minDist_nv = std::numeric_limits<double>::max();
@@ -207,6 +207,7 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
             min2Dist_nv = d_nv;
         }
     }
+    */
     /*
     if (std::abs(min2Dist - min2Dist_nv) > 0.00001 || std::abs(minDist - minDist_nv) > 0.00001) {
     std::cout << "=============Vectorized===============" << std::endl;
