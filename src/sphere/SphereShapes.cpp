@@ -626,7 +626,7 @@ sphere::ftype sphere::Cone::distanceFunctionSquared(Vector pointPos)
  * @param idx idx to start computations at
  * @returns the four distances
  */
-sphere::Distances sphere::Cone::vectDistFunc(ConeWrapper const *wCone, Vector const &pos, itype idx, ftype *destPtr)
+void sphere::Cone::vectDistFunc(ConeWrapper const *wCone, Vector const &pos, itype idx, ftype *destPtr)
 {
     __m256d zero = _mm256_setzero_pd();
     __m256d ones = _mm256_set1_pd(1.0);
