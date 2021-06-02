@@ -104,7 +104,7 @@ void sphere::Renderer::addScene(std::string pathToSceneFile)
     }
 
     // compute the thresholds to assign a shape to an index
-    this->threshBox = 0;
+    this->threshBox = rndToFour(scene->wBox->numElems);
     this->threshCone = this->threshBox + rndToFour(scene->wCone->numElems);
     this->threshOcta = this->threshCone + rndToFour(scene->wOcta->numElems);
     this->threshPlane = this->threshOcta + rndToFour(scene->wPlane->numElems);
