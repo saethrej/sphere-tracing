@@ -278,6 +278,7 @@ public:
 
     // function to add a plane
     void addPlane(Plane *plane);
+    void fillEmptyPositions();
 
     // additional public member fields
     ftype *xNor; //!< normal vector's x-coordinates
@@ -299,6 +300,7 @@ public:
 
     // function to add a box
     void addBox(Box *box);
+    void fillEmptyPositions();
 
     // additional public member fields
     ftype *xExt; //!< normal vector's x-coordinates
@@ -319,6 +321,7 @@ public:
 
     // function to add a sphere
     void addSphere(Sphere *sph);
+    void fillEmptyPositions();
 
     // additional public member fields
     ftype *radiuses; //!< sphere radiuses
@@ -337,6 +340,7 @@ public:
 
     // function to add a torus
     void addTorus(Torus *torus);
+    void fillEmptyPositions();
 
     // additional public member fields
     ftype *r1s; //!< inner torus radiuses
@@ -356,6 +360,7 @@ public:
 
     // function to add a Octahedron
     void addOcta(Octahedron *octa);
+    void fillEmptyPositions();
 
     // additional public member fields
     ftype *s; //!< all s values
@@ -374,6 +379,7 @@ public:
 
     // function to add a cone
     void addCone(Cone *cone);
+    void fillEmptyPositions();
 
     // additional public member fields
     ftype *xForm; //!< x-coordinates of form vectors

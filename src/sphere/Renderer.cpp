@@ -162,7 +162,7 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
     }
     PlaneWrapper *plane = scene->wPlane;
     for (itype i = 0; i < plane->numIters; ++i) {
-        // Plane::vectDistFunc(octa, ray, i * 4, destPtr);
+        Plane::vectDistFunc(plane, ray, i * 4, destPtr);
         destPtr += 4;
     }
     SphereWrapper *sphe = scene->wSphere;

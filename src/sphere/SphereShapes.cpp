@@ -214,15 +214,11 @@ void sphere::Plane::vectDistFunc(PlaneWrapper const *planeWrap, Vector const &po
     __m256d xTrPoint, yTrPoint, zTrPoint;
     __m256d xRotPoint, yRotPoint, zRotPoint;
 
-
-
     __m256d xPos = _mm256_broadcast_sd(&pos.x);
     __m256d yPos = _mm256_broadcast_sd(&pos.y);
     __m256d zPos = _mm256_broadcast_sd(&pos.z);
     __m256d displacement = _mm256_load_pd(planeWrap->displacement + idx);
     __m256d abs_mask = _mm256_set1_pd(-0.0);
-
-
 
     xCoords = _mm256_load_pd(planeWrap->xPos + idx);
     yCoords = _mm256_load_pd(planeWrap->yPos + idx);
@@ -235,7 +231,6 @@ void sphere::Plane::vectDistFunc(PlaneWrapper const *planeWrap, Vector const &po
     rotx = _mm256_load_pd(planeWrap->rotMatrix + idx);
     roty = _mm256_load_pd(planeWrap->rotMatrix + idx + MAX_OBJECTS);
     rotz = _mm256_load_pd(planeWrap->rotMatrix + idx + MAX_OBJECTS + MAX_OBJECTS);
-
 
     xRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
 
@@ -255,10 +250,10 @@ void sphere::Plane::vectDistFunc(PlaneWrapper const *planeWrap, Vector const &po
     __m256d yNormal = _mm256_load_pd(planeWrap->yNor + idx);
     __m256d zNormal = _mm256_load_pd(planeWrap->zNor + idx);
 
-
     __m256d xScal = _mm256_mul_pd(xRotPoint, xNormal);
     __m256d yScal = _mm256_fmadd_pd(yRotPoint, yNormal, xScal);
     __m256d scalProd = _mm256_fmadd_pd(zRotPoint, zNormal, yScal);
+
     _mm256_store_pd(dstPtr, _mm256_andnot_pd(abs_mask, _mm256_sub_pd(scalProd, displacement)));
 }
 
@@ -807,12 +802,12 @@ sphere::ftype sphere::Cone::distanceFunctionSquared(Vector pointPos)
 sphere::ShapeWrapper::ShapeWrapper()
 {
     // allocate space for the position data
-    xPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    yPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    zPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    xPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    yPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    zPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
 
     // allocate 12*MAX_OBJECTS elements for rotation matrix
-    rotMatrix = new (std::align_val_t(32)) ftype[MAX_OBJECTS * 9];
+    rotMatrix = new (std::align_val_t(32)) ftype[MAX_OBJECTS * 9]();
     
     // initially there are 0 elements
     numElems = 0;
@@ -864,11 +859,20 @@ void sphere::ShapeWrapper::addShape(Shape *shape)
  */
 void sphere::ShapeWrapper::fillEmptyPositions()
 {
-    constexpr ftype lrgVal = 12481248;
+    constexpr ftype lrgVal = 12345678.9;
+    
+    // fill the shape coordinates with large values first 
     for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
         xPos[idx] = lrgVal;
         yPos[idx] = lrgVal;
         zPos[idx] = lrgVal;
+    }
+
+    // fill the rotation matrix with all 1.0 
+    for (itype j = 0; j < 9; ++j) {
+        for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
+            rotMatrix[j*MAX_OBJECTS + idx] = 1.0;
+        }
     }
 }
 
@@ -877,10 +881,10 @@ void sphere::ShapeWrapper::fillEmptyPositions()
  */
 sphere::PlaneWrapper::PlaneWrapper()
 {
-    xNor = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    yNor = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    zNor = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    displacement = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    xNor = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    yNor = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    zNor = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    displacement = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
     planes.reserve(MAX_OBJECTS);
 }
 
@@ -918,13 +922,32 @@ void sphere::PlaneWrapper::addPlane(Plane *plane)
 }
 
 /**
+ * @brief fills empty positions with very large values such that the computed
+ * distance for these entries will certainly be large
+ */
+void sphere::PlaneWrapper::fillEmptyPositions()
+{
+    // call base function to fill position and rot matrix
+    ShapeWrapper::fillEmptyPositions();
+
+    // fill the normal vector and the displacement values
+    constexpr ftype lrgVal = 12345678.9;
+    for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
+        xNor[idx] = lrgVal;
+        yNor[idx] = lrgVal;
+        zNor[idx] = lrgVal;
+        displacement[idx] = 114;
+    }
+}
+
+/**
  * @brief constructs a BoxWrapper 
  */
 sphere::BoxWrapper::BoxWrapper()
 {
-    xExt = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    yExt = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    zExt = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    xExt = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    yExt = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    zExt = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
     boxes.reserve(MAX_OBJECTS);
 }
 
@@ -960,11 +983,29 @@ void sphere::BoxWrapper::addBox(Box *box)
 }
 
 /**
+ * @brief fills empty positions with very large values such that the computed
+ * distance for these entries will certainly be large
+ */
+void sphere::BoxWrapper::fillEmptyPositions()
+{
+    // call base function to fill position and rot matrix
+    ShapeWrapper::fillEmptyPositions();
+
+    // fill the normal vector and the displacement values
+    constexpr ftype lrgVal = 12345678.9;
+    for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
+        xExt[idx] = lrgVal;
+        yExt[idx] = lrgVal;
+        zExt[idx] = lrgVal;
+    }    
+}
+
+/**
  * @brief constructs a SphereWrapper 
  */
 sphere::SphereWrapper::SphereWrapper()
 {
-    radiuses = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    radiuses = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
     spheres.reserve(MAX_OBJECTS);
 }
 
@@ -996,12 +1037,29 @@ void sphere::SphereWrapper::addSphere(Sphere *sph)
 }
 
 /**
+ * @brief fills empty positions with very large values such that the computed
+ * distance for these entries will certainly be large
+ */
+void sphere::SphereWrapper::fillEmptyPositions()
+{
+    // call base function to fill position and rot matrix
+    ShapeWrapper::fillEmptyPositions();
+
+    // fill the normal vector and the displacement values
+    constexpr ftype lrgVal = 12345678.9;
+    for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
+        radiuses[idx] = lrgVal;
+    }    
+}
+
+
+/**
  * @brief constructs a TorusWrapper 
  */
 sphere::TorusWrapper::TorusWrapper()
 {
-    r1s = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    r2s = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    r1s = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    r2s = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
     tori.reserve(MAX_OBJECTS);
 }
 
@@ -1035,11 +1093,28 @@ void sphere::TorusWrapper::addTorus(Torus *torus)
 }
 
 /**
+ * @brief fills empty positions with very large values such that the computed
+ * distance for these entries will certainly be large
+ */
+void sphere::TorusWrapper::fillEmptyPositions()
+{
+    // call base function to fill position and rot matrix
+    ShapeWrapper::fillEmptyPositions();
+
+    // fill the normal vector and the displacement values
+    constexpr ftype lrgVal = 12345678.9;
+    for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
+        r1s[idx] = lrgVal;
+        r2s[idx] = lrgVal;
+    }    
+}
+
+/**
  * @brief constructs a OctaWrapper 
  */
 sphere::OctaWrapper::OctaWrapper()
 {
-    s = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    s = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
     octas.reserve(MAX_OBJECTS);
 }
 
@@ -1071,18 +1146,34 @@ void sphere::OctaWrapper::addOcta(Octahedron *octa)
 }
 
 /**
+ * @brief fills empty positions with very large values such that the computed
+ * distance for these entries will certainly be large
+ */
+void sphere::OctaWrapper::fillEmptyPositions()
+{
+    // call base function to fill position and rot matrix
+    ShapeWrapper::fillEmptyPositions();
+
+    // fill the normal vector and the displacement values
+    constexpr ftype lrgVal = 12345678.9;
+    for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
+        s[idx] = lrgVal;
+    }    
+}
+
+/**
  * @brief constructs a ConeWrapper 
  */
 sphere::ConeWrapper::ConeWrapper()
 {
-    xForm = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    yForm = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    zForm = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    xK1 = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    yK1 = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    xK2 = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    yK2 = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    k2DotInv = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    xForm = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    yForm = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    zForm = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    xK1 = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    yK1 = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    xK2 = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    yK2 = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    k2DotInv = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
     cones.reserve(MAX_OBJECTS);
 }
 
@@ -1125,4 +1216,25 @@ void sphere::ConeWrapper::addCone(Cone *cone)
 
     // increase the shape counter
     numElems++;    
+}
+
+/**
+ * @brief fills empty positions with very large values such that the computed
+ * distance for these entries will certainly be large
+ */
+void sphere::ConeWrapper::fillEmptyPositions()
+{
+    // call base function to fill position and rot matrix
+    ShapeWrapper::fillEmptyPositions();
+
+    // fill the normal vector and the displacement values
+    constexpr ftype lrgVal = 12345678.9;
+    for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
+        xForm[idx] = lrgVal;
+        yForm[idx] = lrgVal;
+        zForm[idx] = lrgVal;
+        xK1[idx] = lrgVal;
+        xK2[idx] = lrgVal;
+        k2DotInv[idx] = lrgVal;
+    }    
 }

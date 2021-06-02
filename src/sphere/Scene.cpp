@@ -157,6 +157,8 @@ sphere::Scene::Scene(std::string pathToFile)
     this->wPlane->fillEmptyPositions();
     this->wSphere->fillEmptyPositions();
     this->wTorus->fillEmptyPositions();
+
+    std::cout << "xPos[2] = " << this->wPlane->xPos[2] << std::endl;
 }
 
 /**
