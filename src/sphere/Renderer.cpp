@@ -178,7 +178,7 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
 
     // get the minimum distance, second minimum distance
     minDist = min2Dist = std::numeric_limits<ftype>::max();
-    itype minIdx = 0;
+    itype minIdx = -1;
     for (itype i = 0; i < numDist; ++i) {
         if (distances[i] < minDist) {
             min2Dist = minDist;
@@ -189,19 +189,20 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
             min2Dist = distances[i];
         }
     }
+
     // determine the closest shape
-    if (minIdx >= threshTorus && torus->numElems > 0) {
-        closestShape = torus->tori[minIdx - threshTorus];
-    } else if (minIdx >= threshSphere && sphe->numElems > 0) {
-        closestShape = sphe->spheres[minIdx - threshSphere];
-    } else if (minIdx >= threshPlane && plane->numElems > 0) {
-        closestShape = plane->planes[minIdx - threshPlane];
-    } else if (minIdx >= threshOcta && octa->numElems > 0) {
-        closestShape = octa->octas[minIdx - threshOcta];
-    } else if (minIdx >= threshCone && cone->numElems > 0) {
-        closestShape = cone->cones[minIdx - threshCone];
-    } else {
+    if (minIdx < threshBox) {
         closestShape = box->boxes[minIdx];
+    } else if (minIdx < threshCone) {
+        closestShape = cone->cones[minIdx - threshBox];
+    } else if (minIdx < threshOcta) {
+        closestShape = octa->octas[minIdx - threshCone];
+    } else if (minIdx < threshPlane) {
+        closestShape = plane->planes[minIdx - threshOcta];
+    } else if (minIdx < threshSphere) {
+        closestShape = sphe->spheres[minIdx - threshPlane];
+    } else if (minIdx < threshTorus) {
+        closestShape = torus->tori[minIdx - threshSphere];
     }
 }
 
