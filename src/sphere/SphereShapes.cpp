@@ -44,6 +44,7 @@
 #include <algorithm>
 #include <math.h>
 #include <cmath>
+#include <immintrin.h>
 
 #include "SphereTypes.h"
 #include "SphereShapes.h"
@@ -790,6 +791,110 @@ sphere::ftype sphere::Cone::distanceFunctionSquared(Vector pointPos)
     Vector2 cb = q - this->k1 + this->k2 * std::clamp((this->k2 * (this->k1 - q)) *this->k2_dot_inv, 0.0, 1.0);
     ftype s = cb.x < 0.0 && ca.y < 0.0 ? -1.0 : 1.0;
     return s * std::min(ca * ca, cb * cb);
+}
+
+/**
+ * @brief computes the distance function for four cones starting at index idx
+ * in a vectorized manner
+ * 
+ * @param wCone pointer to the ConeWrapper
+ * @param pos position to compute distance to
+ * @param idx idx to start computations at
+ * @returns the four distances
+ */
+void sphere::Cone::vectDistFunc(ConeWrapper const *wCone, Vector const &pos, itype idx, ftype *destPtr)
+{
+    __m256d zero = _mm256_setzero_pd();
+    __m256d ones = _mm256_set1_pd(1.0);
+    __m256d minusones = _mm256_set1_pd(-1.0);
+    __m256d abs_mask = _mm256_set1_pd(-0.0);
+
+
+    // broadcast the components of the position vector to avx registers
+    __m256d xPos = _mm256_broadcast_sd(&pos.x);
+    __m256d yPos = _mm256_broadcast_sd(&pos.y);
+    __m256d zPos = _mm256_broadcast_sd(&pos.z);
+
+    // load the cone positions
+    __m256d conePosX = _mm256_load_pd(wCone->xPos + idx);
+    __m256d conePosY = _mm256_load_pd(wCone->yPos + idx);
+    __m256d conePosZ = _mm256_load_pd(wCone->zPos + idx);
+
+    // translate the vector to the center of the cone
+    xPos = _mm256_sub_pd(xPos, conePosX);
+    yPos = _mm256_sub_pd(yPos, conePosY);
+    zPos = _mm256_sub_pd(zPos, conePosZ);
+
+    // load rotation matrix values
+    ftype *rotPtr = wCone->rotMatrix + idx;
+    __m256d rot0 = _mm256_load_pd(rotPtr);
+    __m256d rot1 = _mm256_load_pd(rotPtr + MAX_OBJECTS);
+    __m256d rot2 = _mm256_load_pd(rotPtr + 2 * MAX_OBJECTS);
+    __m256d rot3 = _mm256_load_pd(rotPtr + 3 * MAX_OBJECTS);
+    __m256d rot4 = _mm256_load_pd(rotPtr + 4 * MAX_OBJECTS);
+    __m256d rot5 = _mm256_load_pd(rotPtr + 5 * MAX_OBJECTS);
+    __m256d rot6 = _mm256_load_pd(rotPtr + 6 * MAX_OBJECTS);
+    __m256d rot7 = _mm256_load_pd(rotPtr + 7 * MAX_OBJECTS);
+    __m256d rot8 = _mm256_load_pd(rotPtr + 8 * MAX_OBJECTS);
+
+    // rotate the matrix
+    xPos = _mm256_fmadd_pd(zPos, rot2, _mm256_fmadd_pd(yPos, rot1, _mm256_mul_pd(xPos, rot0)));
+    yPos = _mm256_fmadd_pd(zPos, rot5, _mm256_fmadd_pd(yPos, rot4, _mm256_mul_pd(xPos, rot3)));
+    zPos = _mm256_fmadd_pd(zPos, rot8, _mm256_fmadd_pd(yPos, rot7, _mm256_mul_pd(xPos, rot6)));
+
+    // load the form parameters 
+    __m256d heights = _mm256_load_pd(wCone->zForm + idx);
+    __m256d rad1 = _mm256_load_pd(wCone->xForm + idx);
+    __m256d rad2 = _mm256_load_pd(wCone->yForm + idx);
+    __m256d k1_x = _mm256_load_pd(wCone->xK1 + idx);
+    __m256d k1_y = _mm256_load_pd(wCone->yK1 + idx);
+    __m256d k2_x = _mm256_load_pd(wCone->xK2 + idx);
+    __m256d k2_y = _mm256_load_pd(wCone->yK2 + idx);
+    __m256d k2DotInv = _mm256_load_pd(wCone->k2DotInv + idx);
+
+    // calculate vector q values (q.y = yPos)
+    __m256d x_squared = _mm256_mul_pd(xPos, xPos);
+    __m256d q_x_0 = _mm256_fmadd_pd(zPos, zPos, x_squared);
+    __m256d q_x = _mm256_sqrt_pd(q_x_0);
+
+    // calculate vector ca
+    __m256d q_y_mask = _mm256_cmp_pd(yPos, zero, _CMP_LT_OQ);
+    __m256d to_min = _mm256_blendv_pd(rad2, rad1, q_y_mask);
+    __m256d ca_x = _mm256_sub_pd(q_x, _mm256_min_pd(q_x, to_min));
+    __m256d ca_y = _mm256_sub_pd(_mm256_andnot_pd(abs_mask, yPos), heights);
+
+    // clamp
+    __m256d clamp_0x = _mm256_mul_pd(k2_x, _mm256_sub_pd(k1_x, q_x));
+    __m256d clamp_0y_pre = _mm256_sub_pd(k1_y, yPos);
+    __m256d clamp_0 = _mm256_fmadd_pd(k2_y, clamp_0y_pre, clamp_0x);
+    __m256d clamp = _mm256_mul_pd(clamp_0, k2DotInv);
+    __m256d sub_mask = _mm256_cmp_pd(clamp, zero, _CMP_LT_OQ);
+    __m256d top_mask = _mm256_cmp_pd(ones, clamp, _CMP_LT_OQ);
+    __m256d clamped_0 = _mm256_blendv_pd(clamp, zero, sub_mask);
+    __m256d clamped = _mm256_blendv_pd(clamped_0, ones, top_mask);
+
+    // get cb
+    __m256d cb_0x = _mm256_fmadd_pd(clamped, k2_x, q_x);
+    __m256d cb_x = _mm256_sub_pd(cb_0x, k1_x);
+    __m256d cb_0y = _mm256_fmadd_pd(clamped, k2_y, yPos);
+    __m256d cb_y = _mm256_sub_pd(cb_0y, k1_y);
+
+    // calc s
+    __m256d cbx_mask = _mm256_cmp_pd(cb_x, zero, _CMP_LT_OQ);
+    __m256d cay_mask = _mm256_cmp_pd(ca_y, zero, _CMP_LT_OQ);
+    __m256d s_mask = _mm256_and_pd(cbx_mask, cay_mask);
+    __m256d s = _mm256_blendv_pd(ones, minusones, s_mask);
+
+    // calc returnval
+    __m256d ca_dot_0 = _mm256_mul_pd(ca_x, ca_x);
+    __m256d ca_dot = _mm256_fmadd_pd(ca_y, ca_y, ca_dot_0);
+    __m256d cb_dot_0 = _mm256_mul_pd(cb_x, cb_x);
+    __m256d cb_dot = _mm256_fmadd_pd(cb_y, cb_y, cb_dot_0);
+
+    __m256d ret_val_0 = _mm256_sqrt_pd(_mm256_min_pd(ca_dot, cb_dot));
+    __m256d ret_val = _mm256_mul_pd(s, ret_val_0);
+
+    _mm256_store_pd(destPtr, ret_val);   
 }
 
 /*****************************************************************************/
