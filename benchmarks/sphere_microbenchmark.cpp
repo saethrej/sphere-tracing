@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 
     // create a renderer object and add scene 0
     sphere::Renderer r;
-    r.addScene("../scenes/scene0.json");
+    r.addScene("../scenes/scene4.json");
 
     // run the microbenchmarking suite
     r.microbenchmarkDistanceFunctions();
