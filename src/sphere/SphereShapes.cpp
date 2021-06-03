@@ -649,8 +649,10 @@ void sphere::Torus::vectDistFunc(TorusWrapper const *wTorus , Vector const &ray,
     yPos = _mm256_sub_pd(yPos, torusPosY);
     zPos = _mm256_sub_pd(zPos, torusPosZ);
 
-    //load rotMatrix
+    //compute the ptr once
     ftype *rotPtr = wTorus->rotMatrix + idx;
+
+    //load rotMatrix
     __m256d rotCol00 = _mm256_load_pd(rotPtr);
     __m256d rotCol01 = _mm256_load_pd(rotPtr + MAX_OBJECTS);
     __m256d rotCol02 = _mm256_load_pd(rotPtr + 2*MAX_OBJECTS);
@@ -814,8 +816,9 @@ void sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vector const &ra
     yPos = _mm256_sub_pd(yPos, octaPosY);
     zPos = _mm256_sub_pd(zPos, octaPosZ);
 
-     //load rotMatrix
+    //compute the ptr once 
      ftype *rotPtr = wOcta->rotMatrix + idx;
+     //load rotMatrix
     __m256d rotCol00 = _mm256_load_pd(rotPtr);
     __m256d rotCol01 = _mm256_load_pd(rotPtr + MAX_OBJECTS);
     __m256d rotCol02 = _mm256_load_pd(rotPtr + 2*MAX_OBJECTS);
@@ -1017,8 +1020,9 @@ void sphere::Cone::vectDistFunc(ConeWrapper const *wCone, Vector const &pos, ity
     yPos = _mm256_sub_pd(yPos, conePosY);
     zPos = _mm256_sub_pd(zPos, conePosZ);
 
-    // load rotation matrix values
+    //compute ptr once
     ftype *rotPtr = wCone->rotMatrix + idx;
+    // load rotation matrix values
     __m256d rot0 = _mm256_load_pd(rotPtr);
     __m256d rot1 = _mm256_load_pd(rotPtr + MAX_OBJECTS);
     __m256d rot2 = _mm256_load_pd(rotPtr + 2 * MAX_OBJECTS);
@@ -1030,9 +1034,9 @@ void sphere::Cone::vectDistFunc(ConeWrapper const *wCone, Vector const &pos, ity
     __m256d rot8 = _mm256_load_pd(rotPtr + 8 * MAX_OBJECTS);
 
     // rotate the matrix
-    xPos = _mm256_fmadd_pd(zPos, rot2, _mm256_fmadd_pd(yPos, rot1, _mm256_mul_pd(xPos, rot0)));
-    yPos = _mm256_fmadd_pd(zPos, rot5, _mm256_fmadd_pd(yPos, rot4, _mm256_mul_pd(xPos, rot3)));
-    zPos = _mm256_fmadd_pd(zPos, rot8, _mm256_fmadd_pd(yPos, rot7, _mm256_mul_pd(xPos, rot6)));
+    __m256d xRotPoint = _mm256_fmadd_pd(zPos, rot2, _mm256_fmadd_pd(yPos, rot1, _mm256_mul_pd(xPos, rot0)));
+    __m256d yRotPoint = _mm256_fmadd_pd(zPos, rot5, _mm256_fmadd_pd(yPos, rot4, _mm256_mul_pd(xPos, rot3)));
+    __m256d zRotPoint = _mm256_fmadd_pd(zPos, rot8, _mm256_fmadd_pd(yPos, rot7, _mm256_mul_pd(xPos, rot6)));
 
     // load the form parameters 
     __m256d heights = _mm256_load_pd(wCone->zForm + idx);
@@ -1045,19 +1049,19 @@ void sphere::Cone::vectDistFunc(ConeWrapper const *wCone, Vector const &pos, ity
     __m256d k2DotInv = _mm256_load_pd(wCone->k2DotInv + idx);
 
     // calculate vector q values (q.y = yPos)
-    __m256d x_squared = _mm256_mul_pd(xPos, xPos);
-    __m256d q_x_0 = _mm256_fmadd_pd(zPos, zPos, x_squared);
+    __m256d x_squared = _mm256_mul_pd(xRotPoint, xRotPoint);
+    __m256d q_x_0 = _mm256_fmadd_pd(zRotPoint, zRotPoint, x_squared);
     __m256d q_x = _mm256_sqrt_pd(q_x_0);
 
     // calculate vector ca
-    __m256d q_y_mask = _mm256_cmp_pd(yPos, zero, _CMP_LT_OQ);
+    __m256d q_y_mask = _mm256_cmp_pd(yRotPoint, zero, _CMP_LT_OQ);
     __m256d to_min = _mm256_blendv_pd(rad2, rad1, q_y_mask);
     __m256d ca_x = _mm256_sub_pd(q_x, _mm256_min_pd(q_x, to_min));
-    __m256d ca_y = _mm256_sub_pd(_mm256_andnot_pd(abs_mask, yPos), heights);
+    __m256d ca_y = _mm256_sub_pd(_mm256_andnot_pd(abs_mask, yRotPoint), heights);
 
     // clamp
     __m256d clamp_0x = _mm256_mul_pd(k2_x, _mm256_sub_pd(k1_x, q_x));
-    __m256d clamp_0y_pre = _mm256_sub_pd(k1_y, yPos);
+    __m256d clamp_0y_pre = _mm256_sub_pd(k1_y, yRotPoint);
     __m256d clamp_0 = _mm256_fmadd_pd(k2_y, clamp_0y_pre, clamp_0x);
     __m256d clamp = _mm256_mul_pd(clamp_0, k2DotInv);
     __m256d sub_mask = _mm256_cmp_pd(clamp, zero, _CMP_LT_OQ);
@@ -1068,7 +1072,7 @@ void sphere::Cone::vectDistFunc(ConeWrapper const *wCone, Vector const &pos, ity
     // get cb
     __m256d cb_0x = _mm256_fmadd_pd(clamped, k2_x, q_x);
     __m256d cb_x = _mm256_sub_pd(cb_0x, k1_x);
-    __m256d cb_0y = _mm256_fmadd_pd(clamped, k2_y, yPos);
+    __m256d cb_0y = _mm256_fmadd_pd(clamped, k2_y, yRotPoint);
     __m256d cb_y = _mm256_sub_pd(cb_0y, k1_y);
 
     // calc s
