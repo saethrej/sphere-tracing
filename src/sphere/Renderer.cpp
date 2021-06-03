@@ -147,17 +147,17 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
 
     BoxWrapper *box = scene->wBox;
     for (itype i = 0; i < box->numIters; ++i) {
-        // Box::vectDistFunc(box, ray, i * 4, destPtr);
+        Box::vectDistFunc(box, ray, i * 4, destPtr);
         destPtr += 4;
     }
     ConeWrapper *cone = scene->wCone;
     for (itype i = 0; i < cone->numIters; ++i) {
-        // Cone::vectDistFunc(cone, ray, i * 4, destPtr);
+        Cone::vectDistFunc(cone, ray, i * 4, destPtr);
         destPtr += 4;
     }
     OctaWrapper *octa = scene->wOcta;
     for (itype i = 0; i < octa->numIters; ++i) {
-        // Octahedron::vectDistFunc(octa, ray, i * 4, destPtr);
+        Octahedron::vectDistFunc(octa, ray, i * 4, destPtr);
         destPtr += 4;
     }
     PlaneWrapper *plane = scene->wPlane;
@@ -172,7 +172,7 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
     }
     TorusWrapper *torus = scene->wTorus;
     for (itype i = 0; i < torus->numIters; ++i) {
-        // Torus::vectDistFunc(torus, ray, i * 4, destPtr);
+        Torus::vectDistFunc(torus, ray, i * 4, destPtr);
         destPtr += 4;
     }
 
@@ -190,15 +190,6 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
         }
     }
     
-    if (std::abs(min2Dist - min2Dist_nv) > 0.00001 || std::abs(minDist - minDist_nv) > 0.00001) {
-    std::cout << "=============Vectorized===============" << std::endl;
-    //std::cout << " d0 : "<< d.d0 << ", d1 " << d.d1 << ",d2 " << d.d2 << ", d3 " << d.d3<< ", plane " <<  planeDist << std::endl;
-    std::cout << minDist << " " << min2Dist<< std::endl;
-
-    std::cout << "=========Non Vectorized==============" << std::endl;
-    std::cout << minDist_nv << " " << min2Dist_nv<< std::endl;
-    }
-
     // determine the closest shape
     if (minIdx < threshBox) {
         closestShape = box->boxes[minIdx];

@@ -623,7 +623,7 @@ sphere::ftype sphere::Torus::distanceFunctionSquared(Vector pointPos)
  * @param pointPos position of the point of interest
  * @returns the distance between point and torus
  */
-sphere::Distances sphere::Torus::vectDistFunc(TorusWrapper const *wTorus , Vector const &ray, itype idx)
+void sphere::Torus::vectDistFunc(TorusWrapper const *wTorus , Vector const &ray, itype idx, ftype *dstPtr)
 {
     __m256d xTrPoint, yTrPoint, zTrPoint;
     __m256d xRay, yRay, zRay;
@@ -686,8 +686,7 @@ sphere::Distances sphere::Torus::vectDistFunc(TorusWrapper const *wTorus , Vecto
     res = _mm256_sub_pd(q, r2);
 
     //return dist 
-    Distances d(res[0], res[1], res[2], res[3]);
-    return d;
+    _mm256_store_pd(dstPtr, res);
 }
 
 /******************************* Octahedron **********************************/
