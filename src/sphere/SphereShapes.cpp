@@ -48,6 +48,7 @@
 #include "SphereTypes.h"
 #include "SphereShapes.h"
 #include "CustomVector.h"
+#include "immintrin.h"
 
 using json = nlohmann::json;
 
@@ -205,6 +206,58 @@ sphere::Plane::Plane(json const &plane)
     }    
 }
 
+void sphere::Plane::vectDistFunc(PlaneWrapper const *planeWrap, Vector const &pos, itype idx, ftype *dstPtr) {
+    __m256d rotx, roty,rotz;
+    __m256d rotx2, roty2, rotz2;
+    __m256d rotx3, roty3, rotz3;
+    __m256d xCoords,yCoords,zCoords;
+    __m256d xTrPoint, yTrPoint, zTrPoint;
+    __m256d xRotPoint, yRotPoint, zRotPoint;
+
+    __m256d xPos = _mm256_broadcast_sd(&pos.x);
+    __m256d yPos = _mm256_broadcast_sd(&pos.y);
+    __m256d zPos = _mm256_broadcast_sd(&pos.z);
+    __m256d displacement = _mm256_load_pd(planeWrap->displacement + idx);
+    __m256d abs_mask = _mm256_set1_pd(-0.0);
+
+    xCoords = _mm256_load_pd(planeWrap->xPos + idx);
+    yCoords = _mm256_load_pd(planeWrap->yPos + idx);
+    zCoords = _mm256_load_pd(planeWrap->zPos + idx);
+
+    xTrPoint = _mm256_sub_pd(xPos, xCoords);
+    yTrPoint = _mm256_sub_pd(yPos, yCoords);
+    zTrPoint = _mm256_sub_pd(zPos, zCoords);
+
+    rotx = _mm256_load_pd(planeWrap->rotMatrix + idx);
+    roty = _mm256_load_pd(planeWrap->rotMatrix + idx + MAX_OBJECTS);
+    rotz = _mm256_load_pd(planeWrap->rotMatrix + idx + MAX_OBJECTS + MAX_OBJECTS);
+
+    xRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
+
+    rotx2 = _mm256_load_pd(planeWrap->rotMatrix + idx + 3* MAX_OBJECTS);
+    roty2 = _mm256_load_pd(planeWrap->rotMatrix + idx + 4*MAX_OBJECTS);
+    rotz2 = _mm256_load_pd(planeWrap->rotMatrix + idx + 5*MAX_OBJECTS);
+
+    yRotPoint = _mm256_fmadd_pd(rotz2, zTrPoint, _mm256_fmadd_pd(roty2, yTrPoint, _mm256_mul_pd(rotx2, xTrPoint)));
+
+    rotx3 = _mm256_load_pd(planeWrap->rotMatrix + idx + 6*MAX_OBJECTS);
+    roty3 = _mm256_load_pd(planeWrap->rotMatrix + idx + 7*MAX_OBJECTS);
+    rotz3 = _mm256_load_pd(planeWrap->rotMatrix + idx+ 8*MAX_OBJECTS);
+
+    zRotPoint = _mm256_fmadd_pd(rotz3, zTrPoint, _mm256_fmadd_pd(roty3, yTrPoint, _mm256_mul_pd(rotx3, xTrPoint)));
+
+    __m256d xNormal = _mm256_load_pd(planeWrap->xNor + idx);
+    __m256d yNormal = _mm256_load_pd(planeWrap->yNor + idx);
+    __m256d zNormal = _mm256_load_pd(planeWrap->zNor + idx);
+
+    __m256d xScal = _mm256_mul_pd(xRotPoint, xNormal);
+    __m256d yScal = _mm256_fmadd_pd(yRotPoint, yNormal, xScal);
+    __m256d scalProd = _mm256_fmadd_pd(zRotPoint, zNormal, yScal);
+
+    _mm256_store_pd(dstPtr, _mm256_andnot_pd(abs_mask, _mm256_sub_pd(scalProd, displacement)));
+}
+
+
 /**
  * @brief computes distance from a point to this plane
  * @param pointPos the position of the point
@@ -263,6 +316,95 @@ sphere::Box::Box(json const &box)
         std::cerr << e.what() << std::endl;
         throw SphereException(SphereException::ErrorCode::JsonSyntaxError);
     }
+}
+
+void sphere::Box::vectDistFunc(BoxWrapper const *boxWrap, Vector const &pos, itype idx, ftype *dstPtr)
+{
+
+
+    __m256d rotx, roty,rotz;
+    __m256d rotx2, roty2, rotz2;
+    __m256d rotx3, roty3, rotz3;
+    __m256d xCoords,yCoords,zCoords;
+    __m256d xTrPoint, yTrPoint, zTrPoint;
+    __m256d xRotPoint, yRotPoint, zRotPoint;
+    __m256d xext, yext, zext;
+    __m256d zero = _mm256_setzero_pd();
+
+    __m256d xPos = _mm256_broadcast_sd(&pos.x);
+    __m256d yPos = _mm256_broadcast_sd(&pos.y);
+    __m256d zPos = _mm256_broadcast_sd(&pos.z);
+
+    xCoords = _mm256_load_pd(boxWrap->xPos + idx);
+    yCoords = _mm256_load_pd(boxWrap->yPos + idx);
+    zCoords = _mm256_load_pd(boxWrap->zPos + idx);
+
+    xTrPoint = _mm256_sub_pd(xPos, xCoords);
+    yTrPoint = _mm256_sub_pd(yPos, yCoords);
+    zTrPoint = _mm256_sub_pd(zPos, zCoords);
+
+    rotx = _mm256_load_pd(boxWrap->rotMatrix + idx);
+    roty = _mm256_load_pd(boxWrap->rotMatrix + idx + MAX_OBJECTS);
+    rotz = _mm256_load_pd(boxWrap->rotMatrix + idx + MAX_OBJECTS + MAX_OBJECTS);
+
+
+    xRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
+
+    rotx2 = _mm256_load_pd(boxWrap->rotMatrix + idx + 3* MAX_OBJECTS);
+    roty2 = _mm256_load_pd(boxWrap->rotMatrix + idx + 4*MAX_OBJECTS);
+    rotz2 = _mm256_load_pd(boxWrap->rotMatrix + idx + 5*MAX_OBJECTS);
+
+    yRotPoint = _mm256_fmadd_pd(rotz2, zTrPoint, _mm256_fmadd_pd(roty2, yTrPoint, _mm256_mul_pd(rotx2, xTrPoint)));
+
+    rotx3 = _mm256_load_pd(boxWrap->rotMatrix + idx + 6*MAX_OBJECTS);
+    roty3 = _mm256_load_pd(boxWrap->rotMatrix + idx + 7*MAX_OBJECTS);
+    rotz3 = _mm256_load_pd(boxWrap->rotMatrix + idx+ 8*MAX_OBJECTS);
+
+    zRotPoint = _mm256_fmadd_pd(rotz3, zTrPoint, _mm256_fmadd_pd(roty3, yTrPoint, _mm256_mul_pd(rotx3, xTrPoint)));
+
+
+    // calculate the absolute value
+    __m256d abs_mask = _mm256_set1_pd(-0.0);
+    __m256d  abs_x = _mm256_andnot_pd(abs_mask, xRotPoint);
+    __m256d  abs_y = _mm256_andnot_pd(abs_mask, yRotPoint);
+    __m256d  abs_z = _mm256_andnot_pd(abs_mask, zRotPoint);
+
+
+
+    xext = _mm256_load_pd(boxWrap->xExt + idx);
+    yext = _mm256_load_pd(boxWrap->yExt + idx);
+    zext = _mm256_load_pd(boxWrap->zExt + idx);
+
+    
+
+    // abs - extent
+
+    __m256d xq = _mm256_sub_pd(abs_x, xext);
+    __m256d yq = _mm256_sub_pd(abs_y, yext);
+    __m256d zq = _mm256_sub_pd(abs_z, zext);
+
+
+    __m256d xMask = _mm256_cmp_pd(xq, zero, _CMP_GE_OQ);
+    __m256d yMask = _mm256_cmp_pd(yq, zero, _CMP_GE_OQ);
+    __m256d zMask = _mm256_cmp_pd(zq, zero, _CMP_GE_OQ);
+
+    __m256d xtmp = _mm256_mul_pd(xq, xq);
+    __m256d res0 = _mm256_and_pd(xtmp, xMask);
+    __m256d tmp1 = _mm256_add_pd(res0, zero);
+    __m256d ytmp = _mm256_mul_pd(yq, yq);
+    __m256d res1 = _mm256_and_pd(ytmp, yMask);
+    __m256d tmp2 = _mm256_add_pd(res1, zero);
+    __m256d ztmp = _mm256_mul_pd(zq, zq);
+    __m256d res2 = _mm256_and_pd(ztmp, zMask);
+    __m256d tmp3 = _mm256_add_pd(res2, zero);
+
+    __m256d squaredRes = _mm256_add_pd(_mm256_add_pd(tmp1,tmp2), tmp3);
+
+    __m256d res = _mm256_sqrt_pd(squaredRes);
+
+    _mm256_store_pd(dstPtr, res);
+
+
 }
 
 /**
@@ -345,6 +487,40 @@ sphere::Sphere::Sphere(json const &sph)
         throw SphereException(SphereException::ErrorCode::JsonSyntaxError);
     }
 }
+
+void sphere::Sphere::vectDistFunc(SphereWrapper const *sphereWrap, Vector const &pos, itype idx, ftype *dstPtr) {
+    __m256d xCoords, yCoords, zCoords;
+    __m256d xRay, yRay, zRay;
+    __m256d xTrPoint, yTrPoint, zTrPoint;
+    __m256d vRadius;
+    __m256d xSquaredCoord, ySquaredCoord, zSquaredCoord;
+    __m256d vectorLength;
+
+    xCoords = _mm256_load_pd(sphereWrap->xPos + idx);
+    yCoords = _mm256_load_pd(sphereWrap->yPos + idx);
+    zCoords = _mm256_load_pd(sphereWrap->zPos + idx);
+    
+    
+    xRay = _mm256_broadcast_sd(&pos.x);
+    yRay = _mm256_broadcast_sd(&pos.y);
+    zRay = _mm256_broadcast_sd(&pos.z);
+
+    vRadius = _mm256_load_pd(sphereWrap->radiuses + idx);
+
+    xTrPoint = _mm256_sub_pd(xRay, xCoords);
+    yTrPoint = _mm256_sub_pd(yRay, yCoords);
+    zTrPoint = _mm256_sub_pd(zRay, zCoords);
+    xSquaredCoord = _mm256_mul_pd(xTrPoint, xTrPoint);
+    ySquaredCoord = _mm256_mul_pd(yTrPoint, yTrPoint);
+    zSquaredCoord = _mm256_mul_pd(zTrPoint, zTrPoint);
+
+    vectorLength = _mm256_sqrt_pd(_mm256_add_pd(xSquaredCoord, _mm256_add_pd(ySquaredCoord, zSquaredCoord)));
+
+    __m256d res = _mm256_sub_pd(vectorLength, vRadius);
+
+    _mm256_store_pd(dstPtr, res);
+}
+
 
 /**
  * @brief computes distance from a point to this sphere
@@ -626,15 +802,17 @@ sphere::ftype sphere::Cone::distanceFunctionSquared(Vector pointPos)
 sphere::ShapeWrapper::ShapeWrapper()
 {
     // allocate space for the position data
-    xPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    yPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    zPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    xPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    yPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    zPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
 
     // allocate 12*MAX_OBJECTS elements for rotation matrix
-    rotMatrix = new (std::align_val_t(32)) ftype[MAX_OBJECTS * 9];
+    rotMatrix = new (std::align_val_t(32)) ftype[MAX_OBJECTS * 9]();
     
     // initially there are 0 elements
     numElems = 0;
+    numIters = 0;
+    iterCounter = 0.0;
 }
 
 /**
@@ -669,6 +847,33 @@ void sphere::ShapeWrapper::addShape(Shape *shape)
     rotMatrix[numElems + 6 * MAX_OBJECTS] = shape->inverseRotation[6];
     rotMatrix[numElems + 7 * MAX_OBJECTS] = shape->inverseRotation[7];
     rotMatrix[numElems + 8 * MAX_OBJECTS] = shape->inverseRotation[8];
+
+    // add to the iter counter
+    iterCounter += 0.25;
+    numIters = static_cast<itype>(std::ceil(iterCounter));
+}
+
+/**
+ * @brief fills empty positions with very large values such that the computed
+ * distance for these entries will certainly be large
+ */
+void sphere::ShapeWrapper::fillEmptyPositions()
+{
+    constexpr ftype lrgVal = 12345678.9;
+    
+    // fill the shape coordinates with large values first 
+    for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
+        xPos[idx] = lrgVal;
+        yPos[idx] = lrgVal;
+        zPos[idx] = lrgVal;
+    }
+
+    // fill the rotation matrix with all 1.0 
+    for (itype j = 0; j < 9; ++j) {
+        for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
+            rotMatrix[j*MAX_OBJECTS + idx] = 1.0;
+        }
+    }
 }
 
 /**
@@ -676,10 +881,10 @@ void sphere::ShapeWrapper::addShape(Shape *shape)
  */
 sphere::PlaneWrapper::PlaneWrapper()
 {
-    xNor = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    yNor = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    zNor = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    displacement = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    xNor = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    yNor = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    zNor = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    displacement = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
     planes.reserve(MAX_OBJECTS);
 }
 
@@ -717,13 +922,32 @@ void sphere::PlaneWrapper::addPlane(Plane *plane)
 }
 
 /**
+ * @brief fills empty positions with very large values such that the computed
+ * distance for these entries will certainly be large
+ */
+void sphere::PlaneWrapper::fillEmptyPositions()
+{
+    // call base function to fill position and rot matrix
+    ShapeWrapper::fillEmptyPositions();
+
+    // fill the normal vector and the displacement values
+    constexpr ftype lrgVal = 12345678.9;
+    for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
+        xNor[idx] = lrgVal;
+        yNor[idx] = lrgVal;
+        zNor[idx] = lrgVal;
+        displacement[idx] = 114;
+    }
+}
+
+/**
  * @brief constructs a BoxWrapper 
  */
 sphere::BoxWrapper::BoxWrapper()
 {
-    xExt = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    yExt = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    zExt = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    xExt = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    yExt = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    zExt = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
     boxes.reserve(MAX_OBJECTS);
 }
 
@@ -759,11 +983,29 @@ void sphere::BoxWrapper::addBox(Box *box)
 }
 
 /**
+ * @brief fills empty positions with very large values such that the computed
+ * distance for these entries will certainly be large
+ */
+void sphere::BoxWrapper::fillEmptyPositions()
+{
+    // call base function to fill position and rot matrix
+    ShapeWrapper::fillEmptyPositions();
+
+    // fill the normal vector and the displacement values
+    constexpr ftype lrgVal = 12345678.9;
+    for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
+        xExt[idx] = lrgVal;
+        yExt[idx] = lrgVal;
+        zExt[idx] = lrgVal;
+    }    
+}
+
+/**
  * @brief constructs a SphereWrapper 
  */
 sphere::SphereWrapper::SphereWrapper()
 {
-    radiuses = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    radiuses = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
     spheres.reserve(MAX_OBJECTS);
 }
 
@@ -795,12 +1037,29 @@ void sphere::SphereWrapper::addSphere(Sphere *sph)
 }
 
 /**
+ * @brief fills empty positions with very large values such that the computed
+ * distance for these entries will certainly be large
+ */
+void sphere::SphereWrapper::fillEmptyPositions()
+{
+    // call base function to fill position and rot matrix
+    ShapeWrapper::fillEmptyPositions();
+
+    // fill the normal vector and the displacement values
+    constexpr ftype lrgVal = 12345678.9;
+    for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
+        radiuses[idx] = lrgVal;
+    }    
+}
+
+
+/**
  * @brief constructs a TorusWrapper 
  */
 sphere::TorusWrapper::TorusWrapper()
 {
-    r1s = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    r2s = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    r1s = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    r2s = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
     tori.reserve(MAX_OBJECTS);
 }
 
@@ -834,11 +1093,28 @@ void sphere::TorusWrapper::addTorus(Torus *torus)
 }
 
 /**
+ * @brief fills empty positions with very large values such that the computed
+ * distance for these entries will certainly be large
+ */
+void sphere::TorusWrapper::fillEmptyPositions()
+{
+    // call base function to fill position and rot matrix
+    ShapeWrapper::fillEmptyPositions();
+
+    // fill the normal vector and the displacement values
+    constexpr ftype lrgVal = 12345678.9;
+    for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
+        r1s[idx] = lrgVal;
+        r2s[idx] = lrgVal;
+    }    
+}
+
+/**
  * @brief constructs a OctaWrapper 
  */
 sphere::OctaWrapper::OctaWrapper()
 {
-    s = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    s = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
     octas.reserve(MAX_OBJECTS);
 }
 
@@ -870,18 +1146,34 @@ void sphere::OctaWrapper::addOcta(Octahedron *octa)
 }
 
 /**
+ * @brief fills empty positions with very large values such that the computed
+ * distance for these entries will certainly be large
+ */
+void sphere::OctaWrapper::fillEmptyPositions()
+{
+    // call base function to fill position and rot matrix
+    ShapeWrapper::fillEmptyPositions();
+
+    // fill the normal vector and the displacement values
+    constexpr ftype lrgVal = 12345678.9;
+    for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
+        s[idx] = lrgVal;
+    }    
+}
+
+/**
  * @brief constructs a ConeWrapper 
  */
 sphere::ConeWrapper::ConeWrapper()
 {
-    xForm = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    yForm = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    zForm = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    xK1 = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    yK1 = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    xK2 = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    yK2 = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
-    k2DotInv = new (std::align_val_t(32)) ftype[MAX_OBJECTS];
+    xForm = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    yForm = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    zForm = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    xK1 = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    yK1 = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    xK2 = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    yK2 = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
+    k2DotInv = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
     cones.reserve(MAX_OBJECTS);
 }
 
@@ -924,4 +1216,25 @@ void sphere::ConeWrapper::addCone(Cone *cone)
 
     // increase the shape counter
     numElems++;    
+}
+
+/**
+ * @brief fills empty positions with very large values such that the computed
+ * distance for these entries will certainly be large
+ */
+void sphere::ConeWrapper::fillEmptyPositions()
+{
+    // call base function to fill position and rot matrix
+    ShapeWrapper::fillEmptyPositions();
+
+    // fill the normal vector and the displacement values
+    constexpr ftype lrgVal = 12345678.9;
+    for (itype idx = numElems; idx < MAX_OBJECTS; ++idx) {
+        xForm[idx] = lrgVal;
+        yForm[idx] = lrgVal;
+        zForm[idx] = lrgVal;
+        xK1[idx] = lrgVal;
+        xK2[idx] = lrgVal;
+        k2DotInv[idx] = lrgVal;
+    }    
 }

@@ -148,6 +148,17 @@ sphere::Scene::Scene(std::string pathToFile)
         std::cerr << e.what() << std::endl;
         throw SphereException(SphereException::ErrorCode::JsonSyntaxError);
     }
+
+    // fill the y-Pos values of all empty fields with max double to ensure that 
+    // these will never be the minimum distance
+    this->wBox->fillEmptyPositions();
+    this->wCone->fillEmptyPositions();
+    this->wOcta->fillEmptyPositions();
+    this->wPlane->fillEmptyPositions();
+    this->wSphere->fillEmptyPositions();
+    this->wTorus->fillEmptyPositions();
+
+    std::cout << "xPos[2] = " << this->wPlane->xPos[2] << std::endl;
 }
 
 /**
