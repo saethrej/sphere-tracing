@@ -51,6 +51,7 @@
 #include "CustomVector.h"
 #include "immintrin.h"
 
+
 using json = nlohmann::json;
 
 /**
@@ -552,6 +553,7 @@ sphere::ftype sphere::Sphere::distanceFunctionSquared(Vector pointPos)
     return ret_val * std::fabs(ret_val);
 }
 
+
 /********************************** Torus ************************************/
 
 /**
@@ -589,6 +591,7 @@ sphere::ftype sphere::Torus::distanceFunction(Vector pointPos)
     } else {
         tr_point = Shape::translate_rotate(&pointPos);
     }
+    //std::cout << "trpoint "  << tr_point.x;
     // calculate distance in this coordinate system
     Vector2 q(sqrt(tr_point.x*tr_point.x + tr_point.z*tr_point.z) - this->r1, tr_point.y);
     return q.length() - this->r2;
@@ -614,6 +617,77 @@ sphere::ftype sphere::Torus::distanceFunctionSquared(Vector pointPos)
     Vector2 q(sqrt(tr_point.x*tr_point.x + tr_point.z*tr_point.z) - this->r1, tr_point.y);
     ftype ret_val = q.length() - this->r2;
     return ret_val * std::fabs(ret_val);
+}
+/**
+ * @brief computes distance from a point to this torus
+ * @param pointPos position of the point of interest
+ * @returns the distance between point and torus
+ */
+sphere::Distances sphere::Torus::vectDistFunc(TorusWrapper const *wTorus , Vector const &ray, itype idx)
+{
+    __m256d xTrPoint, yTrPoint, zTrPoint;
+    __m256d xRay, yRay, zRay;
+    __m256d xCoords, yCoords, zCoords;
+    __m256d xValsSquared,yValsSquared, zValsSquared;
+    __m256d vectorLength, vectorLengthR1, vectorLengthR1Squared;
+    __m256d r1, r2;
+    __m256d q, res, absVal, retVal;
+
+    // load components of the pos vector into registers
+    __m256d xPos = _mm256_broadcast_sd(&ray.x);
+    __m256d yPos = _mm256_broadcast_sd(&ray.y);
+    __m256d zPos = _mm256_broadcast_sd(&ray.z);
+
+    //load the torus position
+    __m256d torusPosX = _mm256_load_pd(wTorus->xPos + idx);
+    __m256d torusPosY = _mm256_load_pd(wTorus->yPos + idx);
+    __m256d torusPosZ = _mm256_load_pd(wTorus->zPos + idx);
+
+    //translate the vector
+    xPos = _mm256_sub_pd(xPos, torusPosX);
+    yPos = _mm256_sub_pd(yPos, torusPosY);
+    zPos = _mm256_sub_pd(zPos, torusPosZ);
+
+    //load rotMatrix
+    __m256d rotCol00 = _mm256_load_pd(wTorus->rotMatrix +idx);
+    __m256d rotCol01 = _mm256_load_pd(wTorus->rotMatrix + idx + MAX_OBJECTS);
+    __m256d rotCol02 = _mm256_load_pd(wTorus->rotMatrix + idx + 2*MAX_OBJECTS);
+
+    //compute rotation
+    __m256d xRotPoint = _mm256_fmadd_pd(zPos, rotCol02, _mm256_fmadd_pd(yPos, rotCol01, _mm256_mul_pd(xPos, rotCol00))); 
+
+    //load rotMax
+    __m256d rotCol10 = _mm256_load_pd(wTorus->rotMatrix + idx + 3*MAX_OBJECTS);
+    __m256d rotCol11 = _mm256_load_pd(wTorus->rotMatrix + idx + 4*MAX_OBJECTS);
+    __m256d rotCol12 = _mm256_load_pd(wTorus->rotMatrix + idx + 5*MAX_OBJECTS);
+
+    //compute rotation
+     __m256d yRotPoint = _mm256_fmadd_pd(zPos, rotCol12, _mm256_fmadd_pd(yPos, rotCol11, _mm256_mul_pd(xPos, rotCol10))); 
+    
+    //load rotMax
+    __m256d rotCol20 = _mm256_load_pd(wTorus->rotMatrix +idx + 6*MAX_OBJECTS);
+    __m256d rotCol21 = _mm256_load_pd(wTorus->rotMatrix + idx +7*MAX_OBJECTS);
+    __m256d rotCol22 = _mm256_load_pd(wTorus->rotMatrix + idx + 8*MAX_OBJECTS);
+
+    //load rotMax
+    __m256d zRotPoint = _mm256_fmadd_pd(zPos, rotCol22, _mm256_fmadd_pd(yPos, rotCol21, _mm256_mul_pd(xPos, rotCol20))); 
+
+    //load torus parameters
+    r1 = _mm256_load_pd(wTorus->r1s + idx);
+    r2 = _mm256_load_pd(wTorus->r2s + idx);
+
+    xValsSquared = _mm256_mul_pd(xRotPoint, xRotPoint);
+
+    vectorLength = _mm256_sqrt_pd(_mm256_fmadd_pd(zRotPoint, zRotPoint, xValsSquared));
+    vectorLengthR1 = _mm256_sub_pd(vectorLength, r1);
+    vectorLengthR1Squared = _mm256_mul_pd(vectorLengthR1, vectorLengthR1);
+
+    q = _mm256_sqrt_pd(_mm256_fmadd_pd(yRotPoint, yRotPoint,vectorLengthR1Squared));
+    res = _mm256_sub_pd(q, r2);
+
+    //return dist 
+    Distances d(res[0], res[1], res[2], res[3]);
+    return d;
 }
 
 /******************************* Octahedron **********************************/
