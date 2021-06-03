@@ -57,6 +57,7 @@ sphere::Renderer::Renderer()
 {
     this->scene = nullptr;
     this->image = nullptr;
+    this->distances = nullptr;
 }
 
 /**
@@ -71,6 +72,9 @@ sphere::Renderer::~Renderer()
     if (this->image != nullptr) {
         delete this->image;
     }
+    if (this->distances != nullptr) {
+        delete this->distances;
+    }
 }
 
 /**
@@ -80,7 +84,32 @@ sphere::Renderer::~Renderer()
  */
 void sphere::Renderer::addScene(std::string pathToSceneFile)
 {
+    // add new scene
     this->scene = new Scene(pathToSceneFile);
+    
+    // determine how many spaces are required for the distances - We use a lambda
+    // function for it
+    auto rndToFour = [] (itype numShapes) -> itype {
+        return 4 * (numShapes / 4 + ((numShapes % 4) == 0 ? 0 : 1));
+    };
+    this->numDist = rndToFour(scene->wBox->numElems) + rndToFour(scene->wCone->numElems)
+                  + rndToFour(scene->wPlane->numElems) + rndToFour(scene->wOcta->numElems)
+                  + rndToFour(scene->wSphere->numElems) + rndToFour(scene->wTorus->numElems);
+    this->distances = new (std::align_val_t(32)) ftype[this->numDist];
+    
+    // fill the distances with random large values that are later overwritten if 
+    // there is a valid shape at this position
+    for (itype i = 0; i < this->numDist; ++i) {
+        this->distances[i] = 12481241241.12412;
+    }
+
+    // compute the thresholds to assign a shape to an index
+    this->threshBox = rndToFour(scene->wBox->numElems);
+    this->threshCone = this->threshBox + rndToFour(scene->wCone->numElems);
+    this->threshOcta = this->threshCone + rndToFour(scene->wOcta->numElems);
+    this->threshPlane = this->threshOcta + rndToFour(scene->wPlane->numElems);
+    this->threshSphere = this->threshPlane + rndToFour(scene->wSphere->numElems);
+    this->threshTorus = this->threshSphere + rndToFour(scene->wTorus->numElems);
 }
 
 /**
@@ -113,36 +142,68 @@ void sphere::Renderer::renderScene(std::string pathToOutputFile, itype width, it
  */
 void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&closestShape, Vector const &ray)
 {
-    ftype d;
-    for (Shape *shape : this->scene->shapes) {
-        d = shape->distanceFunction(ray);
-        if (d < minDist){
+    // compute distances to all shape types individually
+    ftype *destPtr = this->distances;
+
+    BoxWrapper *box = scene->wBox;
+    for (itype i = 0; i < box->numIters; ++i) {
+        // Box::vectDistFunc(box, ray, i * 4, destPtr);
+        destPtr += 4;
+    }
+    ConeWrapper *cone = scene->wCone;
+    for (itype i = 0; i < cone->numIters; ++i) {
+        // Cone::vectDistFunc(cone, ray, i * 4, destPtr);
+        destPtr += 4;
+    }
+    OctaWrapper *octa = scene->wOcta;
+    for (itype i = 0; i < octa->numIters; ++i) {
+        // Octahedron::vectDistFunc(octa, ray, i * 4, destPtr);
+        destPtr += 4;
+    }
+    PlaneWrapper *plane = scene->wPlane;
+    for (itype i = 0; i < plane->numIters; ++i) {
+        Plane::vectDistFunc(plane, ray, i * 4, destPtr);
+        destPtr += 4;
+    }
+    SphereWrapper *sphe = scene->wSphere;
+    for (itype i = 0; i < sphe->numIters; ++i) {
+        Sphere::vectDistFunc(sphe, ray, i * 4, destPtr);
+        destPtr += 4;
+    }
+    TorusWrapper *torus = scene->wTorus;
+    for (itype i = 0; i < torus->numIters; ++i) {
+        // Torus::vectDistFunc(torus, ray, i * 4, destPtr);
+        destPtr += 4;
+    }
+
+    // get the minimum distance, second minimum distance
+    minDist = min2Dist = std::numeric_limits<ftype>::max();
+    itype minIdx = -1;
+    for (itype i = 0; i < numDist; ++i) {
+        if (distances[i] < minDist) {
             min2Dist = minDist;
-            minDist = d;
-            closestShape = shape;
-        }
-        else if (d < min2Dist){
-            min2Dist = d;
+            minDist = distances[i];
+            minIdx = i;
+
+        } else if (distances[i] < min2Dist) {
+            min2Dist = distances[i];
         }
     }
 
-    /*
-        Use code below for squared distance functios
-    */
-    //ftype d;
-    //for (Shape *shape : this->scene->shapes) {
-    //    d = shape->distanceFunctionSquared(ray);
-    //    if (d < minDist){
-    //        min2Dist = minDist;
-    //        minDist = d;
-    //        closestShape = shape;
-    //    }
-    //    else if (d < min2Dist){
-    //        min2Dist = d;
-    //    }
-    //}
-    //minDist = sqrt(minDist);
-    //min2Dist = sqrt(min2Dist);
+    // determine the closest shape
+    if (minIdx < threshBox) {
+        closestShape = box->boxes[minIdx];
+    } else if (minIdx < threshCone) {
+        closestShape = cone->cones[minIdx - threshBox];
+    } else if (minIdx < threshOcta) {
+        closestShape = octa->octas[minIdx - threshCone];
+    } else if (minIdx < threshPlane) {
+        closestShape = plane->planes[minIdx - threshOcta];
+    } else if (minIdx < threshSphere) {
+        closestShape = sphe->spheres[minIdx - threshPlane];
+    } else if (minIdx < threshTorus) {
+        closestShape = torus->tori[minIdx - threshSphere];
+    }
 }
 
 /**
@@ -167,6 +228,7 @@ void sphere::Renderer::getMinDistancesVectorized(ftype &minDist, ftype &min2Dist
 void sphere::Renderer::renderPixels()
 {
     // pre-compute min-distances in the first sphere tracing step
+
     Vector ray_origin = this->scene->cameraPos;
     ftype minDistance = std::numeric_limits<ftype>::max();
     ftype min2Distance = std::numeric_limits<ftype>::max();
@@ -465,17 +527,21 @@ void sphere::Renderer::microbenchmarkDistanceFunctions()
 
     // microbenchmark the distance functions individually by looping over all
     // shapes in the container
+    ftype dist = 0.0;
     for (Shape *shape : this->scene->shapes) {
         // microbenchmark the distance function
         TSC_CLEAR();
-        auto func = [shape, testVec] () {
-            shape->distanceFunction(testVec);
+        auto func = [this, &testVec, &dist] () {
+            Spheres s = {this->scene->spheres[0], this->scene->spheres[1], this->scene->spheres[2], this->scene->spheres[3]};
+            Distances d = Sphere::vectDistFunc(s, testVec);
+            dist += d.d0;
         };
         TSC_MEASURE(func);
         double cycles = TSC_GET();
 
         out << std::left << std::setw(12) << shape->name << std::right 
-            << std::setw(12) << std::fixed << std::setprecision(1) << cycles << " cycles\n";
+            << std::setw(12) << std::fixed << std::setprecision(1) << cycles << " cycles\n"
+            << "dist = " << dist << "\n";
     }
     // close the file and end microbenchmarking
     out.close();
