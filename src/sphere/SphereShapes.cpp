@@ -345,22 +345,23 @@ void sphere::Box::vectDistFunc(BoxWrapper const *boxWrap, Vector const &pos, ity
     yTrPoint = _mm256_sub_pd(yPos, yCoords);
     zTrPoint = _mm256_sub_pd(zPos, zCoords);
 
-    rotx = _mm256_load_pd(boxWrap->rotMatrix + idx);
-    roty = _mm256_load_pd(boxWrap->rotMatrix + idx + MAX_OBJECTS);
-    rotz = _mm256_load_pd(boxWrap->rotMatrix + idx + MAX_OBJECTS + MAX_OBJECTS);
+    ftype *rotPtr = boxWrap->rotMatrix + idx;
+    rotx = _mm256_load_pd(rotPtr);
+    roty = _mm256_load_pd(rotPtr + MAX_OBJECTS);
+    rotz = _mm256_load_pd(rotPtr + MAX_OBJECTS + MAX_OBJECTS);
 
 
     xRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
 
-    rotx2 = _mm256_load_pd(boxWrap->rotMatrix + idx + 3* MAX_OBJECTS);
-    roty2 = _mm256_load_pd(boxWrap->rotMatrix + idx + 4*MAX_OBJECTS);
-    rotz2 = _mm256_load_pd(boxWrap->rotMatrix + idx + 5*MAX_OBJECTS);
+    rotx2 = _mm256_load_pd(rotPtr + 3* MAX_OBJECTS);
+    roty2 = _mm256_load_pd(rotPtr+ 4*MAX_OBJECTS);
+    rotz2 = _mm256_load_pd(rotPtr + 5*MAX_OBJECTS);
 
     yRotPoint = _mm256_fmadd_pd(rotz2, zTrPoint, _mm256_fmadd_pd(roty2, yTrPoint, _mm256_mul_pd(rotx2, xTrPoint)));
 
-    rotx3 = _mm256_load_pd(boxWrap->rotMatrix + idx + 6*MAX_OBJECTS);
-    roty3 = _mm256_load_pd(boxWrap->rotMatrix + idx + 7*MAX_OBJECTS);
-    rotz3 = _mm256_load_pd(boxWrap->rotMatrix + idx+ 8*MAX_OBJECTS);
+    rotx3 = _mm256_load_pd(rotPtr + 6*MAX_OBJECTS);
+    roty3 = _mm256_load_pd(rotPtr + 7*MAX_OBJECTS);
+    rotz3 = _mm256_load_pd(rotPtr + 8*MAX_OBJECTS);
 
     zRotPoint = _mm256_fmadd_pd(rotz3, zTrPoint, _mm256_fmadd_pd(roty3, yTrPoint, _mm256_mul_pd(rotx3, xTrPoint)));
 
@@ -649,25 +650,26 @@ void sphere::Torus::vectDistFunc(TorusWrapper const *wTorus , Vector const &ray,
     zPos = _mm256_sub_pd(zPos, torusPosZ);
 
     //load rotMatrix
-    __m256d rotCol00 = _mm256_load_pd(wTorus->rotMatrix +idx);
-    __m256d rotCol01 = _mm256_load_pd(wTorus->rotMatrix + idx + MAX_OBJECTS);
-    __m256d rotCol02 = _mm256_load_pd(wTorus->rotMatrix + idx + 2*MAX_OBJECTS);
+    ftype *rotPtr = wTorus->rotMatrix + idx;
+    __m256d rotCol00 = _mm256_load_pd(rotPtr);
+    __m256d rotCol01 = _mm256_load_pd(rotPtr + MAX_OBJECTS);
+    __m256d rotCol02 = _mm256_load_pd(rotPtr + 2*MAX_OBJECTS);
 
     //compute rotation
     __m256d xRotPoint = _mm256_fmadd_pd(zPos, rotCol02, _mm256_fmadd_pd(yPos, rotCol01, _mm256_mul_pd(xPos, rotCol00))); 
 
     //load rotMax
-    __m256d rotCol10 = _mm256_load_pd(wTorus->rotMatrix + idx + 3*MAX_OBJECTS);
-    __m256d rotCol11 = _mm256_load_pd(wTorus->rotMatrix + idx + 4*MAX_OBJECTS);
-    __m256d rotCol12 = _mm256_load_pd(wTorus->rotMatrix + idx + 5*MAX_OBJECTS);
+    __m256d rotCol10 = _mm256_load_pd(rotPtr + 3*MAX_OBJECTS);
+    __m256d rotCol11 = _mm256_load_pd(rotPtr + 4*MAX_OBJECTS);
+    __m256d rotCol12 = _mm256_load_pd(rotPtr + 5*MAX_OBJECTS);
 
     //compute rotation
      __m256d yRotPoint = _mm256_fmadd_pd(zPos, rotCol12, _mm256_fmadd_pd(yPos, rotCol11, _mm256_mul_pd(xPos, rotCol10))); 
     
     //load rotMax
-    __m256d rotCol20 = _mm256_load_pd(wTorus->rotMatrix +idx + 6*MAX_OBJECTS);
-    __m256d rotCol21 = _mm256_load_pd(wTorus->rotMatrix + idx +7*MAX_OBJECTS);
-    __m256d rotCol22 = _mm256_load_pd(wTorus->rotMatrix + idx + 8*MAX_OBJECTS);
+    __m256d rotCol20 = _mm256_load_pd(rotPtr + 6*MAX_OBJECTS);
+    __m256d rotCol21 = _mm256_load_pd(rotPtr +7*MAX_OBJECTS);
+    __m256d rotCol22 = _mm256_load_pd(rotPtr + 8*MAX_OBJECTS);
 
     //load rotMax
     __m256d zRotPoint = _mm256_fmadd_pd(zPos, rotCol22, _mm256_fmadd_pd(yPos, rotCol21, _mm256_mul_pd(xPos, rotCol20))); 
@@ -813,25 +815,26 @@ void sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vector const &ra
     zPos = _mm256_sub_pd(zPos, octaPosZ);
 
      //load rotMatrix
-    __m256d rotCol00 = _mm256_load_pd(wOcta->rotMatrix +idx);
-    __m256d rotCol01 = _mm256_load_pd(wOcta->rotMatrix + idx + MAX_OBJECTS);
-    __m256d rotCol02 = _mm256_load_pd(wOcta->rotMatrix + idx + 2*MAX_OBJECTS);
+     ftype *rotPtr = wOcta->rotMatrix + idx;
+    __m256d rotCol00 = _mm256_load_pd(rotPtr);
+    __m256d rotCol01 = _mm256_load_pd(rotPtr + MAX_OBJECTS);
+    __m256d rotCol02 = _mm256_load_pd(rotPtr + 2*MAX_OBJECTS);
 
     //compute rotation
     __m256d xRotPoint = _mm256_fmadd_pd(zPos, rotCol02, _mm256_fmadd_pd(yPos, rotCol01, _mm256_mul_pd(xPos, rotCol00))); 
 
     //load rotMax
-    __m256d rotCol10 = _mm256_load_pd(wOcta->rotMatrix + idx + 3*MAX_OBJECTS);
-    __m256d rotCol11 = _mm256_load_pd(wOcta->rotMatrix + idx + 4*MAX_OBJECTS);
-    __m256d rotCol12 = _mm256_load_pd(wOcta->rotMatrix + idx + 5*MAX_OBJECTS);
+    __m256d rotCol10 = _mm256_load_pd(rotPtr + 3*MAX_OBJECTS);
+    __m256d rotCol11 = _mm256_load_pd(rotPtr + 4*MAX_OBJECTS);
+    __m256d rotCol12 = _mm256_load_pd(rotPtr + 5*MAX_OBJECTS);
 
     //compute rotation
      __m256d yRotPoint = _mm256_fmadd_pd(zPos, rotCol12, _mm256_fmadd_pd(yPos, rotCol11, _mm256_mul_pd(xPos, rotCol10))); 
     
     //load rotMax
-    __m256d rotCol20 = _mm256_load_pd(wOcta->rotMatrix +idx + 6*MAX_OBJECTS);
-    __m256d rotCol21 = _mm256_load_pd(wOcta->rotMatrix + idx +7*MAX_OBJECTS);
-    __m256d rotCol22 = _mm256_load_pd(wOcta->rotMatrix + idx + 8*MAX_OBJECTS);
+    __m256d rotCol20 = _mm256_load_pd(rotPtr + 6*MAX_OBJECTS);
+    __m256d rotCol21 = _mm256_load_pd(rotPtr +7*MAX_OBJECTS);
+    __m256d rotCol22 = _mm256_load_pd(rotPtr+ 8*MAX_OBJECTS);
 
     //load rotMax
     __m256d zRotPoint = _mm256_fmadd_pd(zPos, rotCol22, _mm256_fmadd_pd(yPos, rotCol21, _mm256_mul_pd(xPos, rotCol20))); 
