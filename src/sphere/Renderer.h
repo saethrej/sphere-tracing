@@ -97,7 +97,18 @@ public:
     Scene *scene;
     Image *image;
 
+
 private:
+    // private member fields
+    ftype *distances;
+    itype numDist;
+    itype threshBox;
+    itype threshCone;
+    itype threshOcta;
+    itype threshPlane;
+    itype threshSphere;
+    itype threshTorus;
+
     // private member functions
     void renderPixels();
     void getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&closestShape, Vector const &ray);

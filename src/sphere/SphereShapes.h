@@ -59,6 +59,7 @@ constexpr itype MAX_OBJECTS = 16;
 // forward declarations
 class ShapeWrapper; class BoxWrapper; class ConeWrapper; class OctaWrapper;
 class PlaneWrapper; class SphereWrapper; class TorusWrapper;
+class Distances;
 
 /**
  * @brief enum class defining the different shapes we can render. Each
@@ -131,6 +132,8 @@ public:
     // distance function
     ftype distanceFunction(Vector pos);
     ftype distanceFunctionSquared(Vector pos);
+    static void vectDistFunc(PlaneWrapper const *planeWrap, Vector const &pos, itype idx, ftype *destPtr);
+
 
     // additional public member fields
     Vector normal;
@@ -149,6 +152,8 @@ public:
     // distance function
     ftype distanceFunction(Vector pos);
     ftype distanceFunctionSquared(Vector pos);
+    static void vectDistFunc(BoxWrapper const *boxWrap, Vector const &pos, itype idx, ftype *destPtr);
+
 
     // additional public member fields
     Vector extents;
@@ -166,8 +171,8 @@ public:
     // distance function
     ftype distanceFunction(Vector pos);
     ftype distanceFunctionSquared(Vector pos);
-
-    // additional public member fields
+    static void vectDistFunc(SphereWrapper const *sphereWrap, Vector const &pos, itype idx, ftype *destPtr);
+        // additional public member fields
     ftype radius;
 
 };
@@ -220,6 +225,7 @@ public:
     // distance function
     ftype distanceFunction(Vector pos);
     ftype distanceFunctionSquared(Vector pos);
+    static void vectDistFunc(ConeWrapper const *wCone, Vector const &pos, itype idx, ftype *destPtr);
 
     // additional public member fields
     Vector form;
@@ -246,12 +252,20 @@ public:
     // function to add a shape
     void addShape(Shape *shp);
 
+    // function to fill position arrays with large numbers when elements
+    // are left empty (to fully use SIMD lanes)
+    void fillEmptyPositions();
+
     // public member fields (arrays for aligned access)
     ftype *xPos; //!< x-axis positions of all shapes
     ftype *yPos; //!< y-axis positions of all shapes
     ftype *zPos; //!< z-axis positions of all shapes
     ftype *rotMatrix; //!< the rotation matrices of all shapes 
     itype numElems; //!< number of elements of this type in scene
+    itype numIters; //!< number of vectorized iterations for this shape type
+
+private:
+    ftype iterCounter; //!< counts the number of iterations
 };
 
 /**
@@ -266,6 +280,7 @@ public:
 
     // function to add a plane
     void addPlane(Plane *plane);
+    void fillEmptyPositions();
 
     // additional public member fields
     ftype *xNor; //!< normal vector's x-coordinates
@@ -287,6 +302,7 @@ public:
 
     // function to add a box
     void addBox(Box *box);
+    void fillEmptyPositions();
 
     // additional public member fields
     ftype *xExt; //!< normal vector's x-coordinates
@@ -307,6 +323,7 @@ public:
 
     // function to add a sphere
     void addSphere(Sphere *sph);
+    void fillEmptyPositions();
 
     // additional public member fields
     ftype *radiuses; //!< sphere radiuses
@@ -325,6 +342,7 @@ public:
 
     // function to add a torus
     void addTorus(Torus *torus);
+    void fillEmptyPositions();
 
     // additional public member fields
     ftype *r1s; //!< inner torus radiuses
@@ -344,6 +362,7 @@ public:
 
     // function to add a Octahedron
     void addOcta(Octahedron *octa);
+    void fillEmptyPositions();
 
     // additional public member fields
     ftype *s; //!< all s values
@@ -362,6 +381,7 @@ public:
 
     // function to add a cone
     void addCone(Cone *cone);
+    void fillEmptyPositions();
 
     // additional public member fields
     ftype *xForm; //!< x-coordinates of form vectors
