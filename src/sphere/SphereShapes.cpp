@@ -711,6 +711,122 @@ sphere::ftype sphere::Octahedron::distanceFunctionSquared(Vector pointPos)
     return q.x * q.x + (y_s + k)*(y_s + k) + (q.z - k)*(q.z - k);
 }
 
+/**
+ * @brief returns the distances of the pos vector to four boxes
+ * 
+ * @param octas octahedrons pointer to four octahedrons
+ * @param pos the position to compute distance from
+ * @return sphere::Distances the four distances of each octahedron
+ */
+void sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vector const &ray, itype idx, ftype *destPtr)
+{
+    __m256d zero = _mm256_setzero_pd();
+    __m128i rotOffsets = _mm_set_epi32(0, 3, 6, 0);
+    __m256d colMask = _mm256_set_pd(-0.0, -0.0, -0.0, 0.0);
+
+    // load components of the pos vector into registers
+    __m256d xPos = _mm256_broadcast_sd(&ray.x);
+    __m256d yPos = _mm256_broadcast_sd(&ray.y);
+    __m256d zPos = _mm256_broadcast_sd(&ray.z);
+
+    // load the octa positions
+    __m256d octaPosX = _mm256_load_pd(wOcta->xPos + idx);
+    __m256d octaPosY = _mm256_load_pd(wOcta->yPos + idx);
+    __m256d octaPosZ = _mm256_load_pd(wOcta->zPos + idx);
+
+    // translate the vector
+    xPos = _mm256_sub_pd(xPos, octaPosX);
+    yPos = _mm256_sub_pd(yPos, octaPosY);
+    zPos = _mm256_sub_pd(zPos, octaPosZ);
+
+     //load rotMatrix
+    __m256d rotCol00 = _mm256_load_pd(wOcta->rotMatrix +idx);
+    __m256d rotCol01 = _mm256_load_pd(wOcta->rotMatrix + idx + MAX_OBJECTS);
+    __m256d rotCol02 = _mm256_load_pd(wOcta->rotMatrix + idx + 2*MAX_OBJECTS);
+
+    //compute rotation
+    __m256d xRotPoint = _mm256_fmadd_pd(zPos, rotCol02, _mm256_fmadd_pd(yPos, rotCol01, _mm256_mul_pd(xPos, rotCol00))); 
+
+    //load rotMax
+    __m256d rotCol10 = _mm256_load_pd(wOcta->rotMatrix + idx + 3*MAX_OBJECTS);
+    __m256d rotCol11 = _mm256_load_pd(wOcta->rotMatrix + idx + 4*MAX_OBJECTS);
+    __m256d rotCol12 = _mm256_load_pd(wOcta->rotMatrix + idx + 5*MAX_OBJECTS);
+
+    //compute rotation
+     __m256d yRotPoint = _mm256_fmadd_pd(zPos, rotCol12, _mm256_fmadd_pd(yPos, rotCol11, _mm256_mul_pd(xPos, rotCol10))); 
+    
+    //load rotMax
+    __m256d rotCol20 = _mm256_load_pd(wOcta->rotMatrix +idx + 6*MAX_OBJECTS);
+    __m256d rotCol21 = _mm256_load_pd(wOcta->rotMatrix + idx +7*MAX_OBJECTS);
+    __m256d rotCol22 = _mm256_load_pd(wOcta->rotMatrix + idx + 8*MAX_OBJECTS);
+
+    //load rotMax
+    __m256d zRotPoint = _mm256_fmadd_pd(zPos, rotCol22, _mm256_fmadd_pd(yPos, rotCol21, _mm256_mul_pd(xPos, rotCol20))); 
+
+    // load s value
+    __m256d s_vect = _mm256_load_pd(wOcta->s + idx);
+
+    //compute abs value
+    __m256d abs_mask = _mm256_set1_pd(-0.0);
+    __m256d x_abs = _mm256_andnot_pd(abs_mask, xRotPoint);
+    __m256d y_abs = _mm256_andnot_pd(abs_mask, yRotPoint);
+    __m256d z_abs = _mm256_andnot_pd(abs_mask, zRotPoint);
+
+    //compute m
+    __m256d m_0 = _mm256_add_pd(_mm256_add_pd(x_abs, y_abs), z_abs);
+    __m256d m = _mm256_sub_pd(m_0, s_vect);
+
+    // compute r vectors
+    __m256d three = _mm256_set1_pd(3.0);
+    __m256d r_x = _mm256_fmsub_pd(x_abs, three, m);
+    __m256d r_y = _mm256_fmsub_pd(y_abs, three, m);
+    __m256d r_z = _mm256_fmsub_pd(z_abs, three, m);
+
+    // compute masks
+    __m256d x_mask = _mm256_cmp_pd(r_x, zero, _CMP_LT_OQ);
+    __m256d y_mask = _mm256_cmp_pd(r_y, zero, _CMP_LT_OQ);
+    __m256d z_mask = _mm256_cmp_pd(r_z, zero, _CMP_LT_OQ);
+    __m256d sqrt0_3 = _mm256_set1_pd(0.57735027);
+    __m256d m_ret = _mm256_mul_pd(m, sqrt0_3); 
+    __m256d m_mask = _mm256_or_pd(_mm256_or_pd(x_mask, y_mask), z_mask);
+
+    // create new vectors depending on masks
+    __m256d new_y_0 = _mm256_blendv_pd(zero, x_abs, z_mask);
+    __m256d new_y_1 = _mm256_blendv_pd(new_y_0, z_abs, y_mask);
+    __m256d new_y = _mm256_blendv_pd(new_y_1, y_abs, x_mask);
+
+    __m256d new_x_0 = _mm256_blendv_pd(zero, z_abs, z_mask);
+    __m256d new_x_1 = _mm256_blendv_pd(new_x_0, y_abs, y_mask);
+    __m256d new_x = _mm256_blendv_pd(new_x_1, x_abs, x_mask);
+
+    __m256d new_z_0 = _mm256_blendv_pd(zero, y_abs, z_mask);
+    __m256d new_z_1 = _mm256_blendv_pd(new_z_0, x_abs, y_mask);
+    __m256d new_z = _mm256_blendv_pd(new_z_1, z_abs, x_mask);
+
+    // compute y_s
+    __m256d y_s = _mm256_sub_pd(new_y, s_vect);
+
+    // clamp
+    __m256d zero_point_five = _mm256_set1_pd(0.5);
+    __m256d clamp = _mm256_mul_pd(zero_point_five, _mm256_sub_pd(new_z, y_s));
+    __m256d sub_mask = _mm256_cmp_pd(clamp, zero, _CMP_LT_OQ);
+    __m256d top_mask = _mm256_cmp_pd(s_vect, clamp, _CMP_LT_OQ);
+    __m256d k_0 = _mm256_blendv_pd(clamp, zero, sub_mask);
+    __m256d k = _mm256_blendv_pd(k_0, s_vect, top_mask);
+
+    // compute square root
+    __m256d x_squared = _mm256_mul_pd(new_x, new_x);
+    __m256d y_squared_0 = _mm256_add_pd(y_s, k);
+    __m256d y_squared = _mm256_mul_pd(y_squared_0, y_squared_0);
+    __m256d z_squared_0 = _mm256_sub_pd(new_z, k);
+    __m256d x_y_squared = _mm256_add_pd(x_squared, y_squared);
+    __m256d all_squared = _mm256_fmadd_pd(z_squared_0, z_squared_0, x_y_squared);
+    __m256d sqrt_root = _mm256_sqrt_pd(all_squared);
+    __m256d ret_val = _mm256_blendv_pd(m_ret, sqrt_root, m_mask);
+
+    // return dist object
+    _mm256_store_pd(destPtr, ret_val);  
+}
 /********************************* Cone **************************************/
 
 /**
