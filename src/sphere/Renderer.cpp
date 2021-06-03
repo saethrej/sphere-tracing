@@ -189,6 +189,15 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
             min2Dist = distances[i];
         }
     }
+    
+    if (std::abs(min2Dist - min2Dist_nv) > 0.00001 || std::abs(minDist - minDist_nv) > 0.00001) {
+    std::cout << "=============Vectorized===============" << std::endl;
+    //std::cout << " d0 : "<< d.d0 << ", d1 " << d.d1 << ",d2 " << d.d2 << ", d3 " << d.d3<< ", plane " <<  planeDist << std::endl;
+    std::cout << minDist << " " << min2Dist<< std::endl;
+
+    std::cout << "=========Non Vectorized==============" << std::endl;
+    std::cout << minDist_nv << " " << min2Dist_nv<< std::endl;
+    }
 
     // determine the closest shape
     if (minIdx < threshBox) {
