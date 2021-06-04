@@ -487,7 +487,7 @@ sphere::ftype sphere::Octahedron::distanceFunction(Vector pointPos)
     Vector abs_tr_point = tr_point.absVal();
     ftype m = abs_tr_point.x + abs_tr_point.y + abs_tr_point.z - s;
     Vector r = abs_tr_point * 3.0 - m;
-    COUNT_OPS(6)
+    COUNT_OPS(5)
     Vector q;
     if (r.x < 0){
         q = abs_tr_point;
