@@ -213,7 +213,7 @@ sphere::Vector sphere::Vector::componentwiseMin(const Vector &a) const
  */
 sphere::VectorVal sphere::Vector::length() const
 {
-    COUNT_OPS(25); // assumes 20 flops for sqrt
+    COUNT_OPS(35); // assumes 20 flops for sqrt
     return sqrt(x*x + y*y + z*z);
 }
 
@@ -291,10 +291,10 @@ std::tuple<bool, bool, bool> sphere::Vector::shadowAxes() const
         return std::make_tuple(false, true, true);
     }
     if(std::fabs(y) > std::fabs(z)){
-        COUNT_OPS(2)
+        COUNT_OPS(6)
         return std::make_tuple(true, false, true);
     } else {
-        COUNT_OPS(2)
+        COUNT_OPS(6)
         return std::make_tuple(true, true, false);
     }
 }
@@ -372,7 +372,7 @@ sphere::Vector2 sphere::Vector2::absVal() const
  */
 sphere::ftype sphere::Vector2::length() const 
 {
-    COUNT_OPS(23); // assume 20 flops for sqrt
+    COUNT_OPS(33); // assume 20 flops for sqrt
     return std::sqrt(x*x + y*y);
 }
 
