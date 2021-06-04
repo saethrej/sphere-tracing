@@ -198,7 +198,7 @@ sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector con
         ray = ray_origin + ray_direction * t;
         minDistance = closestShape->distanceFunction(ray);
         totalDistance = totalDistance + minDistance;
-        COUNT_OPS(1)
+        COUNT_OPS(2)
         if (min2Distance < totalDistance) {
             minDistance = std::numeric_limits<ftype>::max();
             min2Distance = std::numeric_limits<ftype>::max();
