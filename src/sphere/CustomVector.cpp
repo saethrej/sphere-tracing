@@ -469,6 +469,7 @@ sphere::Color& sphere::Color::operator+=(const Color &other)
  */
 sphere::Color sphere::Color::operator*(const ftype &other)
 {
+    COUNT_OPS(3)
     return Color(
         this->r * other,
         this->g * other,
