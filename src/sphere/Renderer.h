@@ -97,10 +97,22 @@ public:
     Scene *scene;
     Image *image;
 
+
 private:
+    // private member fields
+    ftype *distances;
+    itype numDist;
+    itype threshBox;
+    itype threshCone;
+    itype threshOcta;
+    itype threshPlane;
+    itype threshSphere;
+    itype threshTorus;
+
     // private member functions
     void renderPixels();
     void getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&closestShape, Vector const &ray);
+    void getMinDistancesVectorized(ftype &minDist, ftype &min2Dist, Shape *&closestShape, Vector const &ray);
     void writeImageToFile(std::string pathToFile);
     Color sphereTrace(Vector const &ray_origin, Vector const &ray_direction, ftype distance, 
         Shape *const firstShape, ftype const firstDistance, ftype const secondDistance);

@@ -65,7 +65,6 @@ public:
 
     // public member functions
     void addShape(Shape *newShape);
-    void removeShape(itype index);
 
     // public member fields
     ftype cameraFov;  //!< field of view of the camera
@@ -73,8 +72,18 @@ public:
     Vector cameraRot; //!< rotation of the camera
     Vector lightPos;  //!< position of the pointlight
     Vector lightEmi;  //!< emission of the pointlight
+
+    // container and counter for all shapes
     std::vector<Shape*> shapes; //!< vector of shape objects
     itype numShapes;  //!< number of shapes in this scene
+
+    // wrappers for individual shape types
+    BoxWrapper *wBox;       //!< wrapper object for all boxes
+    ConeWrapper *wCone;     //!< wrapper object for all cones
+    OctaWrapper *wOcta;     //!< wrapper object for all octahedrons
+    PlaneWrapper *wPlane;   //!< wrapper object for all planes
+    SphereWrapper *wSphere; //!< wrapper object for all spheres
+    TorusWrapper *wTorus;   //!< wrapper object for all tori
 
 private:
     // private member fields

@@ -57,6 +57,14 @@
  */
 sphere::Scene::Scene(std::string pathToFile)
 {
+    // create a wrapper object for each type of shape
+    this->wBox = new BoxWrapper();
+    this->wCone = new ConeWrapper();
+    this->wOcta = new OctaWrapper();
+    this->wPlane = new PlaneWrapper();
+    this->wSphere = new SphereWrapper();
+    this->wTorus = new TorusWrapper();
+
     // try to open the file whose path is provided and dump to json variable
     std::ifstream jsonFile(pathToFile.c_str(), std::ios::in);
     if (jsonFile.fail()) {
@@ -95,31 +103,37 @@ sphere::Scene::Scene(std::string pathToFile)
                 case ShapeType::BOX: { 
                     Box *box = new Box(shp);
                     this->shapes.push_back(box);
+                    this->wBox->addBox(box);
                     break;
                 }
                 case ShapeType::CONE: {
                     Cone *cone = new Cone(shp);
                     this->shapes.push_back(cone);
+                    this->wCone->addCone(cone);
                     break;
                 }
                 case ShapeType::OCTAHEDRON: {
                     Octahedron *oct = new Octahedron(shp);
                     this->shapes.push_back(oct);
+                    this->wOcta->addOcta(oct);
                     break;
                 }
                 case ShapeType::PLANE: {
                     Plane *plane = new Plane(shp);
                     this->shapes.push_back(plane);
+                    this->wPlane->addPlane(plane);
                     break;
                 }
                 case ShapeType::SPHERE: {
-                    Sphere *sphere = new Sphere(shp);
-                    this->shapes.push_back(sphere);
+                    Sphere *sphe = new Sphere(shp);
+                    this->shapes.push_back(sphe);
+                    this->wSphere->addSphere(sphe);
                     break;
                 }
                 case ShapeType::TORUS: {
                     Torus *torus = new Torus(shp);
                     this->shapes.push_back(torus);
+                    this->wTorus->addTorus(torus);
                     break;
                 }
                 default:
@@ -134,6 +148,16 @@ sphere::Scene::Scene(std::string pathToFile)
         std::cerr << e.what() << std::endl;
         throw SphereException(SphereException::ErrorCode::JsonSyntaxError);
     }
+
+    // fill the y-Pos values of all empty fields with max double to ensure that 
+    // these will never be the minimum distance
+    this->wBox->fillEmptyPositions();
+    this->wCone->fillEmptyPositions();
+    this->wOcta->fillEmptyPositions();
+    this->wPlane->fillEmptyPositions();
+    this->wSphere->fillEmptyPositions();
+    this->wTorus->fillEmptyPositions();
+
 }
 
 /**
@@ -145,28 +169,56 @@ sphere::Scene::~Scene()
     for (size_t i = 0; i < this->numShapes; ++i) {
         delete this->shapes[i];
     }
+
+    // delete all of the wrappers
+    delete this->wBox;
+    delete this->wCone;
+    delete this->wOcta;
+    delete this->wPlane;
+    delete this->wSphere;
+    delete this->wTorus;
 }
 
 /**
  * @brief add new shape to the scene
  * @param shape pointer to the new shape
+ * 
+ * @note deletes the shape if its type is not supported
  */
 void sphere::Scene::addShape(sphere::Shape *shape)
 {
     shapes.push_back(shape);
     numShapes++;
-}
 
-/**
- * @brief removes a shape with a certain index
- * @param index the index of the shape to be removed. No action is performed
- * if index is out of bounds
- */ 
-void sphere::Scene::removeShape(itype index)
-{
-    // only perform operation if index is in correct range
-    if (index >= 0 && index < numShapes) {
-        shapes.erase(shapes.begin() + index);
-        numShapes--;
+    switch (shape->type) {
+        case ShapeType::BOX: { 
+            this->wBox->addBox(dynamic_cast<Box*>(shape));
+            break;
+        }
+        case ShapeType::CONE: {
+            this->wCone->addCone(dynamic_cast<Cone*>(shape));
+            break;
+        }
+        case ShapeType::OCTAHEDRON: {
+            this->wOcta->addOcta(dynamic_cast<Octahedron*>(shape));
+            break;
+        }
+        case ShapeType::PLANE: {
+            this->wPlane->addPlane(dynamic_cast<Plane*>(shape));
+            break;
+        }
+        case ShapeType::SPHERE: {
+            this->wSphere->addSphere(dynamic_cast<Sphere*>(shape));
+            break;
+        }
+        case ShapeType::TORUS: {
+            this->wTorus->addTorus(dynamic_cast<Torus*>(shape));
+            break;
+        }
+        default:
+            // counter the ++ and remove shape
+            this->numShapes--;
+            this->shapes.pop_back();
+            delete shape;
     }
 }
