@@ -286,9 +286,11 @@ sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector con
             totalDistance = minDistance;
         }
         if (minDistance <= TRACE_THRESHOLD * t) {
+            COUNT_OPS(1);
             return shade(ray, ray_direction, closestShape, distance + t);
         }
         t = t + minDistance;
+        COUNT_OPS(4);
     }
     return Color(0,0,0);
 }
@@ -349,6 +351,7 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
     // compute the reflection if object reflects
     Color reflection_color(0.f, 0.f, 0.f);
     ftype reflection_weight = shape->reflection;
+    COUNT_OPS(72);
     if (reflection_weight > 0) {
         Vector refldir = ray_normalized + normal * (2.0 * std::exp((ray_normalized * normal) + 1.0));
         refldir = refldir.normalize();
@@ -360,8 +363,10 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
         getMinDistances(minDistance, min2Distance, closestShape, start_ray);
 
         reflection_color = sphereTrace(start_ray, refldir, distance, closestShape, minDistance, min2Distance);     
+        COUNT_OPS(32);
         if (reflection_color.equals(Color(0.f, 0.f, 0.f))) {
             reflection_weight = reflection_weight * 0.25;
+            COUNT_OPS(1);
         }
     }
 
@@ -399,6 +404,7 @@ sphere::ftype sphere::Renderer::shadow(Vector const &ray_to_shade, Vector const 
     // always shoot at least one ray and determine if object in between
     if (ObjectInBetween(ray_to_shade, lightDir, dist)) {
         shadow_weight -= SHADOW_STEP;
+        COUNT_OPS(1);
     }
 
     // shoot four more rays per circle defined
@@ -407,25 +413,31 @@ sphere::ftype sphere::Renderer::shadow(Vector const &ray_to_shade, Vector const 
         if (std::get<0>(axes)) {
             if (ObjectInBetween(ray_to_shade, lightDir + dx * (i + 1), dist)) {
                 shadow_weight -= SHADOW_STEP;
+                COUNT_OPS(1);
             }
             if (ObjectInBetween(ray_to_shade, lightDir - dx * (i + 1), dist)) {
                 shadow_weight -= SHADOW_STEP;
+                COUNT_OPS(1);
             }
         }
         if (std::get<1>(axes)) {
             if (ObjectInBetween(ray_to_shade, lightDir + dy * (i + 1), dist)) {
                 shadow_weight -= SHADOW_STEP;
+                COUNT_OPS(1);
             }
             if (ObjectInBetween(ray_to_shade, lightDir - dy * (i + 1), dist)) {
                 shadow_weight -= SHADOW_STEP;
+                COUNT_OPS(1);
             }
         }
         if (std::get<2>(axes)) {
             if (ObjectInBetween(ray_to_shade, lightDir + dz * (i + 1), dist)) {
                 shadow_weight -= SHADOW_STEP;
+                COUNT_OPS(1);
             }
             if (ObjectInBetween(ray_to_shade, lightDir - dz * (i + 1), dist)) {
                 shadow_weight -= SHADOW_STEP;
+                COUNT_OPS(1);
             }
         }
     }
@@ -470,6 +482,7 @@ bool sphere::Renderer::ObjectInBetween(Vector const &ray_origin, Vector const &r
             return true;
         }
         t = t + minDistance;
+        COUNT_OPS(3);
     }
     return false;
 }
@@ -493,6 +506,7 @@ void sphere::Renderer::writeImageToFile(std::string pathToFile)
         g = static_cast<unsigned char>(std::clamp(this->image->pixels[i].color.g * 255., 0., 255.));
         b = static_cast<unsigned char>(std::clamp(this->image->pixels[i].color.b * 255., 0., 255.));
         outstream << r << g << b;
+          COUNT_OPS(3);
     }
     outstream.close();
 }

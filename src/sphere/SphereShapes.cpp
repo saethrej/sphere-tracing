@@ -218,10 +218,12 @@ sphere::ftype sphere::Plane::distanceFunction(Vector pointPos)
     // rotate only if there is a non-zero rotation
     if (!isRotated){
         // only compute distance with translation
+        COUNT_OPS(2);
         return std::abs((pointPos - this->position) * this->normal - this->displacement);
     } else {
         // translate, rotate and compute distance
         Vector tr_point = Shape::translate_rotate(&pointPos);
+        COUNT_OPS(2);
         return std::abs(tr_point * this->normal - this->displacement);
     }
 }
@@ -288,6 +290,7 @@ void sphere::Plane::vectDistFunc(PlaneWrapper const *planeWrap, Vector const &po
 
     // subtract the plane's displacement and write result back
     _mm256_store_pd(dstPtr, _mm256_andnot_pd(abs_mask, _mm256_sub_pd(scalProd, displacement)));
+    COUNT_OPS(96);
 }
 
 /*********************************** Box *************************************/
@@ -332,13 +335,17 @@ sphere::ftype sphere::Box::distanceFunction(Vector pointPos)
     ftype ret_val = 0;
     if(q.x >= 0.0){
         ret_val += q.x * q.x;
+        COUNT_OPS(2);
     }
     if(q.y >= 0.0){
         ret_val += q.y * q.y;
+        COUNT_OPS(2);
     }
     if(q.z >= 0.0){
         ret_val += q.z * q.z;
+        COUNT_OPS(2);
     }
+   COUNT_OPS(30);
     return sqrt(ret_val);
 }
 
@@ -430,6 +437,7 @@ void sphere::Box::vectDistFunc(BoxWrapper const *boxWrap, Vector const &pos, ity
     __m256d squaredRes = _mm256_add_pd(_mm256_add_pd(tmp1,tmp2), tmp3);
     __m256d res = _mm256_sqrt_pd(squaredRes);
     _mm256_store_pd(dstPtr, res);
+    COUNT_OPS(248);
 }
 
 /********************************** Sphere ************************************/
@@ -462,7 +470,7 @@ sphere::ftype sphere::Sphere::distanceFunction(Vector pointPos)
 {
     // translate and rotate point such that object is at origin and in normal position
     Vector tr_point = pointPos - position;
-
+        COUNT_OPS(1);
     // calculate distance in this coordinate system
     return tr_point.length() - radius;
 }
@@ -512,6 +520,7 @@ void sphere::Sphere::vectDistFunc(SphereWrapper const *sphereWrap, Vector const 
     vectorLength = _mm256_sqrt_pd(_mm256_add_pd(xSquaredCoord, _mm256_add_pd(ySquaredCoord, zSquaredCoord)));
     __m256d res = _mm256_sub_pd(vectorLength, vRadius);
     _mm256_store_pd(dstPtr, res);
+    COUNT_OPS(152);
 }
 
 /********************************** Torus ************************************/
@@ -554,6 +563,7 @@ sphere::ftype sphere::Torus::distanceFunction(Vector pointPos)
     //std::cout << "trpoint "  << tr_point.x;
     // calculate distance in this coordinate system
     Vector2 q(sqrt(tr_point.x*tr_point.x + tr_point.z*tr_point.z) - this->r1, tr_point.y);
+    COUNT_OPS(35);
     return q.length() - this->r2;
 }
 
@@ -626,6 +636,7 @@ void sphere::Torus::vectDistFunc(TorusWrapper const *wTorus , Vector const &ray,
 
     //return dist 
     _mm256_store_pd(dstPtr, res);
+    COUNT_OPS(344);
 }
 
 /******************************* Octahedron **********************************/
@@ -678,11 +689,13 @@ sphere::ftype sphere::Octahedron::distanceFunction(Vector pointPos)
         q = Vector(abs_tr_point.z, abs_tr_point.x, abs_tr_point.y);
     }
     else {
+        COUNT_OPS(1);
         return m*0.57735027;
     }
     ftype y_s = q.y - s;
     ftype to_clamp = 0.5*(q.z - y_s);
     ftype k = to_clamp < 0.0 ? 0.0 : (to_clamp > s ? s : to_clamp);
+    COUNT_OPS(10);
     return Vector(q.x, y_s + k, q.z - k).length();
 }
 
@@ -796,7 +809,8 @@ void sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vector const &ra
     __m256d ret_val = _mm256_blendv_pd(m_ret, sqrt_root, m_mask);
 
     // return dist object
-    _mm256_store_pd(destPtr, ret_val);  
+    _mm256_store_pd(destPtr, ret_val);
+    COUNT_OPS(272);  
 }
 
 /********************************* Cone **************************************/
@@ -849,6 +863,7 @@ sphere::ftype sphere::Cone::distanceFunction(Vector pointPos)
     );
     Vector2 cb = q - this->k1 + this->k2 * std::clamp((this->k2 * (this->k1 - q)) *this->k2_dot_inv, 0.0, 1.0);
     ftype s = cb.x < 0.0 && ca.y < 0.0 ? -1.0 : 1.0;
+    COUNT_OPS(34);
     return s * std::sqrt(std::min(ca * ca, cb * cb));
 }
 
@@ -953,7 +968,8 @@ void sphere::Cone::vectDistFunc(ConeWrapper const *wCone, Vector const &pos, ity
     __m256d ret_val_0 = _mm256_sqrt_pd(_mm256_min_pd(ca_dot, cb_dot));
     __m256d ret_val = _mm256_mul_pd(s, ret_val_0);
 
-    _mm256_store_pd(destPtr, ret_val);   
+    _mm256_store_pd(destPtr, ret_val);  
+    COUNT_OPS(407); 
 }
 
 /*****************************************************************************/
@@ -1014,6 +1030,7 @@ void sphere::ShapeWrapper::addShape(Shape *shape)
 
     // add to the iter counter
     iterCounter += 0.25;
+    COUNT_OPS(1);
     numIters = static_cast<itype>(std::ceil(iterCounter));
 }
 
