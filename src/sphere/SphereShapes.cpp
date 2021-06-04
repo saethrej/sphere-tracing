@@ -486,7 +486,7 @@ sphere::ftype sphere::Octahedron::distanceFunction(Vector pointPos)
     Vector abs_tr_point = tr_point.absVal();
     ftype m = abs_tr_point.x + abs_tr_point.y + abs_tr_point.z - s;
     Vector r = abs_tr_point * 3.0 - m;
-    COUNT_OPS(6)
+    COUNT_OPS(5)
     Vector q;
     if (r.x < 0){
         q = abs_tr_point;
@@ -593,9 +593,9 @@ sphere::ftype sphere::Cone::distanceFunction(Vector pointPos)
         q.x - std::min(q.x, q.y < 0 ? r1 : r2),
         std::fabs(q.y) - h
     );
-    Vector2 cb = q - this->k1 + this->k2 * std::clamp((this->k2 * (this->k1 - q)) *this->k2_dot_inv, 0.0, 1.0);
+    Vector2 cb = q - this->k1 + this->k2 * std::clamp((this->k2 * (this->k1 - q)) * this->k2_dot_inv, 0.0, 1.0);
     ftype s = cb.x < 0.0 && ca.y < 0.0 ? -1.0 : 1.0;
-    COUNT_OPS(40)
+    COUNT_OPS(34)
     return s * std::sqrt(std::min(ca * ca, cb * cb));
 }
 
