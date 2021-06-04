@@ -594,7 +594,7 @@ sphere::ftype sphere::Cone::distanceFunction(Vector pointPos)
         q.x - std::min(q.x, q.y < 0 ? r1 : r2),
         std::fabs(q.y) - h
     );
-    COUNT_OPS(40)
+    COUNT_OPS(34)
     Vector2 cb = q - this->k1 + this->k2 * std::clamp((this->k2 * (this->k1 - q)) *this->k2_dot_inv, 0.0, 1.0);
     ftype s = cb.x < 0.0 && ca.y < 0.0 ? -1.0 : 1.0;
     return s * std::sqrt(std::min(ca * ca, cb * cb));
