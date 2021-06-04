@@ -151,6 +151,7 @@ sphere::Shape::~Shape()
  */
 sphere::Vector sphere::Shape::translate_rotate(Vector *pos)
 {
+    COUNT_OPS(1);
     Vector translated = *pos - position;
     return translated.rotate(this->inverseRotation);
 }
@@ -211,6 +212,7 @@ sphere::Plane::Plane(json const &plane)
  */
 sphere::ftype sphere::Plane::distanceFunction(Vector pointPos)
 {
+    COUNT_OPS(2);
     // rotate only if there is a non-zero rotation
     if (!isRotated){
         // only compute distance with translation
@@ -261,6 +263,7 @@ sphere::ftype sphere::Box::distanceFunction(Vector pointPos)
     // compute the distance in this new space
     Vector q = tr_point.absVal() - extents;
     Vector zero = Vector(0,0,0);
+    COUNT_OPS(1);
     return q.componentwiseMax(zero).length() + std::min(q.maxComponent(), 0.0);
 }
 
@@ -295,6 +298,7 @@ sphere::ftype sphere::Sphere::distanceFunction(Vector pointPos)
     Vector tr_point = pointPos - position;
 
     // calculate distance in this coordinate system
+    COUNT_OPS(1);
     return tr_point.length() - radius;
 }
 
@@ -335,6 +339,7 @@ sphere::ftype sphere::Torus::distanceFunction(Vector pointPos)
         tr_point = Shape::translate_rotate(&pointPos);
     }
     // calculate distance in this coordinate system
+    COUNT_OPS(35);
     Vect2D q = {Vector(tr_point.x, 0, tr_point.z).length() - this->r1, tr_point.y}; 
     return sqrt(q.x * q.x + q.y * q.y) - this->r2;
 }
@@ -394,9 +399,10 @@ sphere::ftype sphere::Octahedron::distanceFunction(Vector pointPos)
         q = Vector(abs_tr_point.z, abs_tr_point.x, abs_tr_point.y);
     }
     else {
+        COUNT_OPS(6);
         return m*0.57735027;
     }
-    
+    COUNT_OPS(11);
     ftype k = std::clamp(0.5*(q.z - q.y + s), 0.0, s);
     return Vector(q.x, q.y - s + k, q.z - k).length();
 }
@@ -476,5 +482,6 @@ sphere::ftype sphere::Cone::distanceFunction(Vector pointPos)
     );
     Vector2 cb = q - k1 + k2 * std::clamp((k2 * (k1 - q)) / (k2 * k2), 0.0, 1.0);
     ftype s = cb.x < 0.f && ca.y < 0.f ? -1.0 : 1.0;
+    COUNT_OPS(35);
     return s * std::sqrt(std::min(ca * ca, cb * cb));
 }

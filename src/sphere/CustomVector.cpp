@@ -213,7 +213,7 @@ sphere::Vector sphere::Vector::componentwiseMin(const Vector &a) const
  */
 sphere::VectorVal sphere::Vector::length() const
 {
-    COUNT_OPS(25); // assumes 20 flops for sqrt
+    COUNT_OPS(35); // assumes 20 flops for sqrt
     return sqrt(x*x + y*y + z*z);
 }
 
@@ -287,11 +287,14 @@ sphere::Vector sphere::Vector::rotate(ftype rotationMatrix[]) const
 std::tuple<bool, bool, bool> sphere::Vector::shadowAxes() const
 {
     if(std::fabs(x) > std::fabs(y) && std::fabs(x) > std::fabs(z)){
+        COUNT_OPS(4);
         return std::make_tuple(false, true, true);
     }
     if(std::fabs(y) > std::fabs(z)){
+        COUNT_OPS(6);
         return std::make_tuple(true, false, true);
     } else {
+        COUNT_OPS(6);
         return std::make_tuple(true, true, false);
     }
 }
@@ -369,7 +372,7 @@ sphere::Vector2 sphere::Vector2::absVal() const
  */
 sphere::ftype sphere::Vector2::length() const 
 {
-    COUNT_OPS(23); // assume 20 flops for sqrt
+    COUNT_OPS(33); // assume 20 flops for sqrt
     return std::sqrt(x*x + y*y);
 }
 
@@ -466,6 +469,7 @@ sphere::Color& sphere::Color::operator+=(const Color &other)
  */
 sphere::Color sphere::Color::operator*(const ftype &other)
 {
+    COUNT_OPS(3)
     return Color(
         std::clamp(this->r * other, 0.0, 1.0),
         std::clamp(this->g * other, 0.0, 1.0),
