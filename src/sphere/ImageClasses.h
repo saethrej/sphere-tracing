@@ -63,7 +63,7 @@ public:
     void writeColor(Color col);
 
     // public member fields
-    Vect2D cameraCoord; //!< the coordinates of this pixel in the camera system
+    Vector2 cameraCoord; //!< the coordinates of this pixel in the camera system
     Color color; //!< the color of this pixel
 };
 

@@ -53,11 +53,21 @@ using json = nlohmann::json;
 
 namespace sphere {
 
+// maximum number of objects per shape type 
+constexpr itype MAX_OBJECTS = 16;
+
+// forward declarations
+class ShapeWrapper; class BoxWrapper; class ConeWrapper; class OctaWrapper;
+class PlaneWrapper; class SphereWrapper; class TorusWrapper;
+class Distances;
+
 /**
  * @brief enum class defining the different shapes we can render. Each
  * shape has exactly one of the types in this enum.
  */
 enum class ShapeType {PLANE, BOX, SPHERE, TORUS, OCTAHEDRON, CONE, UNKNOWN};
+
+/******************************* Shape Classes *******************************/
 
 /**
  * @brief abstract class that provides the template for the different shapes
@@ -75,7 +85,6 @@ public:
 
     // distance function
     virtual ftype distanceFunction(Vector pos) = 0;
-    virtual ftype distanceFunctionSquared(Vector pos) = 0;
 
     // static functions
     static ShapeType getShapeType(std::string shapeName);
@@ -103,7 +112,7 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
-    ftype distanceFunctionSquared(Vector pos);
+    static void vectDistFunc(PlaneWrapper const *planeWrap, Vector const &pos, itype idx, ftype *destPtr);
 
     // additional public member fields
     Vector normal;
@@ -121,7 +130,7 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
-    ftype distanceFunctionSquared(Vector pos);
+    static void vectDistFunc(BoxWrapper const *boxWrap, Vector const &pos, itype idx, ftype *destPtr);
 
     // additional public member fields
     Vector extents;
@@ -138,10 +147,11 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
-    ftype distanceFunctionSquared(Vector pos);
-
+    static void vectDistFunc(SphereWrapper const *sphereWrap, Vector const &pos, itype idx, ftype *destPtr);
+    
     // additional public member fields
     ftype radius;
+
 };
 
 /**
@@ -155,7 +165,7 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
-    ftype distanceFunctionSquared(Vector pos);
+    static void vectDistFunc(TorusWrapper const *wTorus, Vector const &ray, itype idx,  ftype *dstPtr);
 
     // additional public member fields
     ftype r1;
@@ -173,7 +183,7 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
-    ftype distanceFunctionSquared(Vector pos);
+    static void vectDistFunc(OctaWrapper const *wOcta, Vector const &ray, itype idx, ftype *destPtr);
 
     // additional public member fields
     ftype s;
@@ -190,7 +200,7 @@ public:
 
     // distance function
     ftype distanceFunction(Vector pos);
-    ftype distanceFunctionSquared(Vector pos);
+    static void vectDistFunc(ConeWrapper const *wCone, Vector const &pos, itype idx, ftype *destPtr);
 
     // additional public member fields
     Vector form;
@@ -201,6 +211,164 @@ public:
 
 // overload stream operator for ShapeType
 std::ostream& operator<<(std::ostream &out, ShapeType const &type);
+
+/******************************* Shape Wrappers ******************************/
+
+/**
+ * @brief wrapper class for Shape for vectorization
+ */
+class ShapeWrapper
+{
+public:
+    // constructor & destructor
+    ShapeWrapper();
+    virtual ~ShapeWrapper();
+
+    // function to add a shape
+    void addShape(Shape *shp);
+
+    // function to fill position arrays with large numbers when elements
+    // are left empty (to fully use SIMD lanes)
+    void fillEmptyPositions();
+
+    // public member fields (arrays for aligned access)
+    ftype *xPos; //!< x-axis positions of all shapes
+    ftype *yPos; //!< y-axis positions of all shapes
+    ftype *zPos; //!< z-axis positions of all shapes
+    ftype *rotMatrix; //!< the rotation matrices of all shapes 
+    itype numElems; //!< number of elements of this type in scene
+    itype numIters; //!< number of vectorized iterations for this shape type
+
+private:
+    ftype iterCounter; //!< counts the number of iterations
+};
+
+/**
+ * @brief wrapper class for Plane for vectorization
+ */
+class PlaneWrapper : public ShapeWrapper
+{
+public:
+    // constructor & destructor
+    PlaneWrapper();
+    ~PlaneWrapper();
+
+    // function to add a plane
+    void addPlane(Plane *plane);
+    void fillEmptyPositions();
+
+    // additional public member fields
+    ftype *xNor; //!< normal vector's x-coordinates
+    ftype *yNor; //!< normal vector's y-coordinates
+    ftype *zNor; //!< normal vector's z-coordinates
+    ftype *displacement; //!< displacement values
+    std::vector<Plane*> planes; //!< container of all plane objects
+};
+
+/**
+ * @brief wrapper class for Box for vectorization
+ */
+class BoxWrapper : public ShapeWrapper
+{
+public:
+    // constructor & destructor
+    BoxWrapper();
+    ~BoxWrapper();
+
+    // function to add a box
+    void addBox(Box *box);
+    void fillEmptyPositions();
+
+    // additional public member fields
+    ftype *xExt; //!< normal vector's x-coordinates
+    ftype *yExt; //!< normal vector's y-coordinates
+    ftype *zExt; //!< normal vector's z-coordinates
+    std::vector<Box*> boxes; //!< container with all box objects
+};
+
+/**
+ * @brief wrapper class for Sphere for vectorization
+ */
+class SphereWrapper : public ShapeWrapper
+{
+public:
+    // constructor & destructor
+    SphereWrapper();
+    ~SphereWrapper();
+
+    // function to add a sphere
+    void addSphere(Sphere *sph);
+    void fillEmptyPositions();
+
+    // additional public member fields
+    ftype *radiuses; //!< sphere radiuses
+    std::vector<Sphere*> spheres; //!< container with all sphere objects
+};
+
+/**
+ * @brief wrapper class for Torus for vectorization
+ */
+class TorusWrapper : public ShapeWrapper
+{
+public:
+    // constructor & destructor
+    TorusWrapper();
+    ~TorusWrapper();
+
+    // function to add a torus
+    void addTorus(Torus *torus);
+    void fillEmptyPositions();
+
+    // additional public member fields
+    ftype *r1s; //!< inner torus radiuses
+    ftype *r2s; //!< outer torus radiuses
+    std::vector<Torus*> tori; //!< container with all torus objects
+};
+
+/**
+ * @brief wrapper class for Octahedron for vectorization
+ */
+class OctaWrapper : public ShapeWrapper
+{
+public:
+    // constructor & destructor
+    OctaWrapper();
+    ~OctaWrapper();
+
+    // function to add a Octahedron
+    void addOcta(Octahedron *octa);
+    void fillEmptyPositions();
+
+    // additional public member fields
+    ftype *s; //!< all s values
+    std::vector<Octahedron*> octas; //!< container with all octahedron objects
+};
+
+/**
+ * @brief wrapper class for Cone for vectorization
+ */
+class ConeWrapper : public ShapeWrapper
+{
+public:
+    // constructor & destructor
+    ConeWrapper();
+    ~ConeWrapper();
+
+    // function to add a cone
+    void addCone(Cone *cone);
+    void fillEmptyPositions();
+
+    // additional public member fields
+    ftype *xForm; //!< x-coordinates of form vectors
+    ftype *yForm; //!< y-coordinates of form vectors
+    ftype *zForm; //!< z-coordinates of form vectors
+    ftype *xK1;   //!< x-coordinates of K1 param
+    ftype *yK1;   //!< y-coordinates of K1 param
+    ftype *xK2;   //!< x-coordinates of K2 param
+    ftype *yK2;   //!< y-coordinates of K2 param
+    ftype *k2DotInv; //!< all inverse of k2's dot product
+    std::vector<Cone*> cones; //!< container with all cone objects
+};
 
 } // namespace sphere
 
