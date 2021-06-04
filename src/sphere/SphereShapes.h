@@ -67,24 +67,6 @@ class Distances;
  */
 enum class ShapeType {PLANE, BOX, SPHERE, TORUS, OCTAHEDRON, CONE, UNKNOWN};
 
-/**
- * @brief simple class that stores four distances for the vectorized 
- * distance functions
- */
-class Distances
-{
-public: 
-    // constructor
-    Distances(ftype dd0, ftype dd1, ftype dd2, ftype dd3) 
-        : d0(dd0), d1(dd1), d2(dd2), d3(dd3) {}
-
-    // public member fields
-    ftype d0;
-    ftype d1;
-    ftype d2;
-    ftype d3;
-};
-
 /******************************* Shape Classes *******************************/
 
 /**
