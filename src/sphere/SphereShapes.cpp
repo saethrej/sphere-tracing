@@ -219,7 +219,7 @@ sphere::ftype sphere::Plane::distanceFunction(Vector pointPos)
         return std::abs((pointPos - this->position) * this->normal - this->displacement);
     } else {
         // translate, rotate and compute distance
-        COUNT_OPS(1)
+        COUNT_OPS(2)
         Vector tr_point = Shape::translate_rotate(&pointPos);
         return std::abs(tr_point * this->normal - this->displacement);
     }
