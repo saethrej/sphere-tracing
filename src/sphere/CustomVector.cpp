@@ -372,7 +372,7 @@ sphere::Vector2 sphere::Vector2::absVal() const
  */
 sphere::ftype sphere::Vector2::length() const 
 {
-    COUNT_OPS(23); // assume 20 flops for sqrt
+    COUNT_OPS(33); // assume 20 flops for sqrt
     return std::sqrt(x*x + y*y);
 }
 
