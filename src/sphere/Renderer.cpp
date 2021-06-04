@@ -95,7 +95,8 @@ void sphere::Renderer::addScene(std::string pathToSceneFile)
     this->numDist = rndToFour(scene->wBox->numElems) + rndToFour(scene->wCone->numElems)
                   + rndToFour(scene->wPlane->numElems) + rndToFour(scene->wOcta->numElems)
                   + rndToFour(scene->wSphere->numElems) + rndToFour(scene->wTorus->numElems);
-    this->distances = new (std::align_val_t(32)) ftype[this->numDist];
+    itype numThreads = omp_get_max_threads();
+    this->distances = new (std::align_val_t(32)) ftype[this->numDist * numThreads];
     
     // fill the distances with random large values that are later overwritten if 
     // there is a valid shape at this position
@@ -143,7 +144,8 @@ void sphere::Renderer::renderScene(std::string pathToOutputFile, itype width, it
 void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&closestShape, Vector const &ray)
 {
     // compute distances to all shape types individually
-    ftype *destPtr = this->distances;
+    ftype *destPtr = this->distances + numDist * omp_get_thread_num();
+    ftype *dists = destPtr;
 
     BoxWrapper *box = scene->wBox;
     for (itype i = 0; i < box->numIters; ++i) {
@@ -180,13 +182,13 @@ void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&
     minDist = min2Dist = std::numeric_limits<ftype>::max();
     itype minIdx = -1;
     for (itype i = 0; i < numDist; ++i) {
-        if (distances[i] < minDist) {
+        if (dists[i] < minDist) {
             min2Dist = minDist;
-            minDist = distances[i];
+            minDist = dists[i];
             minIdx = i;
 
-        } else if (distances[i] < min2Dist) {
-            min2Dist = distances[i];
+        } else if (dists[i] < min2Dist) {
+            min2Dist = dists[i];
         }
     }
     
