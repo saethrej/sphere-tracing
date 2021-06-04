@@ -195,19 +195,24 @@ sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector con
     ftype totalDistance = minDistance;
 
     while ((distance + t) < MAX_DISTANCE) {
+        // vector op
         ray = ray_origin + ray_direction * t;
         minDistance = closestShape->distanceFunction(ray);
         totalDistance = totalDistance + minDistance;
+        COUNT_OPS(1)
         if (min2Distance < totalDistance) {
             minDistance = std::numeric_limits<ftype>::max();
             min2Distance = std::numeric_limits<ftype>::max();
             getMinDistances(minDistance, min2Distance, closestShape, ray);
             totalDistance = minDistance;
         }
+        COUNT_OPS(1)
         if (minDistance <= TRACE_THRESHOLD * t) {
+            COUNT_OPS(1)
             return shade(ray, ray_direction, closestShape, distance + t);
         }
         t = t + minDistance;
+        COUNT_OPS(1)
     }
     return Color(0,0,0);
 }
@@ -232,6 +237,7 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
         shape->distanceFunction(ray + dy) - shape->distanceFunction(ray - dy),
         shape->distanceFunction(ray + dz) - shape->distanceFunction(ray - dz)
     );
+    COUNT_OPS(3)
     normal = normal.normalize();
 
     // get the vector of the light point to the intersection point, and compute the
@@ -239,6 +245,7 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
     // above. If it's larger than zero, this indicates that the ray is hitting the 
     // shape from the front, which means it's important to our image
     constexpr ftype colorScale = 1.0/255.;
+    COUNT_OPS(1)
     Vector scaledLightEmission = scene->lightEmi * colorScale;
     Vector L = (this->scene->lightPos - ray);
     Vector L_norm = L.normalize();
@@ -247,14 +254,16 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
     Color ambient = shape->color;
     Color diffuse = scaledLightEmission * std::max(0.0, NdotL_half);
     Vector refl =  L_norm - normal * (2.0 * NdotL);//L_norm - normal * NdotL;
-
+    COUNT_OPS(3)
     // compute specular highlights
     Vector refl_norm = refl.normalize();
     ftype RefldotRay = refl_norm * ray_normalized;
     ftype scaledShininess = 100.0/shape->shininess;
+    COUNT_OPS(1)
 
     ftype specular_weight_central = pow(RefldotRay, scaledShininess);
     ftype specular_weight_middle = pow(RefldotRay, shape->shininess) * 0.5;
+    COUNT_OPS(61)
     ftype specular_weight_wide = RefldotRay * RefldotRay;
     ftype specular_weight_broad = RefldotRay;
     constexpr ftype specularFactor = 0.33333333333333 - SPECULAR_BIAS_THIRD;
@@ -262,7 +271,7 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
     ftype specular_weight = SPECULAR_BIAS * specular_weight_central 
                             + specularFactor * specular_weight_broad 
                             + specularMiddleSummand;
-
+    COUNT_OPS(8)
     Color specular = scaledLightEmission * std::max(0.0, specular_weight);  //cannot be negative std::max(0.0,specular_weight);
 
     // compute the reflection if object reflects
@@ -271,7 +280,7 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
     if (reflection_weight > 0) {
         Vector refldir = ray_normalized + normal * (2.0 * std::exp((ray_normalized * normal) + 1.0));
         refldir = refldir.normalize();
-
+        COUNT_OPS(32)
         ftype minDistance = std::numeric_limits<ftype>::max();
         ftype min2Distance = std::numeric_limits<ftype>::max();
         Shape *closestShape;
@@ -281,6 +290,7 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
         reflection_color = sphereTrace(start_ray, refldir, distance, closestShape, minDistance, min2Distance);     
         if (reflection_color.equals(Color(0.f, 0.f, 0.f))) {
             reflection_weight = reflection_weight * 0.25;
+            COUNT_OPS(1)
         }
     }
 
@@ -292,11 +302,12 @@ sphere::Color sphere::Renderer::shade(Vector const &ray, Vector const &ray_norma
     Color col = (ambient + diffuse + specular) * (1.0 - reflection_weight) + reflection_color * reflection_weight;
     //col += (ambient + diffuse + specular) * (1 - reflection_weight) * shadow_weight;
     //col += reflection_color               * reflection_weight       * (shadow_weight + (1-shadow_weight)/4.0);
-
+    COUNT_OPS(1)
     // @TODO: do we need this here?
     col.r = std::min(col.r, 1.0f);
     col.g = std::min(col.g, 1.0f);
     col.b = std::min(col.b, 1.0f);
+    COUNT_OPS(1)
     return col * shadow_weight;
     //return col;
 }
@@ -379,15 +390,18 @@ bool sphere::Renderer::ObjectInBetween(Vector const &ray_origin, Vector const &r
         ray = ray_origin + ray_direction * t;
         minDistance = closestShape->distanceFunction(ray);
         totalDistance = totalDistance + minDistance;
+        COUNT_OPS(1)
         if (min2Distance < (totalDistance)) {
             minDistance = std::numeric_limits<ftype>::max();
             min2Distance = std::numeric_limits<ftype>::max();
             getMinDistances(minDistance, min2Distance, closestShape, ray);
             totalDistance = minDistance;
         }
+        COUNT_OPS(1)
         if (minDistance <= SHADOW_THRESHOLD * t) {
             return true;
         }
+        COUNT_OPS(1)
         t = t + minDistance;
     }
     return false;
