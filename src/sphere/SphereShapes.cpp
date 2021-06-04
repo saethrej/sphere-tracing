@@ -208,58 +208,6 @@ sphere::Plane::Plane(json const &plane)
     }    
 }
 
-void sphere::Plane::vectDistFunc(PlaneWrapper const *planeWrap, Vector const &pos, itype idx, ftype *dstPtr) {
-    __m256d rotx, roty,rotz;
-    __m256d rotx2, roty2, rotz2;
-    __m256d rotx3, roty3, rotz3;
-    __m256d xCoords,yCoords,zCoords;
-    __m256d xTrPoint, yTrPoint, zTrPoint;
-    __m256d xRotPoint, yRotPoint, zRotPoint;
-
-    __m256d xPos = _mm256_broadcast_sd(&pos.x);
-    __m256d yPos = _mm256_broadcast_sd(&pos.y);
-    __m256d zPos = _mm256_broadcast_sd(&pos.z);
-    __m256d displacement = _mm256_load_pd(planeWrap->displacement + idx);
-    __m256d abs_mask = _mm256_set1_pd(-0.0);
-
-    xCoords = _mm256_load_pd(planeWrap->xPos + idx);
-    yCoords = _mm256_load_pd(planeWrap->yPos + idx);
-    zCoords = _mm256_load_pd(planeWrap->zPos + idx);
-
-    xTrPoint = _mm256_sub_pd(xPos, xCoords);
-    yTrPoint = _mm256_sub_pd(yPos, yCoords);
-    zTrPoint = _mm256_sub_pd(zPos, zCoords);
-
-    rotx = _mm256_load_pd(planeWrap->rotMatrix + idx);
-    roty = _mm256_load_pd(planeWrap->rotMatrix + idx + MAX_OBJECTS);
-    rotz = _mm256_load_pd(planeWrap->rotMatrix + idx + MAX_OBJECTS + MAX_OBJECTS);
-
-    xRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
-
-    rotx2 = _mm256_load_pd(planeWrap->rotMatrix + idx + 3* MAX_OBJECTS);
-    roty2 = _mm256_load_pd(planeWrap->rotMatrix + idx + 4*MAX_OBJECTS);
-    rotz2 = _mm256_load_pd(planeWrap->rotMatrix + idx + 5*MAX_OBJECTS);
-
-    yRotPoint = _mm256_fmadd_pd(rotz2, zTrPoint, _mm256_fmadd_pd(roty2, yTrPoint, _mm256_mul_pd(rotx2, xTrPoint)));
-
-    rotx3 = _mm256_load_pd(planeWrap->rotMatrix + idx + 6*MAX_OBJECTS);
-    roty3 = _mm256_load_pd(planeWrap->rotMatrix + idx + 7*MAX_OBJECTS);
-    rotz3 = _mm256_load_pd(planeWrap->rotMatrix + idx+ 8*MAX_OBJECTS);
-
-    zRotPoint = _mm256_fmadd_pd(rotz3, zTrPoint, _mm256_fmadd_pd(roty3, yTrPoint, _mm256_mul_pd(rotx3, xTrPoint)));
-
-    __m256d xNormal = _mm256_load_pd(planeWrap->xNor + idx);
-    __m256d yNormal = _mm256_load_pd(planeWrap->yNor + idx);
-    __m256d zNormal = _mm256_load_pd(planeWrap->zNor + idx);
-
-    __m256d xScal = _mm256_mul_pd(xRotPoint, xNormal);
-    __m256d yScal = _mm256_fmadd_pd(yRotPoint, yNormal, xScal);
-    __m256d scalProd = _mm256_fmadd_pd(zRotPoint, zNormal, yScal);
-
-    _mm256_store_pd(dstPtr, _mm256_andnot_pd(abs_mask, _mm256_sub_pd(scalProd, displacement)));
-}
-
-
 /**
  * @brief computes distance from a point to this plane
  * @param pointPos the position of the point
@@ -279,23 +227,67 @@ sphere::ftype sphere::Plane::distanceFunction(Vector pointPos)
 }
 
 /**
- * @brief computes squared distance from a point to this plane
- * @param pointPos the position of the point
- * @returns the distance between the point and this plane
+ * @brief computes the distance of a point to four planes
+ * 
+ * @param plane pointer to the plane wrapper object of the scene
+ * @param pos the point's position as a 3d vector
+ * @param idx the index of the first of four planes
+ * @param dstPtr the location where results should be written
  */
-sphere::ftype sphere::Plane::distanceFunctionSquared(Vector pointPos)
+void sphere::Plane::vectDistFunc(PlaneWrapper const *planeWrap, Vector const &pos, itype idx, ftype *dstPtr)
 {
-    // rotate only if there is a non-zero rotation
-    if (!isRotated){
-        // only compute distance with translation
-        ftype ret_val = (pointPos - this->position) * this->normal - this->displacement;
-        return ret_val * ret_val;
-    } else {
-        // translate, rotate and compute distance
-        Vector tr_point = Shape::translate_rotate(&pointPos);
-        ftype ret_val = tr_point * this->normal - this->displacement;
-        return ret_val * ret_val;
-    }
+    // declare all local variables that are used in this function
+    __m256d rotx, roty,rotz;
+    __m256d rotx2, roty2, rotz2;
+    __m256d rotx3, roty3, rotz3;
+    __m256d xCoords,yCoords,zCoords;
+    __m256d xTrPoint, yTrPoint, zTrPoint;
+    __m256d xRotPoint, yRotPoint, zRotPoint;
+
+    // load position of point into AVX vectors
+    __m256d xPos = _mm256_broadcast_sd(&pos.x);
+    __m256d yPos = _mm256_broadcast_sd(&pos.y);
+    __m256d zPos = _mm256_broadcast_sd(&pos.z);
+
+    __m256d displacement = _mm256_load_pd(planeWrap->displacement + idx);
+    __m256d abs_mask = _mm256_set1_pd(-0.0);
+
+    // load the plane positions and translate them
+    xCoords = _mm256_load_pd(planeWrap->xPos + idx);
+    yCoords = _mm256_load_pd(planeWrap->yPos + idx);
+    zCoords = _mm256_load_pd(planeWrap->zPos + idx);
+    xTrPoint = _mm256_sub_pd(xPos, xCoords);
+    yTrPoint = _mm256_sub_pd(yPos, yCoords);
+    zTrPoint = _mm256_sub_pd(zPos, zCoords);
+
+    // compute rotation of x-coordinate
+    rotx = _mm256_load_pd(planeWrap->rotMatrix + idx);
+    roty = _mm256_load_pd(planeWrap->rotMatrix + idx + MAX_OBJECTS);
+    rotz = _mm256_load_pd(planeWrap->rotMatrix + idx + MAX_OBJECTS + MAX_OBJECTS);
+    xRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
+
+    // compute rotation of y-coordinate
+    rotx2 = _mm256_load_pd(planeWrap->rotMatrix + idx + 3* MAX_OBJECTS);
+    roty2 = _mm256_load_pd(planeWrap->rotMatrix + idx + 4*MAX_OBJECTS);
+    rotz2 = _mm256_load_pd(planeWrap->rotMatrix + idx + 5*MAX_OBJECTS);
+    yRotPoint = _mm256_fmadd_pd(rotz2, zTrPoint, _mm256_fmadd_pd(roty2, yTrPoint, _mm256_mul_pd(rotx2, xTrPoint)));
+
+    // compute rotation of z-coordinate
+    rotx3 = _mm256_load_pd(planeWrap->rotMatrix + idx + 6*MAX_OBJECTS);
+    roty3 = _mm256_load_pd(planeWrap->rotMatrix + idx + 7*MAX_OBJECTS);
+    rotz3 = _mm256_load_pd(planeWrap->rotMatrix + idx+ 8*MAX_OBJECTS);
+    zRotPoint = _mm256_fmadd_pd(rotz3, zTrPoint, _mm256_fmadd_pd(roty3, yTrPoint, _mm256_mul_pd(rotx3, xTrPoint)));
+
+    // load the normal vector and compute scalar product with rotated points
+    __m256d xNormal = _mm256_load_pd(planeWrap->xNor + idx);
+    __m256d yNormal = _mm256_load_pd(planeWrap->yNor + idx);
+    __m256d zNormal = _mm256_load_pd(planeWrap->zNor + idx);
+    __m256d xScal = _mm256_mul_pd(xRotPoint, xNormal);
+    __m256d yScal = _mm256_fmadd_pd(yRotPoint, yNormal, xScal);
+    __m256d scalProd = _mm256_fmadd_pd(zRotPoint, zNormal, yScal);
+
+    // subtract the plane's displacement and write result back
+    _mm256_store_pd(dstPtr, _mm256_andnot_pd(abs_mask, _mm256_sub_pd(scalProd, displacement)));
 }
 
 /*********************************** Box *************************************/
@@ -318,96 +310,6 @@ sphere::Box::Box(json const &box)
         std::cerr << e.what() << std::endl;
         throw SphereException(SphereException::ErrorCode::JsonSyntaxError);
     }
-}
-
-void sphere::Box::vectDistFunc(BoxWrapper const *boxWrap, Vector const &pos, itype idx, ftype *dstPtr)
-{
-
-
-    __m256d rotx, roty,rotz;
-    __m256d rotx2, roty2, rotz2;
-    __m256d rotx3, roty3, rotz3;
-    __m256d xCoords,yCoords,zCoords;
-    __m256d xTrPoint, yTrPoint, zTrPoint;
-    __m256d xRotPoint, yRotPoint, zRotPoint;
-    __m256d xext, yext, zext;
-    __m256d zero = _mm256_setzero_pd();
-
-    __m256d xPos = _mm256_broadcast_sd(&pos.x);
-    __m256d yPos = _mm256_broadcast_sd(&pos.y);
-    __m256d zPos = _mm256_broadcast_sd(&pos.z);
-
-    xCoords = _mm256_load_pd(boxWrap->xPos + idx);
-    yCoords = _mm256_load_pd(boxWrap->yPos + idx);
-    zCoords = _mm256_load_pd(boxWrap->zPos + idx);
-
-    xTrPoint = _mm256_sub_pd(xPos, xCoords);
-    yTrPoint = _mm256_sub_pd(yPos, yCoords);
-    zTrPoint = _mm256_sub_pd(zPos, zCoords);
-
-    ftype *rotPtr = boxWrap->rotMatrix + idx;
-    rotx = _mm256_load_pd(rotPtr);
-    roty = _mm256_load_pd(rotPtr + MAX_OBJECTS);
-    rotz = _mm256_load_pd(rotPtr + MAX_OBJECTS + MAX_OBJECTS);
-
-
-    xRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
-
-    rotx2 = _mm256_load_pd(rotPtr + 3* MAX_OBJECTS);
-    roty2 = _mm256_load_pd(rotPtr+ 4*MAX_OBJECTS);
-    rotz2 = _mm256_load_pd(rotPtr + 5*MAX_OBJECTS);
-
-    yRotPoint = _mm256_fmadd_pd(rotz2, zTrPoint, _mm256_fmadd_pd(roty2, yTrPoint, _mm256_mul_pd(rotx2, xTrPoint)));
-
-    rotx3 = _mm256_load_pd(rotPtr + 6*MAX_OBJECTS);
-    roty3 = _mm256_load_pd(rotPtr + 7*MAX_OBJECTS);
-    rotz3 = _mm256_load_pd(rotPtr + 8*MAX_OBJECTS);
-
-    zRotPoint = _mm256_fmadd_pd(rotz3, zTrPoint, _mm256_fmadd_pd(roty3, yTrPoint, _mm256_mul_pd(rotx3, xTrPoint)));
-
-
-    // calculate the absolute value
-    __m256d abs_mask = _mm256_set1_pd(-0.0);
-    __m256d  abs_x = _mm256_andnot_pd(abs_mask, xRotPoint);
-    __m256d  abs_y = _mm256_andnot_pd(abs_mask, yRotPoint);
-    __m256d  abs_z = _mm256_andnot_pd(abs_mask, zRotPoint);
-
-
-
-    xext = _mm256_load_pd(boxWrap->xExt + idx);
-    yext = _mm256_load_pd(boxWrap->yExt + idx);
-    zext = _mm256_load_pd(boxWrap->zExt + idx);
-
-    
-
-    // abs - extent
-
-    __m256d xq = _mm256_sub_pd(abs_x, xext);
-    __m256d yq = _mm256_sub_pd(abs_y, yext);
-    __m256d zq = _mm256_sub_pd(abs_z, zext);
-
-
-    __m256d xMask = _mm256_cmp_pd(xq, zero, _CMP_GE_OQ);
-    __m256d yMask = _mm256_cmp_pd(yq, zero, _CMP_GE_OQ);
-    __m256d zMask = _mm256_cmp_pd(zq, zero, _CMP_GE_OQ);
-
-    __m256d xtmp = _mm256_mul_pd(xq, xq);
-    __m256d res0 = _mm256_and_pd(xtmp, xMask);
-    __m256d tmp1 = _mm256_add_pd(res0, zero);
-    __m256d ytmp = _mm256_mul_pd(yq, yq);
-    __m256d res1 = _mm256_and_pd(ytmp, yMask);
-    __m256d tmp2 = _mm256_add_pd(res1, zero);
-    __m256d ztmp = _mm256_mul_pd(zq, zq);
-    __m256d res2 = _mm256_and_pd(ztmp, zMask);
-    __m256d tmp3 = _mm256_add_pd(res2, zero);
-
-    __m256d squaredRes = _mm256_add_pd(_mm256_add_pd(tmp1,tmp2), tmp3);
-
-    __m256d res = _mm256_sqrt_pd(squaredRes);
-
-    _mm256_store_pd(dstPtr, res);
-
-
 }
 
 /**
@@ -441,33 +343,93 @@ sphere::ftype sphere::Box::distanceFunction(Vector pointPos)
 }
 
 /**
- * @brief computes squared distance from a point to this box
- * @param pointPos position of the point of interest
- * @returns the distance between point and box
+ * @brief computes the distance of a point to four boxes
+ * 
+ * @param boxWrap pointer to the sphere wrapper object of the scene
+ * @param pos the point's position as a 3d vector
+ * @param idx the index of the first of four boxes
+ * @param dstPtr the location where results should be written
  */
-sphere::ftype sphere::Box::distanceFunctionSquared(Vector pointPos)
+void sphere::Box::vectDistFunc(BoxWrapper const *boxWrap, Vector const &pos, itype idx, ftype *dstPtr)
 {
-    // translate and rotate point such that object is at origin and in normal position
-    // this is only done if required, i.e. if the object itself is rotated
-    Vector tr_point;
-    if (!isRotated) {
-        tr_point = pointPos - this->position;
-    } else {
-        tr_point = Shape::translate_rotate(&pointPos);
-    }
-    // compute the distance in this new space
-    Vector q = tr_point.absVal() - extents;
-    ftype ret_val = 0;
-    if(q.x >= 0.0){
-        ret_val += q.x * q.x;
-    }
-    if(q.y >= 0.0){
-        ret_val += q.y * q.y;
-    }
-    if(q.z >= 0.0){
-        ret_val += q.z * q.z;
-    }
-    return ret_val;
+    // declare all of the local variables used in the computation
+    __m256d rotx, roty,rotz;
+    __m256d rotx2, roty2, rotz2;
+    __m256d rotx3, roty3, rotz3;
+    __m256d xCoords,yCoords,zCoords;
+    __m256d xTrPoint, yTrPoint, zTrPoint;
+    __m256d xRotPoint, yRotPoint, zRotPoint;
+    __m256d xext, yext, zext;
+    __m256d zero = _mm256_setzero_pd();
+
+    // broadcast the coordinates of the pos vector to a SIMD vector
+    __m256d xPos = _mm256_broadcast_sd(&pos.x);
+    __m256d yPos = _mm256_broadcast_sd(&pos.y);
+    __m256d zPos = _mm256_broadcast_sd(&pos.z);
+
+    // load coordinates of boxes and translate them
+    xCoords = _mm256_load_pd(boxWrap->xPos + idx);
+    yCoords = _mm256_load_pd(boxWrap->yPos + idx);
+    zCoords = _mm256_load_pd(boxWrap->zPos + idx);
+    xTrPoint = _mm256_sub_pd(xPos, xCoords);
+    yTrPoint = _mm256_sub_pd(yPos, yCoords);
+    zTrPoint = _mm256_sub_pd(zPos, zCoords);
+
+    ftype *rotPtr = boxWrap->rotMatrix + idx;
+
+    // rotate the x-coordinates
+    rotx = _mm256_load_pd(rotPtr);
+    roty = _mm256_load_pd(rotPtr + MAX_OBJECTS);
+    rotz = _mm256_load_pd(rotPtr + 2 * MAX_OBJECTS);
+    xRotPoint = _mm256_fmadd_pd(rotz, zTrPoint, _mm256_fmadd_pd(roty, yTrPoint, _mm256_mul_pd(rotx, xTrPoint)));
+
+    // rotate the y-coordinates
+    rotx2 = _mm256_load_pd(rotPtr + 3 * MAX_OBJECTS);
+    roty2 = _mm256_load_pd(rotPtr + 4 * MAX_OBJECTS);
+    rotz2 = _mm256_load_pd(rotPtr + 5 * MAX_OBJECTS);
+    yRotPoint = _mm256_fmadd_pd(rotz2, zTrPoint, _mm256_fmadd_pd(roty2, yTrPoint, _mm256_mul_pd(rotx2, xTrPoint)));
+
+    // rotate the z-coordinates
+    rotx3 = _mm256_load_pd(rotPtr + 6 * MAX_OBJECTS);
+    roty3 = _mm256_load_pd(rotPtr + 7 * MAX_OBJECTS);
+    rotz3 = _mm256_load_pd(rotPtr + 8 * MAX_OBJECTS);
+    zRotPoint = _mm256_fmadd_pd(rotz3, zTrPoint, _mm256_fmadd_pd(roty3, yTrPoint, _mm256_mul_pd(rotx3, xTrPoint)));
+
+    // calculate the absolute values of the rotated points
+    __m256d abs_mask = _mm256_set1_pd(-0.0);
+    __m256d  abs_x = _mm256_andnot_pd(abs_mask, xRotPoint);
+    __m256d  abs_y = _mm256_andnot_pd(abs_mask, yRotPoint);
+    __m256d  abs_z = _mm256_andnot_pd(abs_mask, zRotPoint);
+
+    // subtract the box extents from the rotated, absolute coordinates
+    xext = _mm256_load_pd(boxWrap->xExt + idx);
+    yext = _mm256_load_pd(boxWrap->yExt + idx);
+    zext = _mm256_load_pd(boxWrap->zExt + idx);
+    __m256d xq = _mm256_sub_pd(abs_x, xext);
+    __m256d yq = _mm256_sub_pd(abs_y, yext);
+    __m256d zq = _mm256_sub_pd(abs_z, zext);
+
+    // compute masks for all three dimensions
+    __m256d xMask = _mm256_cmp_pd(xq, zero, _CMP_GE_OQ);
+    __m256d yMask = _mm256_cmp_pd(yq, zero, _CMP_GE_OQ);
+    __m256d zMask = _mm256_cmp_pd(zq, zero, _CMP_GE_OQ);
+
+    // add squared coordinate value if it is positive
+    // each of the 3 temp variable indicates a branch in the non-vectorized code
+    __m256d xtmp = _mm256_mul_pd(xq, xq);
+    __m256d res0 = _mm256_and_pd(xtmp, xMask);
+    __m256d tmp1 = _mm256_add_pd(res0, zero);
+    __m256d ytmp = _mm256_mul_pd(yq, yq);
+    __m256d res1 = _mm256_and_pd(ytmp, yMask);
+    __m256d tmp2 = _mm256_add_pd(res1, zero);
+    __m256d ztmp = _mm256_mul_pd(zq, zq);
+    __m256d res2 = _mm256_and_pd(ztmp, zMask);
+    __m256d tmp3 = _mm256_add_pd(res2, zero);
+
+    // add the values from the branches, take the square root and write back
+    __m256d squaredRes = _mm256_add_pd(_mm256_add_pd(tmp1,tmp2), tmp3);
+    __m256d res = _mm256_sqrt_pd(squaredRes);
+    _mm256_store_pd(dstPtr, res);
 }
 
 /********************************** Sphere ************************************/
@@ -491,40 +453,6 @@ sphere::Sphere::Sphere(json const &sph)
     }
 }
 
-void sphere::Sphere::vectDistFunc(SphereWrapper const *sphereWrap, Vector const &pos, itype idx, ftype *dstPtr) {
-    __m256d xCoords, yCoords, zCoords;
-    __m256d xRay, yRay, zRay;
-    __m256d xTrPoint, yTrPoint, zTrPoint;
-    __m256d vRadius;
-    __m256d xSquaredCoord, ySquaredCoord, zSquaredCoord;
-    __m256d vectorLength;
-
-    xCoords = _mm256_load_pd(sphereWrap->xPos + idx);
-    yCoords = _mm256_load_pd(sphereWrap->yPos + idx);
-    zCoords = _mm256_load_pd(sphereWrap->zPos + idx);
-    
-    
-    xRay = _mm256_broadcast_sd(&pos.x);
-    yRay = _mm256_broadcast_sd(&pos.y);
-    zRay = _mm256_broadcast_sd(&pos.z);
-
-    vRadius = _mm256_load_pd(sphereWrap->radiuses + idx);
-
-    xTrPoint = _mm256_sub_pd(xRay, xCoords);
-    yTrPoint = _mm256_sub_pd(yRay, yCoords);
-    zTrPoint = _mm256_sub_pd(zRay, zCoords);
-    xSquaredCoord = _mm256_mul_pd(xTrPoint, xTrPoint);
-    ySquaredCoord = _mm256_mul_pd(yTrPoint, yTrPoint);
-    zSquaredCoord = _mm256_mul_pd(zTrPoint, zTrPoint);
-
-    vectorLength = _mm256_sqrt_pd(_mm256_add_pd(xSquaredCoord, _mm256_add_pd(ySquaredCoord, zSquaredCoord)));
-
-    __m256d res = _mm256_sub_pd(vectorLength, vRadius);
-
-    _mm256_store_pd(dstPtr, res);
-}
-
-
 /**
  * @brief computes distance from a point to this sphere
  * @param pointPos position of the point of interest
@@ -540,20 +468,51 @@ sphere::ftype sphere::Sphere::distanceFunction(Vector pointPos)
 }
 
 /**
- * @brief computes squared distance from a point to this sphere
- * @param pointPos position of the point of interest
- * @returns the distance between point and sphere
+ * @brief computes the distance of a point to four spheres
+ * 
+ * @param sphereWrap pointer to the sphere wrapper object of the scene
+ * @param pos the point's position as a 3d vector
+ * @param idx the index of the first of four spheres
+ * @param dstPtr the location where results should be written
  */
-sphere::ftype sphere::Sphere::distanceFunctionSquared(Vector pointPos)
+void sphere::Sphere::vectDistFunc(SphereWrapper const *sphereWrap, Vector const &pos, itype idx, ftype *dstPtr)
 {
-    // translate and rotate point such that object is at origin and in normal position
-    Vector tr_point = pointPos - position;
+    // declare all local variables
+    __m256d xCoords, yCoords, zCoords;
+    __m256d xRay, yRay, zRay;
+    __m256d xTrPoint, yTrPoint, zTrPoint;
+    __m256d vRadius;
+    __m256d xSquaredCoord, ySquaredCoord, zSquaredCoord;
+    __m256d vectorLength;
 
-    // calculate distance in this coordinate system
-    ftype ret_val = tr_point.length() - radius;
-    return ret_val * std::fabs(ret_val);
+    // load coordinates of all four spheres
+    xCoords = _mm256_load_pd(sphereWrap->xPos + idx);
+    yCoords = _mm256_load_pd(sphereWrap->yPos + idx);
+    zCoords = _mm256_load_pd(sphereWrap->zPos + idx);
+    
+    // create AVX vectors with coordinates from the ray
+    xRay = _mm256_broadcast_sd(&pos.x);
+    yRay = _mm256_broadcast_sd(&pos.y);
+    zRay = _mm256_broadcast_sd(&pos.z);
+
+    vRadius = _mm256_load_pd(sphereWrap->radiuses + idx);
+
+    // translate the points to the origin
+    xTrPoint = _mm256_sub_pd(xRay, xCoords);
+    yTrPoint = _mm256_sub_pd(yRay, yCoords);
+    zTrPoint = _mm256_sub_pd(zRay, zCoords);
+
+    // square the coordinates of these translated points
+    xSquaredCoord = _mm256_mul_pd(xTrPoint, xTrPoint);
+    ySquaredCoord = _mm256_mul_pd(yTrPoint, yTrPoint);
+    zSquaredCoord = _mm256_mul_pd(zTrPoint, zTrPoint);
+
+    // add the squared coordinates, take square root. From this, we subtract the
+    // radius of the sphere and write the result back
+    vectorLength = _mm256_sqrt_pd(_mm256_add_pd(xSquaredCoord, _mm256_add_pd(ySquaredCoord, zSquaredCoord)));
+    __m256d res = _mm256_sub_pd(vectorLength, vRadius);
+    _mm256_store_pd(dstPtr, res);
 }
-
 
 /********************************** Torus ************************************/
 
@@ -599,30 +558,12 @@ sphere::ftype sphere::Torus::distanceFunction(Vector pointPos)
 }
 
 /**
- * @brief computes squared distance from a point to this torus
- * @param pointPos position of the point of interest
- * @returns the distance between point and torus
- */
-sphere::ftype sphere::Torus::distanceFunctionSquared(Vector pointPos)
-{
-    // translate and rotate point such that object is at origin and in normal position
-    // this is only done if required, i.e. if the object itself is rotated
-    Vector tr_point;
-    if (!isRotated) {
-        tr_point =  pointPos - this->position;
-    } else {
-        tr_point = Shape::translate_rotate(&pointPos);
-    }
-    // calculate distance in this coordinate system
-    
-    Vector2 q(sqrt(tr_point.x*tr_point.x + tr_point.z*tr_point.z) - this->r1, tr_point.y);
-    ftype ret_val = q.length() - this->r2;
-    return ret_val * std::fabs(ret_val);
-}
-/**
- * @brief computes distance from a point to this torus
- * @param pointPos position of the point of interest
- * @returns the distance between point and torus
+ * @brief computes the distance of a point to four tori
+ * 
+ * @param wTorus pointer to the sphere wrapper object of the scene
+ * @param ray the point's position as a 3d vector
+ * @param idx the index of the first of four spheres
+ * @param dstPtr the location where results should be written
  */
 void sphere::Torus::vectDistFunc(TorusWrapper const *wTorus , Vector const &ray, itype idx, ftype *dstPtr)
 {
@@ -652,31 +593,25 @@ void sphere::Torus::vectDistFunc(TorusWrapper const *wTorus , Vector const &ray,
     //compute the ptr once
     ftype *rotPtr = wTorus->rotMatrix + idx;
 
-    //load rotMatrix
+    // compute rotation of x-coordinates
     __m256d rotCol00 = _mm256_load_pd(rotPtr);
     __m256d rotCol01 = _mm256_load_pd(rotPtr + MAX_OBJECTS);
     __m256d rotCol02 = _mm256_load_pd(rotPtr + 2*MAX_OBJECTS);
-
-    //compute rotation
     __m256d xRotPoint = _mm256_fmadd_pd(zPos, rotCol02, _mm256_fmadd_pd(yPos, rotCol01, _mm256_mul_pd(xPos, rotCol00))); 
 
-    //load rotMax
+    // compute rotation of y-coordinates
     __m256d rotCol10 = _mm256_load_pd(rotPtr + 3*MAX_OBJECTS);
     __m256d rotCol11 = _mm256_load_pd(rotPtr + 4*MAX_OBJECTS);
     __m256d rotCol12 = _mm256_load_pd(rotPtr + 5*MAX_OBJECTS);
+    __m256d yRotPoint = _mm256_fmadd_pd(zPos, rotCol12, _mm256_fmadd_pd(yPos, rotCol11, _mm256_mul_pd(xPos, rotCol10))); 
 
-    //compute rotation
-     __m256d yRotPoint = _mm256_fmadd_pd(zPos, rotCol12, _mm256_fmadd_pd(yPos, rotCol11, _mm256_mul_pd(xPos, rotCol10))); 
-    
-    //load rotMax
+    // compute rotation of z-coordinates
     __m256d rotCol20 = _mm256_load_pd(rotPtr + 6*MAX_OBJECTS);
     __m256d rotCol21 = _mm256_load_pd(rotPtr +7*MAX_OBJECTS);
     __m256d rotCol22 = _mm256_load_pd(rotPtr + 8*MAX_OBJECTS);
-
-    //load rotMax
     __m256d zRotPoint = _mm256_fmadd_pd(zPos, rotCol22, _mm256_fmadd_pd(yPos, rotCol21, _mm256_mul_pd(xPos, rotCol20))); 
 
-    //load torus parameters
+    // load torus parameters
     r1 = _mm256_load_pd(wTorus->r1s + idx);
     r2 = _mm256_load_pd(wTorus->r2s + idx);
 
@@ -752,54 +687,16 @@ sphere::ftype sphere::Octahedron::distanceFunction(Vector pointPos)
 }
 
 /**
- * @brief computes squared distance from a point to this octahedron
- * @param pointPos position of the point of interest
- * @returns the distance between point and octahedron
- */
-sphere::ftype sphere::Octahedron::distanceFunctionSquared(Vector pointPos)
-{
-    // translate and rotate point such that object is at origin and in normal position
-    Vector tr_point;
-    if (!isRotated) {
-        tr_point = pointPos - this->position;
-    } else {
-        tr_point = Shape::translate_rotate(&pointPos);
-    }
-    // calculate distance in this coordinate system
-    Vector abs_tr_point = tr_point.absVal();
-    ftype m = abs_tr_point.x + abs_tr_point.y + abs_tr_point.z - s;
-    Vector r = abs_tr_point * 3.0 - m;
-    Vector q;
-    if (r.x < 0){
-        q = abs_tr_point;
-    }
-    else if(r.y < 0) {
-        q = Vector(abs_tr_point.y, abs_tr_point.z, abs_tr_point.x);
-    }
-    else if(r.z < 0) {
-        q = Vector(abs_tr_point.z, abs_tr_point.x, abs_tr_point.y);
-    }
-    else {
-        return m*m*0.3333333334;
-    }
-    ftype y_s = q.y - s;
-    ftype to_clamp = 0.5*(q.z - y_s);
-    ftype k = to_clamp < 0.0 ? 0.0 : (to_clamp > s ? s : to_clamp);
-    return q.x * q.x + (y_s + k)*(y_s + k) + (q.z - k)*(q.z - k);
-}
-
-/**
- * @brief returns the distances of the pos vector to four boxes
+ * @brief computes the distance of a point to four octahedrons
  * 
- * @param octas octahedrons pointer to four octahedrons
- * @param pos the position to compute distance from
- * @return sphere::Distances the four distances of each octahedron
+ * @param wOcta pointer to the sphere wrapper object of the scene
+ * @param ray the point's position as a 3d vector
+ * @param idx the index of the first of four spheres
+ * @param dstPtr the location where results should be written
  */
 void sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vector const &ray, itype idx, ftype *destPtr)
 {
     __m256d zero = _mm256_setzero_pd();
-    __m128i rotOffsets = _mm_set_epi32(0, 3, 6, 0);
-    __m256d colMask = _mm256_set_pd(-0.0, -0.0, -0.0, 0.0);
 
     // load components of the pos vector into registers
     __m256d xPos = _mm256_broadcast_sd(&ray.x);
@@ -816,30 +713,25 @@ void sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vector const &ra
     yPos = _mm256_sub_pd(yPos, octaPosY);
     zPos = _mm256_sub_pd(zPos, octaPosZ);
 
-    //compute the ptr once 
-     ftype *rotPtr = wOcta->rotMatrix + idx;
-     //load rotMatrix
+    // compute the ptr once 
+    ftype *rotPtr = wOcta->rotMatrix + idx;
+    
+    // compute rotation of all x-coordinates
     __m256d rotCol00 = _mm256_load_pd(rotPtr);
     __m256d rotCol01 = _mm256_load_pd(rotPtr + MAX_OBJECTS);
     __m256d rotCol02 = _mm256_load_pd(rotPtr + 2*MAX_OBJECTS);
-
-    //compute rotation
     __m256d xRotPoint = _mm256_fmadd_pd(zPos, rotCol02, _mm256_fmadd_pd(yPos, rotCol01, _mm256_mul_pd(xPos, rotCol00))); 
 
-    //load rotMax
+    // compute rotation of all y-coordinates
     __m256d rotCol10 = _mm256_load_pd(rotPtr + 3*MAX_OBJECTS);
     __m256d rotCol11 = _mm256_load_pd(rotPtr + 4*MAX_OBJECTS);
     __m256d rotCol12 = _mm256_load_pd(rotPtr + 5*MAX_OBJECTS);
-
-    //compute rotation
-     __m256d yRotPoint = _mm256_fmadd_pd(zPos, rotCol12, _mm256_fmadd_pd(yPos, rotCol11, _mm256_mul_pd(xPos, rotCol10))); 
+    __m256d yRotPoint = _mm256_fmadd_pd(zPos, rotCol12, _mm256_fmadd_pd(yPos, rotCol11, _mm256_mul_pd(xPos, rotCol10))); 
     
-    //load rotMax
+    // compute rotation of all z-coordinates
     __m256d rotCol20 = _mm256_load_pd(rotPtr + 6*MAX_OBJECTS);
     __m256d rotCol21 = _mm256_load_pd(rotPtr +7*MAX_OBJECTS);
     __m256d rotCol22 = _mm256_load_pd(rotPtr+ 8*MAX_OBJECTS);
-
-    //load rotMax
     __m256d zRotPoint = _mm256_fmadd_pd(zPos, rotCol22, _mm256_fmadd_pd(yPos, rotCol21, _mm256_mul_pd(xPos, rotCol20))); 
 
     // load s value
@@ -906,6 +798,7 @@ void sphere::Octahedron::vectDistFunc(OctaWrapper const *wOcta, Vector const &ra
     // return dist object
     _mm256_store_pd(destPtr, ret_val);  
 }
+
 /********************************* Cone **************************************/
 
 /**
@@ -960,50 +853,20 @@ sphere::ftype sphere::Cone::distanceFunction(Vector pointPos)
 }
 
 /**
- * @brief returns the squared signed distance to a cone
- * @param pointPos the position of the point 
- * @return the signed distance
- */
-sphere::ftype sphere::Cone::distanceFunctionSquared(Vector pointPos)
-{
-    // extract the relevant values from the form param of the cone
-    VectorVal h = this->form.z, r1 = this->form.x, r2 = this->form.y;
-
-    // translate and rotate point such that the object is at the origin
-    Vector rotP;
-    if (!isRotated){
-        rotP = pointPos - this->position;
-    } else {
-        rotP = Shape::translate_rotate(&pointPos);
-    }
-    // calculate the distance in this coordinate system
-    Vector2 q = Vector2(Vector2(rotP.x, rotP.z).length(), rotP.y);
-
-    Vector2 ca = Vector2(
-        q.x - std::min(q.x, q.y < 0 ? r1 : r2),
-        std::fabs(q.y) - h
-    );
-    Vector2 cb = q - this->k1 + this->k2 * std::clamp((this->k2 * (this->k1 - q)) *this->k2_dot_inv, 0.0, 1.0);
-    ftype s = cb.x < 0.0 && ca.y < 0.0 ? -1.0 : 1.0;
-    return s * std::min(ca * ca, cb * cb);
-}
-
-/**
  * @brief computes the distance function for four cones starting at index idx
  * in a vectorized manner
  * 
  * @param wCone pointer to the ConeWrapper
  * @param pos position to compute distance to
  * @param idx idx to start computations at
- * @returns the four distances
+ * @param destPtr pointer to the location of where results should be stored
  */
 void sphere::Cone::vectDistFunc(ConeWrapper const *wCone, Vector const &pos, itype idx, ftype *destPtr)
 {
     __m256d zero = _mm256_setzero_pd();
     __m256d ones = _mm256_set1_pd(1.0);
-    __m256d minusones = _mm256_set1_pd(-1.0);
+    __m256d minusones = _mm256_set1_pd(-1.0); // maybe compute zero - ones?
     __m256d abs_mask = _mm256_set1_pd(-0.0);
-
 
     // broadcast the components of the position vector to avx registers
     __m256d xPos = _mm256_broadcast_sd(&pos.x);
@@ -1107,7 +970,7 @@ sphere::ShapeWrapper::ShapeWrapper()
     yPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
     zPos = new (std::align_val_t(32)) ftype[MAX_OBJECTS]();
 
-    // allocate 12*MAX_OBJECTS elements for rotation matrix
+    // allocate 9*MAX_OBJECTS elements for rotation matrix
     rotMatrix = new (std::align_val_t(32)) ftype[MAX_OBJECTS * 9]();
     
     // initially there are 0 elements
@@ -1237,7 +1100,7 @@ void sphere::PlaneWrapper::fillEmptyPositions()
         xNor[idx] = lrgVal;
         yNor[idx] = lrgVal;
         zNor[idx] = lrgVal;
-        displacement[idx] = 114;
+        displacement[idx] = 2114;
     }
 }
 
