@@ -215,9 +215,11 @@ sphere::ftype sphere::Plane::distanceFunction(Vector pointPos)
     // rotate only if there is a non-zero rotation
     if (!isRotated){
         // only compute distance with translation
+        COUNT_OPS(2)
         return std::abs((pointPos - this->position) * this->normal - this->displacement);
     } else {
         // translate, rotate and compute distance
+        COUNT_OPS(1)
         Vector tr_point = Shape::translate_rotate(&pointPos);
         return std::abs(tr_point * this->normal - this->displacement);
     }
@@ -233,12 +235,14 @@ sphere::ftype sphere::Plane::distanceFunctionSquared(Vector pointPos)
     // rotate only if there is a non-zero rotation
     if (!isRotated){
         // only compute distance with translation
+        COUNT_OPS(2)
         ftype ret_val = (pointPos - this->position) * this->normal - this->displacement;
         return ret_val * ret_val;
     } else {
         // translate, rotate and compute distance
         Vector tr_point = Shape::translate_rotate(&pointPos);
         ftype ret_val = tr_point * this->normal - this->displacement;
+        COUNT_OPS(2)
         return ret_val * ret_val;
     }
 }
@@ -284,14 +288,18 @@ sphere::ftype sphere::Box::distanceFunction(Vector pointPos)
     Vector q = tr_point.absVal() - extents;
     ftype ret_val = 0;
     if(q.x >= 0.0){
+        COUNT_OPS(2)
         ret_val += q.x * q.x;
     }
     if(q.y >= 0.0){
+        COUNT_OPS(2)
         ret_val += q.y * q.y;
     }
     if(q.z >= 0.0){
+        COUNT_OPS(2)
         ret_val += q.z * q.z;
     }
+    COUNT_OPS(30)
     return sqrt(ret_val);
 }
 
@@ -355,7 +363,7 @@ sphere::ftype sphere::Sphere::distanceFunction(Vector pointPos)
 {
     // translate and rotate point such that object is at origin and in normal position
     Vector tr_point = pointPos - position;
-
+    COUNT_OPS(1)
     // calculate distance in this coordinate system
     return tr_point.length() - radius;
 }
@@ -413,6 +421,7 @@ sphere::ftype sphere::Torus::distanceFunction(Vector pointPos)
         tr_point = Shape::translate_rotate(&pointPos);
     }
     // calculate distance in this coordinate system
+    COUNT_OPS(38)
     Vect2D q = {sqrt(tr_point.x*tr_point.x + tr_point.z*tr_point.z) - this->r1, tr_point.y};
     return sqrt(q.x * q.x + q.y * q.y) - this->r2;
 }
@@ -478,6 +487,7 @@ sphere::ftype sphere::Octahedron::distanceFunction(Vector pointPos)
     Vector abs_tr_point = tr_point.absVal();
     ftype m = abs_tr_point.x + abs_tr_point.y + abs_tr_point.z - s;
     Vector r = abs_tr_point * 3.0 - m;
+    COUNT_OPS(6)
     Vector q;
     if (r.x < 0){
         q = abs_tr_point;
@@ -489,11 +499,13 @@ sphere::ftype sphere::Octahedron::distanceFunction(Vector pointPos)
         q = Vector(abs_tr_point.z, abs_tr_point.x, abs_tr_point.y);
     }
     else {
+        COUNT_OPS(1)
         return m*0.57735027;
     }
     ftype y_s = q.y - s;
     ftype to_clamp = 0.5*(q.z - y_s);
     ftype k = to_clamp < 0.0 ? 0.0 : (to_clamp > s ? s : to_clamp);
+    COUNT_OPS(5)
     return Vector(q.x, y_s + k, q.z - k).length();
 }
 
@@ -582,6 +594,7 @@ sphere::ftype sphere::Cone::distanceFunction(Vector pointPos)
         q.x - std::min(q.x, q.y < 0 ? r1 : r2),
         std::fabs(q.y) - h
     );
+    COUNT_OPS(40)
     Vector2 cb = q - this->k1 + this->k2 * std::clamp((this->k2 * (this->k1 - q)) *this->k2_dot_inv, 0.0, 1.0);
     ftype s = cb.x < 0.0 && ca.y < 0.0 ? -1.0 : 1.0;
     return s * std::sqrt(std::min(ca * ca, cb * cb));
