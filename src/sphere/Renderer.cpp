@@ -148,7 +148,11 @@ void sphere::Renderer::renderScene(std::string pathToOutputFile, itype width, it
 void sphere::Renderer::getMinDistances(ftype &minDist, ftype &min2Dist, Shape *&closestShape, Vector const &ray)
 {
     // compute distances to all shape types individually
+    #ifdef SPHERE_WITH_OPENMP
     ftype *destPtr = this->distances + numDist * omp_get_thread_num();
+    #else
+    ftype *destPtr = this->distances + numDist;
+    #endif
     ftype *dists = destPtr;
 
     BoxWrapper *box = scene->wBox;
