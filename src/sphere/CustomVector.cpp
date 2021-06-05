@@ -287,14 +287,14 @@ sphere::Vector sphere::Vector::rotate(ftype rotationMatrix[]) const
 std::tuple<bool, bool, bool> sphere::Vector::shadowAxes() const
 {
     if(std::fabs(x) > std::fabs(y) && std::fabs(x) > std::fabs(z)){
-        COUNT_OPS(4)
+        COUNT_OPS(4);
         return std::make_tuple(false, true, true);
     }
     if(std::fabs(y) > std::fabs(z)){
-        COUNT_OPS(6)
+        COUNT_OPS(6);
         return std::make_tuple(true, false, true);
     } else {
-        COUNT_OPS(6)
+        COUNT_OPS(6);
         return std::make_tuple(true, true, false);
     }
 }
@@ -469,7 +469,7 @@ sphere::Color& sphere::Color::operator+=(const Color &other)
  */
 sphere::Color sphere::Color::operator*(const ftype &other)
 {
-    COUNT_OPS(3)
+    COUNT_OPS(3);
     return Color(
         this->r * other,
         this->g * other,

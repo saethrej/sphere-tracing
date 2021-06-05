@@ -55,8 +55,8 @@ int main(int argc, char *argv[])
 
     // define the parameters that specify the benchmarking run
     // TODO: parametrize this somehow, e.g. via CMD argument
-    constexpr sphere::itype startWidth = 100, startHeight = 60;
-    constexpr sphere::itype incStepW = 100, incStepH = 60;
+    constexpr sphere::itype startWidth = 200, startHeight = 100;
+    constexpr sphere::itype incStepW = 200, incStepH = 100;
     constexpr sphere::itype numImages = 10;
 
     // parse the command line arguments
