@@ -95,7 +95,11 @@ void sphere::Renderer::addScene(std::string pathToSceneFile)
     this->numDist = rndToFour(scene->wBox->numElems) + rndToFour(scene->wCone->numElems)
                   + rndToFour(scene->wPlane->numElems) + rndToFour(scene->wOcta->numElems)
                   + rndToFour(scene->wSphere->numElems) + rndToFour(scene->wTorus->numElems);
+    #ifdef SPHERE_WITH_OPENMP
     itype numThreads = omp_get_max_threads();
+    #else
+    itype numThreads = 1;
+    #endif
     this->distances = new (std::align_val_t(32)) ftype[this->numDist * numThreads];
     
     // fill the distances with random large values that are later overwritten if 
