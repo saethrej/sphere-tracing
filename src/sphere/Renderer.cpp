@@ -213,6 +213,7 @@ sphere::Color sphere::Renderer::sphereTrace(Vector const &ray_origin, Vector con
         t = t + minDistance;
         COUNT_OPS(1);
     }
+    COUNT_OPS(1);
     return Color(0,0,0);
 }
 
