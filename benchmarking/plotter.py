@@ -6,7 +6,7 @@ FILENAMES_FLOPCOUNT = {
     "math" : "finalBenchmarks/flop-count_scene31_lto_mathematical.csv", # Andre said I should take this
     "lto" : "finalBenchmarks/flop-count_scene31_lto_mathematical.csv",
     "vect" : "finalBenchmarks/flop-count_scene31_vectorized.csv",
-    "vect_16" : "benchmarks_scenechange/runtimes_scene34_vect.csv"
+    "vect_16" : "benchmarks_scenechange/flop-count_scene34_vect.csv"
 }
 FILENAMES_RUNTIME = {
     "base" : "finalBenchmarks/runtimes_scene31_stable_baseline.csv",
@@ -15,7 +15,7 @@ FILENAMES_RUNTIME = {
     "lto" : "finalBenchmarks/runtimes_scene31_lto.csv",
     "vect" : "finalBenchmarks/runtimes_scene31_vectorized.csv",
     "omp" : "finalBenchmarks/runtimes_scene31_vectorized_omp.csv",
-    "vect_16" : "benchmarks_scenechange/flop-count_scene34_vect.csv"
+    "vect_16" : "benchmarks_scenechange/runtimes_scene34_vect.csv"
 }
 
 FILENAMES_SCENES_RUNTIMES_LTO = {
@@ -270,7 +270,6 @@ def calc_roofline(flops, bandwidth, n=10, ridge_index=-1):
         x_axis.append(ridge*(2**(i - ridge_index + 1)))
         y_axis.append(flops)
         i+=1
-    print(x_axis)
     return x_axis, y_axis
 
 
@@ -384,7 +383,6 @@ def roofline():
             this_data.append((flopcount) / (elem * 2.6 * 1e6))
         perf = np.median(this_data)
         intensity = flopcount / mapping['nr_bytes']
-        print(perf, intensity)
         plt.plot(intensity, perf,
                 mapping['point_des'], color=mapping['color'], label=mapping['name'])
 
@@ -483,7 +481,7 @@ def differentScenes():
     plt.show()
 
 if __name__ == "__main__":
-    runtime()
-    #roofline()
+    #runtime()
+    roofline()
     #perf_vs_input()
     #differentScenes()
