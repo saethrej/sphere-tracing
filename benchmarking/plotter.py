@@ -124,7 +124,7 @@ PERF_MAPPING = [
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "maroon"
+        "color" : "grey"
     },
     {
         "name": "Mathematical",
@@ -429,25 +429,39 @@ def roofline():
 def perf_vs_input():
     flop_counts = get_flop_counts()
     runtimes = get_runtimes()
-    input_sizes = get_input_sizes()
+    input_sizes = get_image_width()
 
-
+    # set the plot properties
     plt.style.use('seaborn')
     fig, ax = plt.subplots(1,1)
-    fig.set_size_inches(9,7)
+    fig.set_size_inches(10,6)
     ax.set_yscale('log', basey=2)
-    #plt.xlim([0.0, input_sizes[-1] + input_sizes[0]])
-    plt.xticks(
-        ticks=input_sizes,
-        labels=[0.02, 0.08, 0.18, 0.32, 0.5, 0.72, 0.98, 1.28, 1.62, 2.0]
-    )
-    plt.ylim([1, 32])
-    plt.yticks(
-        ticks=[1, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32],
-        labels=[r'$1$', r'$1.5$', r'$2$', r'$3$', r'$4$', 
-            r'$6$', r'$8$', r'$12$', r'$16$', r'$24$', r'$32$']
-    )
 
+    # limit the axes and set the axis ticks 
+    plt.xlim([150, 2050])
+    plt.ylim([0.7, 43])
+    plt.yticks(ticks=[1,2,4,8,16,32], labels=["1", "2", "4", "8", "16", "32"])
+    plt.xticks(ticks=input_sizes, labels=[200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000])
+
+
+    # title, x,y-axis labels and grid
+    plt.xlabel("Image Width [Pixels]", fontsize=14)
+    plt.ylabel("Performance [GFlop/s]", fontsize=14, loc='top', rotation=0, labelpad=-160)
+    plt.grid(b=None, which='major', axis='x', color='w')
+    plt.title(
+        "Performance on Different Image Sizes \nIntel Core i7-10750H @ 2.6 GHz, Memory @ 45.8 GB/s",
+        {
+            'verticalalignment': 'baseline',
+            'horizontalalignment': 'left'
+        }, 
+        loc = 'left',
+        pad = 30,
+        fontsize = 15,
+        fontweight = 'bold'
+    )
+    plt.tight_layout()    
+
+    # plot the actual data
     for mapping in PERF_MAPPING:
         runtime = runtimes[mapping['runtime']]
         flopcount = flop_counts[mapping['flopcount']]
@@ -464,17 +478,8 @@ def perf_vs_input():
         plt.errorbar(x=input_sizes, y=mapping['median'], 
                 yerr=mapping['std'], fmt=mapping['fmt'], 
                 color=mapping['color'], capsize=100,)
-        plt.text(x=mapping['x_coord'], y=mapping['y_coord'], s=mapping['name'], fontsize=12)
 
-    plt.xlabel(r"$\mathrm{ Input \  size \ (\# pixels} \cdot 10^{-6}\mathrm{)}$")
-    plt.ylabel("Performance [Gflops/s]")
-    plt.grid(axis="x")
-    plt.gca().patch.set_facecolor('0.8')
-    plt.title("Performance of different versions with different input sizes \nIntel Core i7-10750H @ 2.6GHz, Memory @ 45.8 GB/s\nSIMD-width: 256 bits",
-            {'verticalalignment': 'baseline', 'horizontalalignment': 'left'},
-            loc='left', pad=10, fontsize = 15, fontweight='bold'
-        )
-    #plt.savefig('perf_vs_input.eps', format='eps')
+    plt.savefig('perf_vs_input.pdf', format='pdf')
     plt.show()
 
 
@@ -507,7 +512,7 @@ def differentScenes():
     plt.show()
 
 if __name__ == "__main__":
-    runtime()
+    #runtime()
     #roofline()
-    #perf_vs_input()
+    perf_vs_input()
     #differentScenes()
