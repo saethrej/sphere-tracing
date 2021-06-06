@@ -5,7 +5,8 @@ FILENAMES_FLOPCOUNT = {
     "algo" : "finalBenchmarks/flop-count_scene31_algorithmic.csv",
     "math" : "finalBenchmarks/flop-count_scene31_lto_mathematical.csv", # Andre said I should take this
     "lto" : "finalBenchmarks/flop-count_scene31_lto_mathematical.csv",
-    "vect" : "finalBenchmarks/flop-count_scene31_vectorized.csv"
+    "vect" : "finalBenchmarks/flop-count_scene31_vectorized.csv",
+    "vect_16" : "benchmarks_scenechange/runtimes_scene34_vect.csv"
 }
 FILENAMES_RUNTIME = {
     "base" : "finalBenchmarks/runtimes_scene31_stable_baseline.csv",
@@ -13,7 +14,8 @@ FILENAMES_RUNTIME = {
     "math" : "finalBenchmarks/runtimes_scene31_mathematical.csv",
     "lto" : "finalBenchmarks/runtimes_scene31_lto.csv",
     "vect" : "finalBenchmarks/runtimes_scene31_vectorized.csv",
-    "omp" : "finalBenchmarks/runtimes_scene31_vectorized_omp.csv"
+    "omp" : "finalBenchmarks/runtimes_scene31_vectorized_omp.csv",
+    "vect_16" : "benchmarks_scenechange/flop-count_scene34_vect.csv"
 }
 
 FILENAMES_SCENES_RUNTIMES_LTO = {
@@ -215,6 +217,16 @@ ROOFLINE_MAPPING = [
         "point_des" : "o",
         "color" : "brown"
     },
+    {
+        "name": "Vectorized - Larger scene",
+        "runtime" : "vect_16",
+        "flopcount" : "vect_16",
+        "nr_bytes" : NR_BYTES_NON_VECTORIZED,
+        "peak_perf" : PEAK_PERF_NON_VECTORIZED,
+        "b_per_c" : BYTES_PER_CYCLES,
+        "point_des" : "o",
+        "color" : "maroon"
+    },
 ]
 
 
@@ -239,7 +251,7 @@ def calc_roofline(flops, bandwidth, n=10, ridge_index=-1):
     y_axis = []
     ridge = flops/bandwidth
     if ridge_index == -1:
-        ridge_index = n/3
+        ridge_index = n/10
     i = 0
     while(i<ridge_index):
         x_axis.append(ridge*(2**(i - ridge_index)))
@@ -252,6 +264,7 @@ def calc_roofline(flops, bandwidth, n=10, ridge_index=-1):
         x_axis.append(ridge*(2**(i - ridge_index + 1)))
         y_axis.append(flops)
         i+=1
+    print(x_axis)
     return x_axis, y_axis
 
 
@@ -331,9 +344,20 @@ def roofline():
     flop_counts = get_flop_counts()
     runtimes = get_runtimes()
 
-    x_notvector, y_notvector = calc_roofline(4, 25, ridge_index=3)
-    x_vector, y_vector = calc_roofline(16, 25, ridge_index=5)
+    x_notvector, y_notvector = calc_roofline(4, 25, n=20, ridge_index=3)
+    x_vector, y_vector = calc_roofline(16, 25, n=20, ridge_index=5)
     plt.style.use('seaborn')
+
+    plt.yscale("log", base=2)
+    plt.yticks(
+        ticks=[-1, 0, 0.5, 1, 1.5, 2, 3, 4, 6, 8, 12, 16, 24],
+        labels=[r'$-1$', r'$0$', r'$0.5$', r'$1$', r'$1.5$', r'$2$', r'$3$', r'$4$', 
+            r'$6$', r'$8$', r'$12$', r'$16$', r'$24$',]
+    )
+    plt.xscale("log", base=2)
+    plt.xticks(
+        ticks=[2**(-6), 2**(-4), 2**(-2), 2**(0), 2**(2), 2**(4), 2**(6), 2**(8), 2**(10), 2**(12), 2**(14)]
+    )
     plt.plot(x_vector, y_vector, label="Vector roofline")
     plt.plot(x_notvector, y_notvector, label="Scalar roofline")
 
@@ -342,21 +366,23 @@ def roofline():
         flopcount = flop_counts[mapping['flopcount']][-1]
         this_data = []
         for elem in runtime:
-            this_data.append((flopcount) / (elem *2.6 *10e6))
+            this_data.append((flopcount) / (elem * 2.6 * 1e6))
         perf = np.median(this_data)
         intensity = flopcount / mapping['nr_bytes']
-        print(intensity, perf)
+        print(perf, intensity)
         plt.plot(intensity, perf,
                 mapping['point_des'], color=mapping['color'], label=mapping['name'])
 
     plt.legend(loc="upper right")
     plt.xlabel("Operational Intensity [F/B]")
-    plt.xscale("log", base=2)
     plt.ylabel("Performance[F/C]", rotation=0, loc="top", labelpad=-107)
-    plt.yscale("log", base=2)
-    plt.xticks(ticks=[1/25, 4/25, 16/25,64/25, 256/25], labels=[r'$\dfrac{1}{25}$',r'$\dfrac{4}{25}$',r'$\dfrac{16}{25}$',r'$\dfrac{64}{25}$',r'$\dfrac{256}{25}$'])
+    #plt.xticks(ticks=[1/25, 4/25, 16/25,64/25, 256/25, ], labels=[r'$\dfrac{1}{25}$',r'$\dfrac{4}{25}$',r'$\dfrac{16}{25}$',r'$\dfrac{64}{25}$',r'$\dfrac{256}{25}$'])
     plt.title("Machine @ 2.0GHz with bandwidth of 50 GB/s\nSIMD vector length of 256 bits\nTwo instruction ports, latency 1 cycle", loc="left", pad=20)
-    plt.ylim([y_vector[0]/(1.5), 32])
+    plt.gca().patch.set_facecolor('0.8')
+    plt.title("Roofline plot \nIntel Core i7-10750H @ 2.6GHz, Memory @ 45.8 GB/s\nSIMD-width: 256 bits",
+            {'verticalalignment': 'baseline', 'horizontalalignment': 'left'},
+            loc='left', pad=10, fontsize = 15, fontweight='bold'
+        )
     #plt.savefig('roofline.eps', format='eps')
     plt.show()
 
