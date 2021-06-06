@@ -315,7 +315,7 @@ def runtime():
                 yerr=mapping['std'], fmt=mapping['fmt'], 
                 color=mapping['color'], capsize=100, label=mapping['name'])
         
-    plt.legend(loc="upper right")
+    plt.legend(loc="upper left")
     plt.xlabel("Input size (#pixels)")
     plt.ylabel("Runtime [ms]")
     plt.grid(axis="x")
@@ -423,7 +423,7 @@ def differentScenes():
     plt.style.use('seaborn')
     fig, ax = plt.subplots(1,1)
     fig.set_size_inches(9,7)
-    data_points_lto = [((elem/(runtime_lto[idx]/1000)) / (2.6 * 1e9))/ PEAK_PERF_NON_VECTORIZED * 100 for idx,elem in enumerate(flop_counts_lto)]
+    data_points_lto = [((elem/(runtime_lto[idx]/1000)) / (2.6 * 1e9))/ PEAK_PERF_VECTORIZED * 100 for idx,elem in enumerate(flop_counts_lto)]
     data_points_vect = [((elem/(runtime_vect[idx]/1000)) / (2.6 * 1e9))/PEAK_PERF_VECTORIZED * 100 for idx,elem in enumerate(flop_counts_vect)]
     plt.grid(axis="x")
     plt.gca().patch.set_facecolor('0.8')
@@ -442,7 +442,7 @@ def differentScenes():
     plt.show()
 
 if __name__ == "__main__":
-    #runtime()
+    runtime()
     #roofline()
-    perf_vs_input()
-    differentScenes()
+    #perf_vs_input()
+    #differentScenes()
