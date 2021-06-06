@@ -62,7 +62,8 @@ RUNTIME_MAPPING = [
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "orange"
+        "color" : "black",
+        "marker" : "X"
     },
     {
         "name": "Algorithmic",
@@ -70,7 +71,8 @@ RUNTIME_MAPPING = [
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "red"
+        "color" : "maroon",
+        "marker" : "D"
     },
     {
         "name": "Mathematical",
@@ -78,7 +80,8 @@ RUNTIME_MAPPING = [
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "blue"
+        "color" : "navy",
+        "marker" : "^"
     },
     {
         "name": "Link-time-optimized",
@@ -86,7 +89,8 @@ RUNTIME_MAPPING = [
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "yellow"
+        "color" : "olive",
+        "marker" : "P"
     },
     {
         "name": "Vectorized",
@@ -94,7 +98,8 @@ RUNTIME_MAPPING = [
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "green"
+        "color" : "darkgreen",
+        "marker" : "o"
     },
     {
         "name": "Parallelized",
@@ -102,7 +107,8 @@ RUNTIME_MAPPING = [
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "brown"
+        "color" : "brown",
+        "marker" : "s"
     },
 ]
 
@@ -306,22 +312,31 @@ def runtime():
         for i in range(len(runtime)):
             this_data = []
             for elem in runtime[i]:
-                this_data.append(elem)
+                this_data.append(elem/1000)
             median.append(np.median(this_data))
             std.append(np.std(this_data))
         mapping['median'] = median
         mapping['std'] = std
-        plt.errorbar(x=input_sizes, y=mapping['median'], 
-                yerr=mapping['std'], fmt=mapping['fmt'], 
-                color=mapping['color'], capsize=100, label=mapping['name'])
-        
-    plt.legend(loc="upper left")
+        plt.plot(input_sizes, mapping['median'], 
+                marker=mapping["marker"],
+                color=mapping['color'], label=mapping['name'])
+
+    plt.legend(loc="lower right")
     plt.xlabel("Input size (#pixels)")
-    plt.ylabel("Runtime [ms]")
+    plt.yscale("log", base=2)
+    plt.xscale("log", base=2)
+    plt.yticks([1/16,0.125, 0.25, 0.5, 1,2,4,8,16,32,64,128,256, 512])
+    plt.xticks(
+        ticks=input_sizes,
+        labels=[0.02, 0.08, 0.18, 0.32, 0.5, 0.72, 0.98, 1.28, 1.62, 2.0]
+    )    #plt.xscale("log", base=10)
+    plt.xlabel(r"$\mathrm{ Input \  size \ (\# pixels} \cdot 10^{-6}\mathrm{)}$")
+    plt.ylabel("Runtime [s]")
     plt.grid(axis="x")
-    plt.title("Runtime of different versions with different input sizes \nIntel Core i7-10750H @ 2.6GHz, Memory @ 45.8 GB/s\nSIMD-width: 256 bits",
+    plt.gca().patch.set_facecolor('0.8')
+    plt.title("Performance of different versions with different input sizes \nIntel Core i7-10750H @ 2.6GHz, Memory @ 45.8 GB/s\nSIMD-width: 256 bits",
             {'verticalalignment': 'baseline', 'horizontalalignment': 'left'},
-            loc='left', pad=30, fontsize = 15, fontweight='bold'
+            loc='left', pad=10, fontsize = 15, fontweight='bold'
         )
     #plt.savefig('runtime.eps', format='eps')
     plt.show()
