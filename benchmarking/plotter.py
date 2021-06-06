@@ -16,6 +16,37 @@ FILENAMES_RUNTIME = {
     "omp" : "finalBenchmarks/runtimes_scene31_vectorized_omp.csv"
 }
 
+FILENAMES_SCENES_RUNTIMES_LTO = {
+    "lto_4" : "benchmarks_scenechange/runtimes_scene31_lto.csv",
+    "lto_8" : "benchmarks_scenechange/runtimes_scene32_lto.csv",
+    "lto_12" : "benchmarks_scenechange/runtimes_scene33_lto.csv",
+    "lto_16" : "benchmarks_scenechange/runtimes_scene34_lto.csv"
+}
+
+FILENAMES_SCENES_RUNTIMES_VECT = {
+     
+    "vect_4" : "benchmarks_scenechange/runtimes_scene31_vect.csv",
+    "vect_8" : "benchmarks_scenechange/runtimes_scene32_vect.csv",
+    "vect_12" : "benchmarks_scenechange/runtimes_scene33_vect.csv",
+    "vect_16" : "benchmarks_scenechange/runtimes_scene34_vect.csv",
+
+}
+
+FILENAMES_SCENES_FLOPS_LTO = {
+    "lto_4" : "benchmarks_scenechange/flop-count_scene31_lto.csv",
+    "lto_8" : "benchmarks_scenechange/flop-count_scene32_lto.csv",
+    "lto_12" : "benchmarks_scenechange/flop-count_scene33_lto.csv",
+    "lto_16" : "benchmarks_scenechange/flop-count_scene34_lto.csv"
+}
+
+FILENAMES_SCENES_FLOPS_VECT = {
+    "vect_4" : "benchmarks_scenechange/flop-count_scene31_vect.csv",
+    "vect_8" : "benchmarks_scenechange/flop-count_scene32_vect.csv",
+    "vect_12" : "benchmarks_scenechange/flop-count_scene33_vect.csv",
+    "vect_16" : "benchmarks_scenechange/flop-count_scene34_vect.csv",
+}
+
+
 NR_BYTES_VECTORIZED = 30.5 * 2000000 # bytesperpixel * nr_pixels
 #TODO: change this number to correct value
 NR_BYTES_NON_VECTORIZED = 30.5 * 2000000
@@ -50,7 +81,7 @@ RUNTIME_MAPPING = [
         "color" : "blue"
     },
     {
-        "name": "Link-time-optimization",
+        "name": "Link-time-optimized",
         "runtime" : "lto",
         "median" : [],
         "std" : [],
@@ -85,21 +116,21 @@ PERF_MAPPING = [
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "red"
+        "color" : "maroon"
     },
     {
         "name": "Mathematical",
         "runtime" : "math",
         "flopcount" : "math",
         "x_coord" : 1700000,
-        "y_coord": 1.4,
+        "y_coord": 1.3,
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "blue"
+        "color" : "navy"
     },
     {
-        "name": "Link-time-optimization",
+        "name": "Link-time-optimized",
         "runtime" : "lto",
         "flopcount" : "lto",
         "x_coord" : 1700000,
@@ -107,7 +138,7 @@ PERF_MAPPING = [
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "yellow"
+        "color" : "olive"
     },
     {
         "name": "Vectorized",
@@ -118,14 +149,14 @@ PERF_MAPPING = [
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "green"
+        "color" : "darkgreen"
     },
     {
         "name": "Parallelized",
         "runtime" : "omp",
         "flopcount" : "vect",
         "x_coord" : 1700000,
-        "y_coord": 27,
+        "y_coord": 26,
         "median" : [],
         "std" : [],
         "fmt" : "-D",
@@ -142,7 +173,7 @@ ROOFLINE_MAPPING = [
         "peak_perf" : PEAK_PERF_NON_VECTORIZED,
         "b_per_c" : BYTES_PER_CYCLES,
         "point_des" : "o",
-        "color" : "red"
+        "color" : "maroon"
     },
     {
         "name": "Mathematical",
@@ -152,17 +183,17 @@ ROOFLINE_MAPPING = [
         "peak_perf" : PEAK_PERF_NON_VECTORIZED,
         "b_per_c" : BYTES_PER_CYCLES,
         "point_des" : "o",
-        "color" : "blue"
+        "color" : "navy"
     },
     {
-        "name": "Link-time-optimization",
+        "name": "Link-time-optimized",
         "runtime" : "lto",
         "flopcount" : "lto",
         "nr_bytes" : NR_BYTES_NON_VECTORIZED,
         "peak_perf" : PEAK_PERF_NON_VECTORIZED,
         "b_per_c" : BYTES_PER_CYCLES,
         "point_des" : "o",
-        "color" : "green"
+        "color" : "darkgreen"
     },
     {
         "name": "Vectorized",
@@ -172,7 +203,7 @@ ROOFLINE_MAPPING = [
         "peak_perf" : PEAK_PERF_NON_VECTORIZED,
         "b_per_c" : BYTES_PER_CYCLES,
         "point_des" : "o",
-        "color" : "yellow"
+        "color" : "olive"
     },
     {
         "name": "Parallelized",
@@ -184,6 +215,22 @@ ROOFLINE_MAPPING = [
         "point_des" : "o",
         "color" : "brown"
     },
+]
+
+
+SCENES_MAPPING = [
+    {
+        "name" : "Vectorized",
+        "peak_perf" : PEAK_PERF_VECTORIZED,
+        "color" : "maroon"
+
+    },
+    {
+        "name" : "Link-time optimized",
+        "peak_perf" : PEAK_PERF_NON_VECTORIZED,
+        "color" : "navy"
+
+    }
 ]
 
 
@@ -208,10 +255,10 @@ def calc_roofline(flops, bandwidth, n=10, ridge_index=-1):
     return x_axis, y_axis
 
 
-def get_flop_counts():
+def get_flop_counts(filenames_flopcount = FILENAMES_FLOPCOUNT):
     flop_counts = {}
-    for key in FILENAMES_FLOPCOUNT:
-        with open(FILENAMES_FLOPCOUNT[key]) as flop_file:
+    for key in filenames_flopcount:
+        with open(filenames_flopcount[key]) as flop_file:
             this_flops = []
             lines = flop_file.readlines()
             for line in lines:
@@ -220,10 +267,10 @@ def get_flop_counts():
     return flop_counts
 
 
-def get_runtimes():
+def get_runtimes(file_names_runtime = FILENAMES_RUNTIME):
     runtimes = {}
-    for key in FILENAMES_RUNTIME:
-        with open(FILENAMES_RUNTIME[key]) as runtime_file:
+    for key in file_names_runtime:
+        with open(file_names_runtime[key]) as runtime_file:
             this_runtimes = []
             lines = runtime_file.readlines()
             for line in lines:
@@ -302,7 +349,6 @@ def roofline():
         plt.plot(intensity, perf,
                 mapping['point_des'], color=mapping['color'], label=mapping['name'])
 
-
     plt.legend(loc="upper right")
     plt.xlabel("Operational Intensity [F/B]")
     plt.xscale("log", base=2)
@@ -325,11 +371,11 @@ def perf_vs_input():
     fig, ax = plt.subplots(1,1)
     fig.set_size_inches(9,7)
     ax.set_yscale('log', basey=2)
-    plt.xlim([0, input_sizes[-1] + input_sizes[0]])
-    #plt.xticks(
-    #    ticks=input_sizes,
-    #    labels=["20000", 80000, 180000, 320000, 500000, 720000, 980000, 1280000, 1620000, 2000000]
-    #)
+    #plt.xlim([0.0, input_sizes[-1] + input_sizes[0]])
+    plt.xticks(
+        ticks=input_sizes,
+        labels=[0.02, 0.08, 0.18, 0.32, 0.5, 0.72, 0.98, 1.28, 1.62, 2.0]
+    )
     plt.ylim([1, 32])
     plt.yticks(
         ticks=[1, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32],
@@ -355,9 +401,10 @@ def perf_vs_input():
                 color=mapping['color'], capsize=100,)
         plt.text(x=mapping['x_coord'], y=mapping['y_coord'], s=mapping['name'], fontsize=12)
 
-    plt.xlabel("Input size (#pixels)")
+    plt.xlabel(r"$\mathrm{ Input \  size \ (\# pixels} \cdot 10^{-6}\mathrm{)}$")
     plt.ylabel("Performance [Gflops/s]")
     plt.grid(axis="x")
+    plt.gca().patch.set_facecolor('0.8')
     plt.title("Performance of different versions with different input sizes \nIntel Core i7-10750H @ 2.6GHz, Memory @ 45.8 GB/s\nSIMD-width: 256 bits",
             {'verticalalignment': 'baseline', 'horizontalalignment': 'left'},
             loc='left', pad=10, fontsize = 15, fontweight='bold'
@@ -366,7 +413,36 @@ def perf_vs_input():
     plt.show()
 
 
+def differentScenes():
+    flop_counts_vect = np.array(list(get_flop_counts(FILENAMES_SCENES_FLOPS_VECT).values())).flatten()
+    flop_counts_lto = np.array(list(get_flop_counts(FILENAMES_SCENES_FLOPS_LTO).values())).flatten()
+    runtime_vect = np.squeeze(np.array(list(get_runtimes(FILENAMES_SCENES_RUNTIMES_VECT).values())))
+    runtime_lto = np.squeeze(np.array(list(get_runtimes(FILENAMES_SCENES_RUNTIMES_LTO).values())))
+    runtime_lto = [np.median(x) for x in runtime_lto]
+    runtime_vect = [np.median(x) for x in runtime_vect]
+    plt.style.use('seaborn')
+    fig, ax = plt.subplots(1,1)
+    fig.set_size_inches(9,7)
+    data_points_lto = [((elem/(runtime_lto[idx]/1000)) / (2.6 * 1e9))/ PEAK_PERF_NON_VECTORIZED * 100 for idx,elem in enumerate(flop_counts_lto)]
+    data_points_vect = [((elem/(runtime_vect[idx]/1000)) / (2.6 * 1e9))/PEAK_PERF_VECTORIZED * 100 for idx,elem in enumerate(flop_counts_vect)]
+    plt.grid(axis="x")
+    plt.gca().patch.set_facecolor('0.8')
+    x_axis = [4,8,12,16]
+    plt.xticks([4,8,12,16])
+    plt.plot(x_axis, data_points_lto, marker='D', color='navy')
+    plt.plot(x_axis, data_points_vect, marker='D', color='maroon')
+    plt.title(label="Intel(R) Core(TM) i7-10750H @2.6GHz \n GCC 9.3.0 \n L1d=192KiB, L2=1.5MiB, L3 = 12MiB",
+ fontdict={'fontsize': plt.rcParams['axes.titlesize'], 'fontweight' : plt.rcParams['axes.titleweight']}, loc='left',
+  pad=10, fontsize = 15, fontweight='bold')
+    plt.ylabel('Percentage of (single-core) SIMD Peak Performance [-]')
+    plt.xlabel('#Objects per Shape in Scene [-]')
+    plt.text(x=13, y=12.6, s='Link-time-optimized', fontsize=12)
+    plt.text(x=13, y=27, s='Vectorized', fontsize=12)
+
+    plt.show()
+
 if __name__ == "__main__":
     #runtime()
     #roofline()
     perf_vs_input()
+    differentScenes()
