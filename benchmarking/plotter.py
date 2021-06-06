@@ -73,7 +73,7 @@ RUNTIME_MAPPING = [
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "maroon",
+        "color" : "grey",
         "marker" : "D"
     },
     {
@@ -310,13 +310,50 @@ def get_input_sizes():
             input_sizes.append(float(numbers[0]) * float(numbers[1]))
     return input_sizes
 
+def get_image_width():
+    widths = []
+    with open(FILENAMES_FLOPCOUNT[list(FILENAMES_FLOPCOUNT.keys())[0]]) as some_file:
+        lines = some_file.readlines()
+        for line in lines:
+            numbers = line.split(",")
+            widths.append(float(numbers[0]))
+    return widths
+
 
 def runtime():
     runtimes = get_runtimes()
-    input_sizes = get_input_sizes()
+    input_sizes = get_image_width()
 
+    # set the plot properties
     plt.style.use('seaborn')
+    fig, ax = plt.subplots(1,1)
+    fig.set_size_inches(10,6)
+    ax.set_yscale('log', basey=10) # only use logarithmic scale for y
 
+    # limit the axes and set the y-axis ticks
+    plt.xlim([150, 2050])
+    plt.ylim([0.006, 1200])
+    plt.yticks(ticks=[0.01, 0.1, 1, 10, 100, 1000], labels=["0.01", "0.1", "1", "10", "100", "1000"])
+    plt.xticks(ticks=input_sizes, labels=[200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000])
+
+    # title, x,y-axis labels and grid
+    plt.xlabel("Image Width [Pixels]", fontsize=14)
+    plt.ylabel("Execution Time [s]", fontsize=14, loc='top', rotation=0, labelpad=-143)
+    plt.grid(b=None, which='major', axis='x', color='w')
+    plt.title(
+        "Execution Times on Different Image Sizes \nIntel Core i7-10750H @ 2.6 GHz, Memory @ 45.8 GB/s",
+        {
+            'verticalalignment': 'baseline',
+            'horizontalalignment': 'left'
+        }, 
+        loc = 'left',
+        pad = 30,
+        fontsize = 15,
+        fontweight = 'bold'
+    )
+    plt.tight_layout()
+
+    # plot the actual data
     for mapping in RUNTIME_MAPPING:
         runtime = runtimes[mapping['runtime']]
         median = []
@@ -329,28 +366,17 @@ def runtime():
             std.append(np.std(this_data))
         mapping['median'] = median
         mapping['std'] = std
-        plt.plot(input_sizes, mapping['median'], 
-                marker=mapping["marker"],
-                color=mapping['color'], label=mapping['name'])
 
-    plt.legend(loc="lower right")
-    plt.xlabel("Input size (#pixels)")
-    plt.yscale("log", base=2)
-    plt.xscale("log", base=2)
-    plt.yticks([1/16,0.125, 0.25, 0.5, 1,2,4,8,16,32,64,128,256, 512])
-    plt.xticks(
-        ticks=input_sizes,
-        labels=[0.02, 0.08, 0.18, 0.32, 0.5, 0.72, 0.98, 1.28, 1.62, 2.0]
-    )    #plt.xscale("log", base=10)
-    plt.xlabel(r"$\mathrm{ Input \  size \ (\# pixels} \cdot 10^{-6}\mathrm{)}$")
-    plt.ylabel("Runtime [s]")
-    plt.grid(axis="x")
-    plt.gca().patch.set_facecolor('0.8')
-    plt.title("Performance of different versions with different input sizes \nIntel Core i7-10750H @ 2.6GHz, Memory @ 45.8 GB/s\nSIMD-width: 256 bits",
-            {'verticalalignment': 'baseline', 'horizontalalignment': 'left'},
-            loc='left', pad=10, fontsize = 15, fontweight='bold'
+        # plot the data without mapping names
+        plt.plot(
+            input_sizes, 
+            mapping['median'], 
+            marker=mapping["marker"],
+            color=mapping['color'], 
+            #label=mapping['name']
         )
-    #plt.savefig('runtime.eps', format='eps')
+
+    plt.savefig('runtime-plot.pdf', format='pdf')
     plt.show()
 
 
@@ -481,7 +507,7 @@ def differentScenes():
     plt.show()
 
 if __name__ == "__main__":
-    #runtime()
-    roofline()
+    runtime()
+    #roofline()
     #perf_vs_input()
     #differentScenes()
