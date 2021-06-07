@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 FILENAMES_FLOPCOUNT = {
+    "base" : "finalBenchmarks/flop-count_scene31_base.csv",
     "algo" : "finalBenchmarks/flop-count_scene31_algorithmic.csv",
     "math" : "finalBenchmarks/flop-count_scene31_lto_mathematical.csv", # Andre said I should take this
     "lto" : "finalBenchmarks/flop-count_scene31_lto_mathematical.csv",
@@ -174,14 +175,24 @@ PERF_MAPPING = [
 
 ROOFLINE_MAPPING = [
     {
+        "name": "Baseline",
+        "runtime" : "base",
+        "flopcount" : "base",
+        "nr_bytes" : NR_BYTES_NON_VECTORIZED,
+        "peak_perf" : PEAK_PERF_NON_VECTORIZED,
+        "b_per_c" : BYTES_PER_CYCLES,
+        "point_des" : "^",
+        "color" : "black"
+    },
+    {
         "name": "Algorithmic",
         "runtime" : "algo",
         "flopcount" : "algo",
         "nr_bytes" : NR_BYTES_NON_VECTORIZED,
         "peak_perf" : PEAK_PERF_NON_VECTORIZED,
         "b_per_c" : BYTES_PER_CYCLES,
-        "point_des" : "o",
-        "color" : "maroon"
+        "point_des" : "P",
+        "color" : "grey"
     },
     {
         "name": "Mathematical",
@@ -190,7 +201,7 @@ ROOFLINE_MAPPING = [
         "nr_bytes" : NR_BYTES_NON_VECTORIZED,
         "peak_perf" : PEAK_PERF_NON_VECTORIZED,
         "b_per_c" : BYTES_PER_CYCLES,
-        "point_des" : "o",
+        "point_des" : "X",
         "color" : "navy"
     },
     {
@@ -200,8 +211,8 @@ ROOFLINE_MAPPING = [
         "nr_bytes" : NR_BYTES_NON_VECTORIZED,
         "peak_perf" : PEAK_PERF_NON_VECTORIZED,
         "b_per_c" : BYTES_PER_CYCLES,
-        "point_des" : "o",
-        "color" : "darkgreen"
+        "point_des" : "D",
+        "color" : "olive"
     },
     {
         "name": "Vectorized",
@@ -210,8 +221,8 @@ ROOFLINE_MAPPING = [
         "nr_bytes" : NR_BYTES_NON_VECTORIZED,
         "peak_perf" : PEAK_PERF_NON_VECTORIZED,
         "b_per_c" : BYTES_PER_CYCLES,
-        "point_des" : "o",
-        "color" : "olive"
+        "point_des" : "^",
+        "color" : "darkgreen"
     },
     {
         "name": "Parallelized",
@@ -220,7 +231,7 @@ ROOFLINE_MAPPING = [
         "nr_bytes" : NR_BYTES_NON_VECTORIZED,
         "peak_perf" : PEAK_PERF_NON_VECTORIZED,
         "b_per_c" : BYTES_PER_CYCLES,
-        "point_des" : "o",
+        "point_des" : "X",
         "color" : "brown"
     },
     {
@@ -230,8 +241,8 @@ ROOFLINE_MAPPING = [
         "nr_bytes" : NR_BYTES_NON_VECTORIZED,
         "peak_perf" : PEAK_PERF_NON_VECTORIZED,
         "b_per_c" : BYTES_PER_CYCLES,
-        "point_des" : "o",
-        "color" : "maroon"
+        "point_des" : "s",
+        "color" : "darkgreen"
     },
 ]
 
@@ -251,8 +262,7 @@ SCENES_MAPPING = [
     }
 ]
 
-
-def calc_roofline(flops, bandwidth, n=10, ridge_index=-1):
+def calc_roofline(flops, bandwidth, n=10, ridge_index=-1, x_dist=1):
     x_axis = []
     y_axis = []
     ridge = flops/bandwidth
@@ -260,14 +270,14 @@ def calc_roofline(flops, bandwidth, n=10, ridge_index=-1):
         ridge_index = n/10
     i = 0
     while(i<ridge_index):
-        x_axis.append(ridge*(2**(i - ridge_index)))
-        y_axis.append(flops*(2**(i - ridge_index)))
+        x_axis.append(ridge*(2**(i - ridge_index - x_dist)))
+        y_axis.append(flops*(2**(i - ridge_index - x_dist)))
         i+=1
     x_axis.append(ridge)
     y_axis.append(flops)
     i+=1
     while(i < n):
-        x_axis.append(ridge*(2**(i - ridge_index + 1)))
+        x_axis.append(ridge*(2**(i - ridge_index + x_dist + 1)))
         y_axis.append(flops)
         i+=1
     return x_axis, y_axis
@@ -384,23 +394,52 @@ def roofline():
     flop_counts = get_flop_counts()
     runtimes = get_runtimes()
 
-    x_notvector, y_notvector = calc_roofline(4, 25, n=20, ridge_index=3)
-    x_vector, y_vector = calc_roofline(16, 25, n=20, ridge_index=5)
+    x_seq, y_seq = calc_roofline(4, 17.61, n=50, ridge_index=2, x_dist=2)
+    x_simd, y_simd = calc_roofline(16, 17.61, n=50, ridge_index=4, x_dist=2)
+    x_par, y_par = calc_roofline(96, 17.61, n=50, ridge_index=7, x_dist=2)
+    
+    # set the plot properties
     plt.style.use('seaborn')
+    fig, ax = plt.subplots(1,1)
+    fig.set_size_inches(10,6)
+    ax.set_xscale('log', basex=2)
+    ax.set_yscale('log', basey=2)
 
-    plt.yscale("log", base=2)
-    plt.yticks(
-        ticks=[-1, 0, 0.5, 1, 1.5, 2, 3, 4, 6, 8, 12, 16, 24],
-        labels=[r'$-1$', r'$0$', r'$0.5$', r'$1$', r'$1.5$', r'$2$', r'$3$', r'$4$', 
-            r'$6$', r'$8$', r'$12$', r'$16$', r'$24$',]
-    )
-    plt.xscale("log", base=2)
+    # limit the axes and set the axis ticks
+    plt.xlim([1/64, 2**16])
+    plt.ylim([0.125, 170])
     plt.xticks(
-        ticks=[2**(-6), 2**(-4), 2**(-2), 2**(0), 2**(2), 2**(4), 2**(6), 2**(8), 2**(10), 2**(12), 2**(14)]
+        ticks=[1/64, 1/16, 1/4, 1, 4, 16, 64, 256, 1024, 4096, 16384, 65536],
+        labels=[r'$\dfrac{1}{64}$', r'$\dfrac{1}{16}$', r'$\dfrac{1}{4}$', r"$1$", "4", "16", "64", "256", "1,024", "4,096", "16,384", "65,536"]
     )
-    plt.plot(x_vector, y_vector, label="Vector roofline")
-    plt.plot(x_notvector, y_notvector, label="Scalar roofline")
+    plt.yticks(
+        ticks=[1/4, 1, 4, 16, 64],
+        labels=[r'$\dfrac{1}{4}$', "1", "4", "16", "64"]
+    )
 
+    # title, x,y-axis labels and grid
+    plt.xlabel("Operational Intensity [Flops/Byte]", fontsize=14)
+    plt.ylabel("Performance [Flops/Cycle]", fontsize=14, loc='top', rotation=0, labelpad=-186)
+    plt.grid(b=None, which='major', axis='x', color='w')
+    #plt.grid(b=None, which='major', axis='y', color='w')
+    plt.title(
+        "Roofline Plot considering only Compulsory Misses \nIntel Core i7-10750H @ 2.6 GHz, Memory @ 45.8 GB/s",
+        {
+            'verticalalignment': 'baseline',
+            'horizontalalignment': 'left'
+        }, 
+        loc = 'left',
+        pad = 30,
+        fontsize = 15,
+        fontweight = 'bold'
+    )
+    plt.tight_layout()
+    
+    plt.plot(x_simd, y_simd, '--', linewidth=1.5, color='maroon')
+    plt.plot(x_seq, y_seq, '-', linewidth=1.5, color='maroon')
+    plt.plot(x_par, y_par, ':', linewidth=1.5, color='maroon')
+
+    # plot actual data
     for mapping in ROOFLINE_MAPPING:
         runtime = runtimes[mapping['runtime']][-1]
         flopcount = flop_counts[mapping['flopcount']][-1]
@@ -412,17 +451,7 @@ def roofline():
         plt.plot(intensity, perf,
                 mapping['point_des'], color=mapping['color'], label=mapping['name'])
 
-    plt.legend(loc="upper right")
-    plt.xlabel("Operational Intensity [F/B]")
-    plt.ylabel("Performance[F/C]", rotation=0, loc="top", labelpad=-107)
-    #plt.xticks(ticks=[1/25, 4/25, 16/25,64/25, 256/25, ], labels=[r'$\dfrac{1}{25}$',r'$\dfrac{4}{25}$',r'$\dfrac{16}{25}$',r'$\dfrac{64}{25}$',r'$\dfrac{256}{25}$'])
-    plt.title("Machine @ 2.0GHz with bandwidth of 50 GB/s\nSIMD vector length of 256 bits\nTwo instruction ports, latency 1 cycle", loc="left", pad=20)
-    plt.gca().patch.set_facecolor('0.8')
-    plt.title("Roofline plot \nIntel Core i7-10750H @ 2.6GHz, Memory @ 45.8 GB/s\nSIMD-width: 256 bits",
-            {'verticalalignment': 'baseline', 'horizontalalignment': 'left'},
-            loc='left', pad=10, fontsize = 15, fontweight='bold'
-        )
-    #plt.savefig('roofline.eps', format='eps')
+    plt.savefig('roofline.pdf', format='pdf')
     plt.show()
 
 
@@ -442,7 +471,6 @@ def perf_vs_input():
     plt.ylim([0.7, 43])
     plt.yticks(ticks=[1,2,4,8,16,32], labels=["1", "2", "4", "8", "16", "32"])
     plt.xticks(ticks=input_sizes, labels=[200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000])
-
 
     # title, x,y-axis labels and grid
     plt.xlabel("Image Width [Pixels]", fontsize=14)
@@ -490,29 +518,48 @@ def differentScenes():
     runtime_lto = np.squeeze(np.array(list(get_runtimes(FILENAMES_SCENES_RUNTIMES_LTO).values())))
     runtime_lto = [np.median(x) for x in runtime_lto]
     runtime_vect = [np.median(x) for x in runtime_vect]
-    plt.style.use('seaborn')
-    fig, ax = plt.subplots(1,1)
-    fig.set_size_inches(9,7)
     data_points_lto = [((elem/(runtime_lto[idx]/1000)) / (2.6 * 1e9))/ PEAK_PERF_VECTORIZED * 100 for idx,elem in enumerate(flop_counts_lto)]
     data_points_vect = [((elem/(runtime_vect[idx]/1000)) / (2.6 * 1e9))/PEAK_PERF_VECTORIZED * 100 for idx,elem in enumerate(flop_counts_vect)]
-    plt.grid(axis="x")
-    plt.gca().patch.set_facecolor('0.8')
-    x_axis = [4,8,12,16]
-    plt.xticks([4,8,12,16])
-    plt.plot(x_axis, data_points_lto, marker='D', color='navy')
-    plt.plot(x_axis, data_points_vect, marker='D', color='maroon')
-    plt.title(label="Intel(R) Core(TM) i7-10750H @2.6GHz \n GCC 9.3.0 \n L1d=192KiB, L2=1.5MiB, L3 = 12MiB",
- fontdict={'fontsize': plt.rcParams['axes.titlesize'], 'fontweight' : plt.rcParams['axes.titleweight']}, loc='left',
-  pad=10, fontsize = 15, fontweight='bold')
-    plt.ylabel('Percentage of (single-core) SIMD Peak Performance [-]')
-    plt.xlabel('#Objects per Shape in Scene [-]')
-    plt.text(x=13, y=12.6, s='Link-time-optimized', fontsize=12)
-    plt.text(x=13, y=27, s='Vectorized', fontsize=12)
 
+
+    # set the plot properties
+    plt.style.use('seaborn')
+    fig, ax = plt.subplots(1,1)
+    fig.set_size_inches(10,6)
+
+    # limit the axes and set the axis ticks
+    plt.xlim([3.5, 16.5])
+    plt.ylim([6, 31.5])
+    x_axis = [4,8,12,16]
+    plt.xticks(x_axis)
+
+    # title, x,y-axis labels and grid
+    plt.xlabel("Number of Objects per Shape Type in Scene [-]", fontsize=14)
+    plt.ylabel("Fraction of Single Core Peak Performance [%]", fontsize=14, loc='top', rotation=0, labelpad=-308)
+    plt.grid(b=None, which='major', axis='x', color='w')
+    #plt.grid(b=None, which='major', axis='y', color='w')
+    plt.title(
+        "Performance on Scenes of Different Sizes \nIntel Core i7-10750H @ 2.6 GHz, Memory @ 45.8 GB/s",
+        {
+            'verticalalignment': 'baseline',
+            'horizontalalignment': 'left'
+        }, 
+        loc = 'left',
+        pad = 30,
+        fontsize = 15,
+        fontweight = 'bold'
+    )
+    plt.tight_layout()
+
+    # plot the actual data
+    plt.plot(x_axis, data_points_lto, marker='D', color='olive')
+    plt.plot(x_axis, data_points_vect, marker='D', color='darkgreen')
+
+    plt.savefig("diffScenes.pdf", format='pdf')
     plt.show()
 
 if __name__ == "__main__":
     #runtime()
     #roofline()
-    perf_vs_input()
-    #differentScenes()
+    #perf_vs_input()
+    differentScenes()
