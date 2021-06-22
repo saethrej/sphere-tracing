@@ -1,0 +1,1893 @@
+{
+    "camera": {
+      "fov": 30,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    },
+    "pointlight": {
+      "position": {
+        "x": 0,
+        "y": 100,
+        "z": 0
+      },
+      "emission": {
+        "x": 200,
+        "y": 200,
+        "z": 200
+      }
+    },
+    "objects": [
+      {
+        "kind": "plane",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0,
+        "shininess": 15,
+        "color": {
+          "x": 0.8,
+          "y": 0.8,
+          "z": 0.8
+        },
+        "params": {
+          "normal": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+          },
+          "displacement": -3
+        }
+      },
+      {
+        "kind": "plane",
+        "position": {
+          "x": -20,
+          "y": 0,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0.5,
+          "y": 0.5,
+          "z": 0.5
+        },
+        "params": {
+          "normal": {
+            "x": 1,
+            "y": 0,
+            "z": -0.1
+          },
+          "displacement": -3
+        }
+      },
+      {
+        "kind": "plane",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0.2,
+          "y": 0.2,
+          "z": 0.2
+        },
+        "params": {
+          "normal": {
+            "x": 0,
+            "y": 1,
+            "z": -0.1
+          },
+          "displacement": -12
+        }
+      },
+      {
+        "kind": "plane",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0.2,
+          "y": 0.2,
+          "z": 0.2
+        },
+        "params": {
+          "normal": {
+            "x": 0,
+            "y": 1,
+            "z": -0.1
+          },
+          "displacement": -15
+        }
+      },
+      {
+        "kind": "sphere",
+        "position": {
+          "x": 6,
+          "y": 7,
+          "z": 60
+        },
+        "rotation": {
+          "x": 10,
+          "y": 50,
+          "z": 60
+        },
+        "reflection": 0.5,
+        "shininess": 80,
+        "color": {
+          "x": 0,
+          "y": 0.5,
+          "z": 0
+        },
+        "params": {
+          "radius": 10
+        }
+      },
+      {
+        "kind": "sphere",
+        "position": {
+          "x": -2,
+          "y": -2.2,
+          "z": 14
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0,
+          "y": 0,
+          "z": 0.5
+        },
+        "params": {
+          "radius": 0.8
+        }
+      },
+      {
+        "kind": "sphere",
+        "position": {
+          "x": 12,
+          "y": 2,
+          "z": 35
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0.5,
+        "shininess": 80,
+        "color": {
+          "x": 0.4,
+          "y": 0.4,
+          "z": 0
+        },
+        "params": {
+          "radius": 5
+        }
+      },
+      {
+        "kind": "sphere",
+        "position": {
+          "x": -7,
+          "y": -0.5,
+          "z": 28
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0.5,
+        "shininess": 80,
+        "color": {
+          "x": 0,
+          "y": 0.4,
+          "z": 0.4
+        },
+        "params": {
+          "radius": 2.5
+        }
+      },
+      {
+        "kind": "sphere",
+        "position": {
+          "x": -4,
+          "y": -2.5,
+          "z": 14
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0.5,
+        "shininess": 80,
+        "color": {
+          "x": 0.8,
+          "y": 0.2,
+          "z": 0.6
+        },
+        "params": {
+          "radius": 1
+        }
+      },
+      {
+        "kind": "sphere",
+        "position": {
+          "x": -5,
+          "y": 3.5,
+          "z": 16
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0.1,
+        "shininess": 80,
+        "color": {
+          "x": 0.1,
+          "y": 0.1,
+          "z": 0.1
+        },
+        "params": {
+          "radius": 1
+        }
+      },
+      {
+        "kind": "sphere",
+        "position": {
+          "x": -14.5,
+          "y": -1.5,
+          "z": 30
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0.1,
+        "shininess": 80,
+        "color": {
+          "x": 0.8,
+          "y": 0.1,
+          "z": 0.1
+        },
+        "params": {
+          "radius": 1.5
+        }
+      },
+      {
+        "kind": "sphere",
+        "position": {
+          "x": 0,
+          "y": -2.7,
+          "z": 10
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0,
+        "shininess": 5,
+        "color": {
+          "x": 0.5,
+          "y": 0.3,
+          "z": 0.2
+        },
+        "params": {
+          "radius": 1.0
+        }
+      },
+      {
+        "kind": "cone",
+        "position": {
+          "x": 3,
+          "y": 2.1,
+          "z": 17
+        },
+        "rotation": {
+          "x": 120,
+          "y": 90,
+          "z": 10
+        },
+        "reflection": 0.8,
+        "shininess": 88,
+        "color": {
+          "x": 0.3,
+          "y": 0.2,
+          "z": 0.5
+        },
+        "params": [
+          0.9,
+          0.7,
+          1.6
+        ]
+      },
+      {
+        "kind": "cone",
+        "position": {
+          "x": 3,
+          "y": -2.4,
+          "z": 17
+        },
+        "rotation": {
+          "x": 14,
+          "y": 34,
+          "z": 17
+        },
+        "reflection": 0.4,
+        "shininess": 33,
+        "color": {
+          "x": 0.4,
+          "y": 0.4,
+          "z": 0.1
+        },
+        "params": [
+          0.6,
+          1.4,
+          2
+        ]
+      },
+      {
+        "kind": "cone",
+        "position": {
+          "x": 8,
+          "y": -1.5,
+          "z": 17
+        },
+        "rotation": {
+          "x": 11.5,
+          "y": 23.6,
+          "z": 0
+        },
+        "reflection": 0.4,
+        "shininess": 60,
+        "color": {
+          "x": 0.23,
+          "y": 0,
+          "z": 0.4
+        },
+        "params": [
+          1.7,
+          1.3,
+          0.8
+        ]
+      },
+      {
+        "kind": "cone",
+        "position": {
+          "x": -2,
+          "y": 2.0,
+          "z": 47
+        },
+        "rotation": {
+          "x": 330,
+          "y": 20.6,
+          "z": 13
+        },
+        "reflection": 0.3,
+        "shininess": 70,
+        "color": {
+          "x": 0.33,
+          "y": 0.2,
+          "z": 0.1
+        },
+        "params": [
+          4,
+          2.1,
+          1.6
+        ]
+      },
+      {
+        "kind": "torus",
+        "position": {
+          "x": 1.5,
+          "y": 0,
+          "z": 4
+        },
+        "rotation": {
+          "x": 60.2,
+          "y": 30.8,
+          "z": 0.7
+        },
+        "reflection": 0.4,
+        "shininess": 60,
+        "color": {
+          "x": 0.1,
+          "y": 0.5,
+          "z": 0.1
+        },
+        "params": {
+          "r1": 0.15,
+          "r2": 0.075
+        }
+      },
+      {
+        "kind": "torus",
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 20
+        },
+        "rotation": {
+          "x": 110,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0.4,
+          "y": 0,
+          "z": 0
+        },
+        "params": {
+          "r1": 3,
+          "r2": 0.4
+        }
+      },
+      {
+        "kind": "torus",
+        "position": {
+          "x": 3,
+          "y": -2.4,
+          "z": 13
+        },
+        "rotation": {
+          "x": 10,
+          "y": 50,
+          "z": 0
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0,
+          "y": 0,
+          "z": 0.5
+        },
+        "params": {
+          "r1": 0.6,
+          "r2": 0.4
+        }
+      },
+      {
+        "kind": "torus",
+        "position": {
+          "x": -3,
+          "y": -2.4,
+          "z": 73
+        },
+        "rotation": {
+          "x": 70,
+          "y": 20,
+          "z": 20
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0,
+          "y": 0.4,
+          "z": 0.5
+        },
+        "params": {
+          "r1": 8.6,
+          "r2": 2.4
+        }
+      },
+      {
+        "kind": "octahedron",
+        "position": {
+          "x": -13.5,
+          "y": 0,
+          "z": 42
+        },
+        "rotation": {
+          "x": 0,
+          "y": 160,
+          "z": 0
+        },
+        "reflection": 0.4,
+        "shininess": 60,
+        "color": {
+          "x": 0.6,
+          "y": 0.1,
+          "z": 0
+        },
+        "params": {
+          "s": 4.3
+        }
+      },
+      {
+        "kind": "octahedron",
+        "position": {
+          "x": -7.5,
+          "y": -2,
+          "z": 14
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 40
+        },
+        "reflection": 0.4,
+        "shininess": 60,
+        "color": {
+          "x": 0.31,
+          "y": 0.15,
+          "z": 0.2
+        },
+        "params": {
+          "s": 1.0
+        }
+      },
+      {
+        "kind": "octahedron",
+        "position": {
+          "x": -7.5,
+          "y": -2.5,
+          "z": 17
+        },
+        "rotation": {
+          "x": 20,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0.4,
+        "shininess": 60,
+        "color": {
+          "x": 0.1,
+          "y": 0.5,
+          "z": 0.3
+        },
+        "params": {
+          "s": 0.5
+        }
+      },
+      {
+        "kind": "octahedron",
+        "position": {
+          "x": -0.5,
+          "y": -1.0,
+          "z": 27
+        },
+        "rotation": {
+          "x": 0,
+          "y": 10.0,
+          "z": 10.5
+        },
+        "reflection": 0.4,
+        "shininess": 60,
+        "color": {
+          "x": 0.1,
+          "y": 0.4,
+          "z": 0
+        },
+        "params": {
+          "s": 1.3
+        }
+      },
+      {
+        "kind": "box",
+        "position": {
+          "x": -3.5,
+          "y": 2,
+          "z": 15
+        },
+        "rotation": {
+          "x": -1.5,
+          "y": -1.5,
+          "z": 12
+        },
+        "reflection": 0,
+        "shininess": 15,
+        "color": {
+          "x": 0.4,
+          "y": 0,
+          "z": 0.4
+        },
+        "params": {
+          "extents": {
+            "x": 0.25,
+            "y": 0.5,
+            "z": 1
+          }
+        }
+      },
+      {
+        "kind": "box",
+        "position": {
+          "x": 6.5,
+          "y": -1.2,
+          "z": 25
+        },
+        "rotation": {
+          "x": 0.1,
+          "y": 0.1,
+          "z": 1
+        },
+        "reflection": 0.3,
+        "shininess": 80,
+        "color": {
+          "x": 0.4,
+          "y": 0.05,
+          "z": 0.05
+        },
+        "params": {
+          "extents": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        }
+      },
+      {
+        "kind": "box",
+        "position": {
+          "x": 4,
+          "y": -2.7,
+          "z": 11
+        },
+        "rotation": {
+          "x": 110.3,
+          "y": 0.2,
+          "z": 0.3
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0.1,
+          "y": 0.1,
+          "z": 0.1
+        },
+        "params": {
+          "extents": {
+            "x": 0.3,
+            "y": 0.5,
+            "z": 0.2
+          }
+        }
+      },
+      {
+        "kind": "box",
+        "position": {
+          "x": 30,
+          "y": 15,
+          "z": 90
+        },
+        "rotation": {
+          "x": 110.3,
+          "y": 0.2,
+          "z": 0.3
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0.3,
+          "y": 0.3,
+          "z": 0.3
+        },
+        "params": {
+          "extents": {
+            "x": 10,
+            "y": 10,
+            "z": 1
+          }
+        }
+      },
+
+
+      {
+        "kind": "torus",
+        "position": {
+          "x": -3,
+          "y": 100,
+          "z": 20
+        },
+        "rotation": {
+          "x": 70,
+          "y": 20,
+          "z": 300
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0,
+          "y": 0.4,
+          "z": 0.5
+        },
+        "params": {
+          "r1": 8.6,
+          "r2": 2.4
+        }
+      },
+      {
+        "kind": "torus",
+        "position": {
+          "x": -3,
+          "y": 100,
+          "z": 20
+        },
+        "rotation": {
+          "x": 70,
+          "y": 20,
+          "z": 300
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0,
+          "y": 0.4,
+          "z": 0.5
+        },
+        "params": {
+          "r1": 8.6,
+          "r2": 2.4
+        }
+      },
+      {
+        "kind": "torus",
+        "position": {
+          "x": -3,
+          "y": 100,
+          "z": 20
+        },
+        "rotation": {
+          "x": 70,
+          "y": 20,
+          "z": 300
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0,
+          "y": 0.4,
+          "z": 0.5
+        },
+        "params": {
+          "r1": 8.6,
+          "r2": 2.4
+        }
+      },
+      {
+        "kind": "torus",
+        "position": {
+          "x": -3,
+          "y": 100,
+          "z": 20
+        },
+        "rotation": {
+          "x": 70,
+          "y": 20,
+          "z": 300
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0,
+          "y": 0.4,
+          "z": 0.5
+        },
+        "params": {
+          "r1": 8.6,
+          "r2": 2.4
+        }
+      },
+
+
+
+      {
+        "kind": "cone",
+        "position": {
+          "x": -35,
+          "y": 2.0,
+          "z": 47
+        },
+        "rotation": {
+          "x": 330,
+          "y": 20.6,
+          "z": 13
+        },
+        "reflection": 0.3,
+        "shininess": 70,
+        "color": {
+          "x": 0.33,
+          "y": 0.2,
+          "z": 0.1
+        },
+        "params": [
+          4,
+          2.1,
+          1.6
+        ]
+      },
+
+      {
+        "kind": "cone",
+        "position": {
+          "x": -35,
+          "y": 2.0,
+          "z": 47
+        },
+        "rotation": {
+          "x": 330,
+          "y": 20.6,
+          "z": 13
+        },
+        "reflection": 0.3,
+        "shininess": 70,
+        "color": {
+          "x": 0.33,
+          "y": 0.2,
+          "z": 0.1
+        },
+        "params": [
+          4,
+          2.1,
+          1.6
+        ]
+      },{
+        "kind": "cone",
+        "position": {
+          "x": -35,
+          "y": 2.0,
+          "z": 47
+        },
+        "rotation": {
+          "x": 330,
+          "y": 20.6,
+          "z": 13
+        },
+        "reflection": 0.3,
+        "shininess": 70,
+        "color": {
+          "x": 0.33,
+          "y": 0.2,
+          "z": 0.1
+        },
+        "params": [
+          4,
+          2.1,
+          1.6
+        ]
+      },{
+        "kind": "cone",
+        "position": {
+          "x": -35,
+          "y": 2.0,
+          "z": 47
+        },
+        "rotation": {
+          "x": 330,
+          "y": 20.6,
+          "z": 13
+        },
+        "reflection": 0.3,
+        "shininess": 70,
+        "color": {
+          "x": 0.33,
+          "y": 0.2,
+          "z": 0.1
+        },
+        "params": [
+          4,
+          2.1,
+          1.6
+        ]
+      },
+
+
+
+
+
+      {
+        "kind": "octahedron",
+        "position": {
+          "x": 40,
+          "y": -1.0,
+          "z": 27
+        },
+        "rotation": {
+          "x": 0,
+          "y": 10.0,
+          "z": 10.5
+        },
+        "reflection": 0.4,
+        "shininess": 60,
+        "color": {
+          "x": 0.1,
+          "y": 0.4,
+          "z": 0
+        },
+        "params": {
+          "s": 1.3
+        }
+      },
+      {
+        "kind": "octahedron",
+        "position": {
+          "x": 40,
+          "y": -1.0,
+          "z": 27
+        },
+        "rotation": {
+          "x": 0,
+          "y": 10.0,
+          "z": 10.5
+        },
+        "reflection": 0.4,
+        "shininess": 60,
+        "color": {
+          "x": 0.1,
+          "y": 0.4,
+          "z": 0
+        },
+        "params": {
+          "s": 1.3
+        }
+      },
+      {
+        "kind": "octahedron",
+        "position": {
+          "x": 40,
+          "y": -1.0,
+          "z": 27
+        },
+        "rotation": {
+          "x": 0,
+          "y": 10.0,
+          "z": 10.5
+        },
+        "reflection": 0.4,
+        "shininess": 60,
+        "color": {
+          "x": 0.1,
+          "y": 0.4,
+          "z": 0
+        },
+        "params": {
+          "s": 1.3
+        }
+      },
+      {
+        "kind": "octahedron",
+        "position": {
+          "x": 40,
+          "y": -1.0,
+          "z": 27
+        },
+        "rotation": {
+          "x": 0,
+          "y": 10.0,
+          "z": 10.5
+        },
+        "reflection": 0.4,
+        "shininess": 60,
+        "color": {
+          "x": 0.1,
+          "y": 0.4,
+          "z": 0
+        },
+        "params": {
+          "s": 1.3
+        }
+      },
+
+
+
+
+
+
+
+
+
+      {
+        "kind": "box",
+        "position": {
+          "x": 30,
+          "y": -50,
+          "z": 90
+        },
+        "rotation": {
+          "x": 110.3,
+          "y": 0.2,
+          "z": 0.3
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0.3,
+          "y": 0.3,
+          "z": 0.3
+        },
+        "params": {
+          "extents": {
+            "x": 10,
+            "y": 10,
+            "z": 1
+          }
+        }
+      },
+      {
+        "kind": "box",
+        "position": {
+          "x": 30,
+          "y": -50,
+          "z": 90
+        },
+        "rotation": {
+          "x": 110.3,
+          "y": 0.2,
+          "z": 0.3
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0.3,
+          "y": 0.3,
+          "z": 0.3
+        },
+        "params": {
+          "extents": {
+            "x": 10,
+            "y": 10,
+            "z": 1
+          }
+        }
+      },
+      {
+        "kind": "box",
+        "position": {
+          "x": 30,
+          "y": -50,
+          "z": 90
+        },
+        "rotation": {
+          "x": 110.3,
+          "y": 0.2,
+          "z": 0.3
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0.3,
+          "y": 0.3,
+          "z": 0.3
+        },
+        "params": {
+          "extents": {
+            "x": 10,
+            "y": 10,
+            "z": 1
+          }
+        }
+      },
+      {
+        "kind": "box",
+        "position": {
+          "x": 30,
+          "y": -50,
+          "z": 90
+        },
+        "rotation": {
+          "x": 110.3,
+          "y": 0.2,
+          "z": 0.3
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0.3,
+          "y": 0.3,
+          "z": 0.3
+        },
+        "params": {
+          "extents": {
+            "x": 10,
+            "y": 10,
+            "z": 1
+          }
+        }
+      },
+
+
+      {
+        "kind": "plane",
+        "position": {
+          "x": 0,
+          "y": -30,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0,
+        "shininess": 15,
+        "color": {
+          "x": 0.8,
+          "y": 0.8,
+          "z": 0.8
+        },
+        "params": {
+          "normal": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+          },
+          "displacement": -3
+        }
+      },
+
+      {
+        "kind": "plane",
+        "position": {
+          "x": 0,
+          "y": -30,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0,
+        "shininess": 15,
+        "color": {
+          "x": 0.8,
+          "y": 0.8,
+          "z": 0.8
+        },
+        "params": {
+          "normal": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+          },
+          "displacement": -3
+        }
+      },
+      {
+        "kind": "plane",
+        "position": {
+          "x": 0,
+          "y": -30,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0,
+        "shininess": 15,
+        "color": {
+          "x": 0.8,
+          "y": 0.8,
+          "z": 0.8
+        },
+        "params": {
+          "normal": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+          },
+          "displacement": -3
+        }
+      },
+      {
+        "kind": "plane",
+        "position": {
+          "x": 0,
+          "y": -30,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0,
+        "shininess": 15,
+        "color": {
+          "x": 0.8,
+          "y": 0.8,
+          "z": 0.8
+        },
+        "params": {
+          "normal": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+          },
+          "displacement": -3
+        }
+      },
+
+      {
+        "kind": "torus",
+        "position": {
+          "x": -3,
+          "y": 100,
+          "z": 20
+        },
+        "rotation": {
+          "x": 70,
+          "y": 20,
+          "z": 300
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0,
+          "y": 0.4,
+          "z": 0.5
+        },
+        "params": {
+          "r1": 8.6,
+          "r2": 2.4
+        }
+      },
+      {
+        "kind": "torus",
+        "position": {
+          "x": -3,
+          "y": 100,
+          "z": 20
+        },
+        "rotation": {
+          "x": 70,
+          "y": 20,
+          "z": 300
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0,
+          "y": 0.4,
+          "z": 0.5
+        },
+        "params": {
+          "r1": 8.6,
+          "r2": 2.4
+        }
+      },
+      {
+        "kind": "torus",
+        "position": {
+          "x": -3,
+          "y": 100,
+          "z": 20
+        },
+        "rotation": {
+          "x": 70,
+          "y": 20,
+          "z": 300
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0,
+          "y": 0.4,
+          "z": 0.5
+        },
+        "params": {
+          "r1": 8.6,
+          "r2": 2.4
+        }
+      },
+      {
+        "kind": "torus",
+        "position": {
+          "x": -3,
+          "y": 100,
+          "z": 20
+        },
+        "rotation": {
+          "x": 70,
+          "y": 20,
+          "z": 300
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0,
+          "y": 0.4,
+          "z": 0.5
+        },
+        "params": {
+          "r1": 8.6,
+          "r2": 2.4
+        }
+      },
+
+
+
+      {
+        "kind": "cone",
+        "position": {
+          "x": -35,
+          "y": 2.0,
+          "z": 47
+        },
+        "rotation": {
+          "x": 330,
+          "y": 20.6,
+          "z": 13
+        },
+        "reflection": 0.3,
+        "shininess": 70,
+        "color": {
+          "x": 0.33,
+          "y": 0.2,
+          "z": 0.1
+        },
+        "params": [
+          4,
+          2.1,
+          1.6
+        ]
+      },
+
+      {
+        "kind": "cone",
+        "position": {
+          "x": -35,
+          "y": 2.0,
+          "z": 47
+        },
+        "rotation": {
+          "x": 330,
+          "y": 20.6,
+          "z": 13
+        },
+        "reflection": 0.3,
+        "shininess": 70,
+        "color": {
+          "x": 0.33,
+          "y": 0.2,
+          "z": 0.1
+        },
+        "params": [
+          4,
+          2.1,
+          1.6
+        ]
+      },{
+        "kind": "cone",
+        "position": {
+          "x": -35,
+          "y": 2.0,
+          "z": 47
+        },
+        "rotation": {
+          "x": 330,
+          "y": 20.6,
+          "z": 13
+        },
+        "reflection": 0.3,
+        "shininess": 70,
+        "color": {
+          "x": 0.33,
+          "y": 0.2,
+          "z": 0.1
+        },
+        "params": [
+          4,
+          2.1,
+          1.6
+        ]
+      },{
+        "kind": "cone",
+        "position": {
+          "x": -35,
+          "y": 2.0,
+          "z": 47
+        },
+        "rotation": {
+          "x": 330,
+          "y": 20.6,
+          "z": 13
+        },
+        "reflection": 0.3,
+        "shininess": 70,
+        "color": {
+          "x": 0.33,
+          "y": 0.2,
+          "z": 0.1
+        },
+        "params": [
+          4,
+          2.1,
+          1.6
+        ]
+      },
+
+
+
+
+
+      {
+        "kind": "octahedron",
+        "position": {
+          "x": 40,
+          "y": -1.0,
+          "z": 27
+        },
+        "rotation": {
+          "x": 0,
+          "y": 10.0,
+          "z": 10.5
+        },
+        "reflection": 0.4,
+        "shininess": 60,
+        "color": {
+          "x": 0.1,
+          "y": 0.4,
+          "z": 0
+        },
+        "params": {
+          "s": 1.3
+        }
+      },
+      {
+        "kind": "octahedron",
+        "position": {
+          "x": 40,
+          "y": -1.0,
+          "z": 27
+        },
+        "rotation": {
+          "x": 0,
+          "y": 10.0,
+          "z": 10.5
+        },
+        "reflection": 0.4,
+        "shininess": 60,
+        "color": {
+          "x": 0.1,
+          "y": 0.4,
+          "z": 0
+        },
+        "params": {
+          "s": 1.3
+        }
+      },
+      {
+        "kind": "octahedron",
+        "position": {
+          "x": 40,
+          "y": -1.0,
+          "z": 27
+        },
+        "rotation": {
+          "x": 0,
+          "y": 10.0,
+          "z": 10.5
+        },
+        "reflection": 0.4,
+        "shininess": 60,
+        "color": {
+          "x": 0.1,
+          "y": 0.4,
+          "z": 0
+        },
+        "params": {
+          "s": 1.3
+        }
+      },
+      {
+        "kind": "octahedron",
+        "position": {
+          "x": 40,
+          "y": -1.0,
+          "z": 27
+        },
+        "rotation": {
+          "x": 0,
+          "y": 10.0,
+          "z": 10.5
+        },
+        "reflection": 0.4,
+        "shininess": 60,
+        "color": {
+          "x": 0.1,
+          "y": 0.4,
+          "z": 0
+        },
+        "params": {
+          "s": 1.3
+        }
+      },
+
+
+
+
+
+
+
+
+
+      {
+        "kind": "box",
+        "position": {
+          "x": 30,
+          "y": -50,
+          "z": 90
+        },
+        "rotation": {
+          "x": 110.3,
+          "y": 0.2,
+          "z": 0.3
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0.3,
+          "y": 0.3,
+          "z": 0.3
+        },
+        "params": {
+          "extents": {
+            "x": 10,
+            "y": 10,
+            "z": 1
+          }
+        }
+      },
+      {
+        "kind": "box",
+        "position": {
+          "x": 30,
+          "y": -50,
+          "z": 90
+        },
+        "rotation": {
+          "x": 110.3,
+          "y": 0.2,
+          "z": 0.3
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0.3,
+          "y": 0.3,
+          "z": 0.3
+        },
+        "params": {
+          "extents": {
+            "x": 10,
+            "y": 10,
+            "z": 1
+          }
+        }
+      },
+      {
+        "kind": "box",
+        "position": {
+          "x": 30,
+          "y": -50,
+          "z": 90
+        },
+        "rotation": {
+          "x": 110.3,
+          "y": 0.2,
+          "z": 0.3
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0.3,
+          "y": 0.3,
+          "z": 0.3
+        },
+        "params": {
+          "extents": {
+            "x": 10,
+            "y": 10,
+            "z": 1
+          }
+        }
+      },
+      {
+        "kind": "box",
+        "position": {
+          "x": 30,
+          "y": -50,
+          "z": 90
+        },
+        "rotation": {
+          "x": 110.3,
+          "y": 0.2,
+          "z": 0.3
+        },
+        "reflection": 0.5,
+        "shininess": 15,
+        "color": {
+          "x": 0.3,
+          "y": 0.3,
+          "z": 0.3
+        },
+        "params": {
+          "extents": {
+            "x": 10,
+            "y": 10,
+            "z": 1
+          }
+        }
+      },
+
+
+      {
+        "kind": "plane",
+        "position": {
+          "x": 0,
+          "y": -30,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0,
+        "shininess": 15,
+        "color": {
+          "x": 0.8,
+          "y": 0.8,
+          "z": 0.8
+        },
+        "params": {
+          "normal": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+          },
+          "displacement": -3
+        }
+      },
+
+      {
+        "kind": "plane",
+        "position": {
+          "x": 0,
+          "y": -30,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0,
+        "shininess": 15,
+        "color": {
+          "x": 0.8,
+          "y": 0.8,
+          "z": 0.8
+        },
+        "params": {
+          "normal": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+          },
+          "displacement": -3
+        }
+      },
+      {
+        "kind": "plane",
+        "position": {
+          "x": 0,
+          "y": -30,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0,
+        "shininess": 15,
+        "color": {
+          "x": 0.8,
+          "y": 0.8,
+          "z": 0.8
+        },
+        "params": {
+          "normal": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+          },
+          "displacement": -3
+        }
+      },
+      {
+        "kind": "plane",
+        "position": {
+          "x": 0,
+          "y": -30,
+          "z": 0
+        },
+        "rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "reflection": 0,
+        "shininess": 15,
+        "color": {
+          "x": 0.8,
+          "y": 0.8,
+          "z": 0.8
+        },
+        "params": {
+          "normal": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+          },
+          "displacement": -3
+        }
+      },
+
+
+
+      {
+        "kind": "sphere",
+        "position": {
+          "x": 50,
+          "y": 7,
+          "z": 60
+        },
+        "rotation": {
+          "x": 10,
+          "y": 50,
+          "z": 60
+        },
+        "reflection": 0.5,
+        "shininess": 80,
+        "color": {
+          "x": 0,
+          "y": 0.5,
+          "z": 0
+        },
+        "params": {
+          "radius": 10
+        }
+      },
+
+      {
+        "kind": "sphere",
+        "position": {
+          "x": 50,
+          "y": 7,
+          "z": 60
+        },
+        "rotation": {
+          "x": 10,
+          "y": 50,
+          "z": 60
+        },
+        "reflection": 0.5,
+        "shininess": 80,
+        "color": {
+          "x": 0,
+          "y": 0.5,
+          "z": 0
+        },
+        "params": {
+          "radius": 10
+        }
+      },
+
+      {
+        "kind": "sphere",
+        "position": {
+          "x": 50,
+          "y": 7,
+          "z": 60
+        },
+        "rotation": {
+          "x": 10,
+          "y": 50,
+          "z": 60
+        },
+        "reflection": 0.5,
+        "shininess": 80,
+        "color": {
+          "x": 0,
+          "y": 0.5,
+          "z": 0
+        },
+        "params": {
+          "radius": 10
+        }
+      },
+
+      {
+        "kind": "sphere",
+        "position": {
+          "x": 50,
+          "y": 7,
+          "z": 60
+        },
+        "rotation": {
+          "x": 10,
+          "y": 50,
+          "z": 60
+        },
+        "reflection": 0.5,
+        "shininess": 80,
+        "color": {
+          "x": 0,
+          "y": 0.5,
+          "z": 0
+        },
+        "params": {
+          "radius": 10
+        }
+      }
+
+
+
+
+
+      
+
+
+      
+
+
+
+
+
+
+
+
+    ]
+  }
