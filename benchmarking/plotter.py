@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 FILENAMES_FLOPCOUNT = {
-    #"base" : "finalBenchmarks/flop-count_scene34_base.csv",
+    "base" : "finalBenchmarks/flop-count_scene34_base.csv",
     "algo" : "finalBenchmarks/flop-count_scene34_alg.csv",
     #"math" : "finalBenchmarks/flop-count_scene31_lto_mathematical.csv", # Andre said I should take this
     "lto" : "finalBenchmarks/flop-count_scene34_lto.csv",
@@ -174,16 +174,16 @@ PERF_MAPPING = [
 ]
 
 ROOFLINE_MAPPING = [
-    #{
-    #    "name": "Baseline",
-    #    "runtime" : "base",
-    #    "flopcount" : "base",
-    #    "nr_bytes" : NR_BYTES_NON_VECTORIZED,
-    #    "peak_perf" : PEAK_PERF_NON_VECTORIZED,
-    #    "b_per_c" : BYTES_PER_CYCLES,
-    #    "point_des" : "^",
-    #    "color" : "black"
-    #},
+    {
+        "name": "Baseline",
+        "runtime" : "base",
+        "flopcount" : "base",
+        "nr_bytes" : NR_BYTES_NON_VECTORIZED,
+        "peak_perf" : PEAK_PERF_NON_VECTORIZED,
+        "b_per_c" : BYTES_PER_CYCLES,
+        "point_des" : "^",
+        "color" : "black"
+    },
     {
         "name": "Algorithmic",
         "runtime" : "algo",
