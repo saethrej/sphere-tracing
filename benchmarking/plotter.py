@@ -2,25 +2,25 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 FILENAMES_FLOPCOUNT = {
-    "base" : "finalBenchmarks/flop-count_scene31_base.csv",
-    "algo" : "finalBenchmarks/flop-count_scene31_algorithmic.csv",
-    "math" : "finalBenchmarks/flop-count_scene31_lto_mathematical.csv", # Andre said I should take this
-    "lto" : "finalBenchmarks/flop-count_scene31_lto_mathematical.csv",
-    "vect" : "finalBenchmarks/flop-count_scene31_vectorized.csv",
-    "vect_16" : "benchmarks_scenechange/flop-count_scene34_vect.csv"
+    #"base" : "finalBenchmarks/flop-count_scene34_base.csv",
+    "algo" : "finalBenchmarks/flop-count_scene34_alg.csv",
+    #"math" : "finalBenchmarks/flop-count_scene31_lto_mathematical.csv", # Andre said I should take this
+    "lto" : "finalBenchmarks/flop-count_scene34_lto.csv",
+    "vect" : "finalBenchmarks/flop-count_scene34_vect.csv",
+    #"vect_16" : "benchmarks_scenechange/flop-count_scene34_vect.csv"
 }
 FILENAMES_RUNTIME = {
-    "base" : "finalBenchmarks/runtimes_scene31_stable_baseline.csv",
-    "algo" : "finalBenchmarks/runtimes_scene31_algorithmic.csv",
-    "math" : "finalBenchmarks/runtimes_scene31_mathematical.csv",
-    "lto" : "finalBenchmarks/runtimes_scene31_lto.csv",
-    "vect" : "finalBenchmarks/runtimes_scene31_vectorized.csv",
-    "omp" : "finalBenchmarks/runtimes_scene31_vectorized_omp.csv",
-    "vect_16" : "benchmarks_scenechange/runtimes_scene34_vect.csv"
+    "base" : "finalBenchmarks/runtimes_scene34_base.csv",
+    "algo" : "finalBenchmarks/runtimes_scene34_alg.csv",
+    #"math" : "finalBenchmarks/runtimes_scene31_mathematical.csv",
+    "lto" : "finalBenchmarks/runtimes_scene34_lto.csv",
+    "vect" : "finalBenchmarks/runtimes_scene34_vect.csv",
+    "omp" : "finalBenchmarks/runtimes_scene34_vect_omp.csv",
+    #"vect_16" : "benchmarks_scenechange/runtimes_scene34_vect.csv"
 }
 
 FILENAMES_SCENES_RUNTIMES_LTO = {
-    "lto_4" : "benchmarks_scenechange/runtimes_scene31_lto.csv",
+    "lto_4" : "benccsvhmarks_scenechange/runtimes_scene31_lto.csv",
     "lto_8" : "benchmarks_scenechange/runtimes_scene32_lto.csv",
     "lto_12" : "benchmarks_scenechange/runtimes_scene33_lto.csv",
     "lto_16" : "benchmarks_scenechange/runtimes_scene34_lto.csv"
@@ -77,15 +77,15 @@ RUNTIME_MAPPING = [
         "color" : "grey",
         "marker" : "D"
     },
-    {
-        "name": "Mathematical",
-        "runtime" : "math",
-        "median" : [],
-        "std" : [],
-        "fmt" : "-D",
-        "color" : "navy",
-        "marker" : "^"
-    },
+    #{
+    #    "name": "Mathematical",
+    #    "runtime" : "math",
+    #    "median" : [],
+    #    "std" : [],
+    #    "fmt" : "-D",
+    #    "color" : "navy",
+    #    "marker" : "^"
+    #},
     {
         "name": "Link-time-optimized",
         "runtime" : "lto",
@@ -127,17 +127,17 @@ PERF_MAPPING = [
         "fmt" : "-D",
         "color" : "grey"
     },
-    {
-        "name": "Mathematical",
-        "runtime" : "math",
-        "flopcount" : "math",
-        "x_coord" : 1700000,
-        "y_coord": 1.3,
-        "median" : [],
-        "std" : [],
-        "fmt" : "-D",
-        "color" : "navy"
-    },
+    #{
+    #    "name": "Mathematical",
+    #    "runtime" : "math",
+    #    "flopcount" : "math",
+    #    "x_coord" : 1700000,
+    #    "y_coord": 1.3,
+    #    "median" : [],
+    #    "std" : [],
+    #    "fmt" : "-D",
+    #    "color" : "navy"
+    #},
     {
         "name": "Link-time-optimized",
         "runtime" : "lto",
@@ -174,16 +174,16 @@ PERF_MAPPING = [
 ]
 
 ROOFLINE_MAPPING = [
-    {
-        "name": "Baseline",
-        "runtime" : "base",
-        "flopcount" : "base",
-        "nr_bytes" : NR_BYTES_NON_VECTORIZED,
-        "peak_perf" : PEAK_PERF_NON_VECTORIZED,
-        "b_per_c" : BYTES_PER_CYCLES,
-        "point_des" : "^",
-        "color" : "black"
-    },
+    #{
+    #    "name": "Baseline",
+    #    "runtime" : "base",
+    #    "flopcount" : "base",
+    #    "nr_bytes" : NR_BYTES_NON_VECTORIZED,
+    #    "peak_perf" : PEAK_PERF_NON_VECTORIZED,
+    #    "b_per_c" : BYTES_PER_CYCLES,
+    #    "point_des" : "^",
+    #    "color" : "black"
+    #},
     {
         "name": "Algorithmic",
         "runtime" : "algo",
@@ -194,16 +194,16 @@ ROOFLINE_MAPPING = [
         "point_des" : "P",
         "color" : "grey"
     },
-    {
-        "name": "Mathematical",
-        "runtime" : "math",
-        "flopcount" : "math",
-        "nr_bytes" : NR_BYTES_NON_VECTORIZED,
-        "peak_perf" : PEAK_PERF_NON_VECTORIZED,
-        "b_per_c" : BYTES_PER_CYCLES,
-        "point_des" : "X",
-        "color" : "navy"
-    },
+    #{
+    #    "name": "Mathematical",
+    #    "runtime" : "math",
+    #    "flopcount" : "math",
+    #    "nr_bytes" : NR_BYTES_NON_VECTORIZED,
+    #    "peak_perf" : PEAK_PERF_NON_VECTORIZED,
+    #    "b_per_c" : BYTES_PER_CYCLES,
+    #    "point_des" : "X",
+    #    "color" : "navy"
+    #},
     {
         "name": "Link-time-optimized",
         "runtime" : "lto",
@@ -234,16 +234,16 @@ ROOFLINE_MAPPING = [
         "point_des" : "X",
         "color" : "brown"
     },
-    {
-        "name": "Vectorized - Larger scene",
-        "runtime" : "vect_16",
-        "flopcount" : "vect_16",
-        "nr_bytes" : NR_BYTES_NON_VECTORIZED,
-        "peak_perf" : PEAK_PERF_NON_VECTORIZED,
-        "b_per_c" : BYTES_PER_CYCLES,
-        "point_des" : "s",
-        "color" : "darkgreen"
-    },
+    #{
+    #    "name": "Vectorized - Larger scene",
+    #    "runtime" : "vect_16",
+    #    "flopcount" : "vect_16",
+    #    "nr_bytes" : NR_BYTES_NON_VECTORIZED,
+    #    "peak_perf" : PEAK_PERF_NON_VECTORIZED,
+    #    "b_per_c" : BYTES_PER_CYCLES,
+    #    "point_des" : "s",
+    #    "color" : "darkgreen"
+    #},
 ]
 
 
@@ -342,7 +342,7 @@ def runtime():
 
     # limit the axes and set the y-axis ticks
     plt.xlim([150, 2050])
-    plt.ylim([0.006, 1200])
+    plt.ylim([0.006, 3000])
     plt.yticks(ticks=[0.01, 0.1, 1, 10, 100, 1000], labels=["0.01", "0.1", "1", "10", "100", "1000"])
     plt.xticks(ticks=input_sizes, labels=[200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000])
 
@@ -559,7 +559,7 @@ def differentScenes():
     plt.show()
 
 if __name__ == "__main__":
-    #runtime()
-    #roofline()
-    #perf_vs_input()
-    differentScenes()
+    runtime()
+    roofline()
+    perf_vs_input()
+    #differentScenes()
