@@ -469,7 +469,7 @@ sphere::Color& sphere::Color::operator+=(const Color &other)
  */
 sphere::Color sphere::Color::operator*(const ftype &other)
 {
-    COUNT_OPS(3)
+    COUNT_OPS(3);
     return Color(
         std::clamp(this->r * other, 0.0, 1.0),
         std::clamp(this->g * other, 0.0, 1.0),
