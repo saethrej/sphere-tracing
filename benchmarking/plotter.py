@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from curlyBrace import curlyBrace
 
 FILENAMES_FLOPCOUNT = {
     "base" : "finalBenchmarks/flop-count_scene34_base.csv",
@@ -20,33 +21,44 @@ FILENAMES_RUNTIME = {
 }
 
 FILENAMES_SCENES_RUNTIMES_LTO = {
-    "lto_4" : "benccsvhmarks_scenechange/runtimes_scene31_lto.csv",
-    "lto_8" : "benchmarks_scenechange/runtimes_scene32_lto.csv",
-    "lto_12" : "benchmarks_scenechange/runtimes_scene33_lto.csv",
-    "lto_16" : "benchmarks_scenechange/runtimes_scene34_lto.csv"
+    "lto_4" : "finalBenchmarks/size_comp/runtimes_scene31_lto.csv",
+    "lto_8" : "finalBenchmarks/size_comp/runtimes_scene32_lto.csv",
+    #"lto_12" : "finalBenchmarks/size_comp/runtimes_scene33_lto.csv",
+    "lto_16" : "finalBenchmarks/size_comp/runtimes_scene34_lto.csv",
+    #"lto_20" : "finalBenchmarks/size_comp/runtimes_scene35_lto.csv",
+    "lto_32" : "finalBenchmarks/size_comp/runtimes_scene36_lto.csv",
+    "lto_64" : "finalBenchmarks/size_comp/runtimes_scene37_lto.csv"
 }
 
 FILENAMES_SCENES_RUNTIMES_VECT = {
      
-    "vect_4" : "benchmarks_scenechange/runtimes_scene31_vect.csv",
-    "vect_8" : "benchmarks_scenechange/runtimes_scene32_vect.csv",
-    "vect_12" : "benchmarks_scenechange/runtimes_scene33_vect.csv",
-    "vect_16" : "benchmarks_scenechange/runtimes_scene34_vect.csv",
-
+    "vect_4" : "finalBenchmarks/size_comp/runtimes_scene31_vect.csv",
+    "vect_8" : "finalBenchmarks/size_comp/runtimes_scene32_vect.csv",
+    #"vect_12" : "finalBenchmarks/size_comp/runtimes_scene33_vect.csv",
+    "vect_16" : "finalBenchmarks/size_comp/runtimes_scene34_vect.csv",
+    #"vect_20" : "finalBenchmarks/size_comp/runtimes_scene35_vect.csv",
+    "vect_32" : "finalBenchmarks/size_comp/runtimes_scene36_vect.csv",
+    "vect_64" : "finalBenchmarks/size_comp/runtimes_scene37_vect.csv",
 }
 
 FILENAMES_SCENES_FLOPS_LTO = {
-    "lto_4" : "benchmarks_scenechange/flop-count_scene31_lto.csv",
-    "lto_8" : "benchmarks_scenechange/flop-count_scene32_lto.csv",
-    "lto_12" : "benchmarks_scenechange/flop-count_scene33_lto.csv",
-    "lto_16" : "benchmarks_scenechange/flop-count_scene34_lto.csv"
+    "lto_4" : "finalBenchmarks/size_comp/flop-count_scene31_lto.csv",
+    "lto_8" : "finalBenchmarks/size_comp/flop-count_scene32_lto.csv",
+    #"lto_12" : "finalBenchmarks/size_comp/flop-count_scene33_lto.csv",
+    "lto_16" : "finalBenchmarks/size_comp/flop-count_scene34_lto.csv",
+    #"lto_20" : "finalBenchmarks/size_comp/flop-count_scene35_lto.csv",
+    "lto_32" : "finalBenchmarks/size_comp/flop-count_scene36_lto.csv",
+    "lto_64" : "finalBenchmarks/size_comp/flop-count_scene37_lto.csv"
 }
 
 FILENAMES_SCENES_FLOPS_VECT = {
-    "vect_4" : "benchmarks_scenechange/flop-count_scene31_vect.csv",
-    "vect_8" : "benchmarks_scenechange/flop-count_scene32_vect.csv",
-    "vect_12" : "benchmarks_scenechange/flop-count_scene33_vect.csv",
-    "vect_16" : "benchmarks_scenechange/flop-count_scene34_vect.csv",
+    "vect_4" : "finalBenchmarks/size_comp/flop-count_scene31_vect.csv",
+    "vect_8" : "finalBenchmarks/size_comp/flop-count_scene32_vect.csv",
+    #"vect_12" : "finalBenchmarks/size_comp/flop-count_scene33_vect.csv",
+    "vect_16" : "finalBenchmarks/size_comp/flop-count_scene34_vect.csv",
+    #"vect_20" : "finalBenchmarks/size_comp/flop-count_scene35_vect.csv",
+    "vect_32" : "finalBenchmarks/size_comp/flop-count_scene36_vect.csv",
+    "vect_64" : "finalBenchmarks/size_comp/flop-count_scene37_vect.csv",
 }
 
 
@@ -56,7 +68,7 @@ NR_BYTES_NON_VECTORIZED = 30.5 * 2000000
 PEAK_PERF_VECTORIZED = 16
 PEAK_PERF_NON_VECTORIZED = 4
 #TODO: check this value
-BYTES_PER_CYCLES = 24
+BYTES_PER_CYCLES = 17.61538
 
 RUNTIME_MAPPING = [
     {
@@ -74,8 +86,8 @@ RUNTIME_MAPPING = [
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "grey",
-        "marker" : "D"
+        "color" : "navy",
+        "marker" : "^"
     },
     #{
     #    "name": "Mathematical",
@@ -125,7 +137,8 @@ PERF_MAPPING = [
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "grey"
+        "color" : "navy",
+        "marker" : "^"
     },
     #{
     #    "name": "Mathematical",
@@ -147,7 +160,8 @@ PERF_MAPPING = [
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "olive"
+        "color" : "olive",
+        "marker" : "P"
     },
     {
         "name": "Vectorized",
@@ -158,7 +172,8 @@ PERF_MAPPING = [
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "darkgreen"
+        "color" : "darkgreen",
+        "marker" : "o"
     },
     {
         "name": "Parallelized",
@@ -169,7 +184,8 @@ PERF_MAPPING = [
         "median" : [],
         "std" : [],
         "fmt" : "-D",
-        "color" : "brown"
+        "color" : "brown",
+        "marker" : "s"
     },
 ]
 
@@ -181,7 +197,7 @@ ROOFLINE_MAPPING = [
         "nr_bytes" : NR_BYTES_NON_VECTORIZED,
         "peak_perf" : PEAK_PERF_NON_VECTORIZED,
         "b_per_c" : BYTES_PER_CYCLES,
-        "point_des" : "^",
+        "point_des" : "X",
         "color" : "black"
     },
     {
@@ -191,8 +207,8 @@ ROOFLINE_MAPPING = [
         "nr_bytes" : NR_BYTES_NON_VECTORIZED,
         "peak_perf" : PEAK_PERF_NON_VECTORIZED,
         "b_per_c" : BYTES_PER_CYCLES,
-        "point_des" : "P",
-        "color" : "grey"
+        "point_des" : "^",
+        "color" : "navy"
     },
     #{
     #    "name": "Mathematical",
@@ -211,7 +227,7 @@ ROOFLINE_MAPPING = [
         "nr_bytes" : NR_BYTES_NON_VECTORIZED,
         "peak_perf" : PEAK_PERF_NON_VECTORIZED,
         "b_per_c" : BYTES_PER_CYCLES,
-        "point_des" : "D",
+        "point_des" : "P",
         "color" : "olive"
     },
     {
@@ -221,7 +237,7 @@ ROOFLINE_MAPPING = [
         "nr_bytes" : NR_BYTES_NON_VECTORIZED,
         "peak_perf" : PEAK_PERF_NON_VECTORIZED,
         "b_per_c" : BYTES_PER_CYCLES,
-        "point_des" : "^",
+        "point_des" : "o",
         "color" : "darkgreen"
     },
     {
@@ -231,7 +247,7 @@ ROOFLINE_MAPPING = [
         "nr_bytes" : NR_BYTES_NON_VECTORIZED,
         "peak_perf" : PEAK_PERF_NON_VECTORIZED,
         "b_per_c" : BYTES_PER_CYCLES,
-        "point_des" : "X",
+        "point_des" : "s",
         "color" : "brown"
     },
     #{
@@ -251,14 +267,14 @@ SCENES_MAPPING = [
     {
         "name" : "Vectorized",
         "peak_perf" : PEAK_PERF_VECTORIZED,
-        "color" : "maroon"
-
+        "color" : "darkgreen",
+        "marker" : "o"
     },
     {
         "name" : "Link-time optimized",
         "peak_perf" : PEAK_PERF_NON_VECTORIZED,
-        "color" : "navy"
-
+        "color" : "olive",
+        "marker" : "P"
     }
 ]
 
@@ -341,15 +357,16 @@ def runtime():
     ax.set_yscale('log', basey=10) # only use logarithmic scale for y
 
     # limit the axes and set the y-axis ticks
-    plt.xlim([150, 2050])
+    plt.xlim([150, 2250])
     plt.ylim([0.006, 3000])
-    plt.yticks(ticks=[0.01, 0.1, 1, 10, 100, 1000], labels=["0.01", "0.1", "1", "10", "100", "1000"])
-    plt.xticks(ticks=input_sizes, labels=[200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000])
+    plt.yticks(ticks=[0.01, 0.1, 1, 10, 100, 1000], labels=["0.01", "0.1", "1", "10", "100", "1000"], fontsize=18)
+    plt.xticks(ticks=input_sizes, labels=[200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000], fontsize=18)
 
     # title, x,y-axis labels and grid
-    plt.xlabel("Image Width [Pixels]", fontsize=14)
-    plt.ylabel("Execution Time [s]", fontsize=14, loc='top', rotation=0, labelpad=-143)
-    plt.grid(b=None, which='major', axis='x', color='w')
+    plt.xlabel("Image Width [Pixels]", fontsize=20)
+    plt.ylabel("Execution Time [s]", fontsize=20, loc='top', rotation=0, labelpad=-210)
+    plt.grid(b=None, which='major', axis='y', color='w')
+    plt.grid(b=False, axis='x')
     plt.title(
         "Execution Times on Different Image Sizes \nIntel Core i7-10750H @ 2.6 GHz, Memory @ 45.8 GB/s",
         {
@@ -357,11 +374,13 @@ def runtime():
             'horizontalalignment': 'left'
         }, 
         loc = 'left',
-        pad = 30,
-        fontsize = 15,
+        pad = 40,
+        fontsize = 20,
         fontweight = 'bold'
     )
     plt.tight_layout()
+    perf = [] 
+    naming = []
 
     # plot the actual data
     for mapping in RUNTIME_MAPPING:
@@ -376,6 +395,8 @@ def runtime():
             std.append(np.std(this_data))
         mapping['median'] = median
         mapping['std'] = std
+        perf.append(median[-1])
+        naming.append(mapping['name'])
 
         # plot the data without mapping names
         plt.plot(
@@ -386,7 +407,37 @@ def runtime():
             #label=mapping['name']
         )
 
-    plt.savefig('runtime-plot.pdf', format='pdf')
+    rot=2
+
+    plt.text(650, 290, "Baseline", fontfamily="sans-serif", fontweight="bold", fontsize="15", rotation=rot)
+    plt.text(1000, 120, "Algorithmic", fontfamily="sans-serif", fontweight="bold", fontsize="15", rotation=rot)
+    plt.text(650, 12, "Mathematical", fontfamily="sans-serif", fontweight="bold", fontsize="15", rotation=rot*1.5)
+    plt.text(1000, 2.9, "Vectorized", fontfamily="sans-serif", fontweight="bold", fontsize="15", rotation=rot)
+    plt.text(650, 0.18, "Multi-Threaded", fontfamily="sans-serif", fontweight="bold", fontsize="15", rotation=rot)
+    plt.plot([860, 985], [410, 425], linestyle="dotted", color="black")
+    plt.plot([1275, 1385], [165, 133], linestyle="dotted", color="black")
+    plt.plot([960, 1185], [18, 22], linestyle="dotted", color="black")
+    plt.plot([990, 815], [3.7, 3.8], linestyle="dotted", color="black")
+    plt.plot([640, 415], [0.22, 0.188], linestyle="dotted", color="black")
+
+    fontdic = {
+        'rotation' : 1,
+        'color' : 'maroon'
+    }
+
+    curlyBrace(fig, ax, [2020, 1530], [2020,4.6], str_text="", color='maroon', fontdict=fontdic)
+    plt.text(2110, 66, "327x", color='maroon', fontsize=15)
+
+    print("Runtime in s")
+    for i in range(len(perf)):
+        if i == 0:
+            print(f"Runtime {naming[i]:15.15}: {perf[i]:6.5}")
+        else:
+            print(f"Runtime {naming[i]:15.15}:  {perf[i]:6.5}\n\
+    Speedup to version before: {perf[i-1]/perf[i]:6.5}\n\
+    Speedup to baseline:       {perf[0]/perf[i]:6.5}")
+
+    plt.savefig('runtime-plot.eps', format='eps')
     plt.show()
 
 
@@ -410,17 +461,20 @@ def roofline():
     plt.ylim([0.125, 170])
     plt.xticks(
         ticks=[1/64, 1/16, 1/4, 1, 4, 16, 64, 256, 1024, 4096, 16384, 65536],
-        labels=[r'$\dfrac{1}{64}$', r'$\dfrac{1}{16}$', r'$\dfrac{1}{4}$', r"$1$", "4", "16", "64", "256", "1,024", "4,096", "16,384", "65,536"]
+        labels=[r'$\dfrac{1}{64}$', r'$\dfrac{1}{16}$', r'$\dfrac{1}{4}$', r"$1$", "4", "16", "64", "256", "1,024", "4,096", "16,384", "65,536"],
+        fontsize=18
     )
     plt.yticks(
         ticks=[1/4, 1, 4, 16, 64],
-        labels=[r'$\dfrac{1}{4}$', "1", "4", "16", "64"]
+        labels=[r'$\dfrac{1}{4}$', "1", "4", "16", "64"],
+        fontsize=18
     )
 
     # title, x,y-axis labels and grid
-    plt.xlabel("Operational Intensity [Flops/Byte]", fontsize=14)
-    plt.ylabel("Performance [Flops/Cycle]", fontsize=14, loc='top', rotation=0, labelpad=-186)
-    plt.grid(b=None, which='major', axis='x', color='w')
+    plt.xlabel("Operational Intensity [Flops/Byte]", fontsize=20)
+    plt.ylabel("Performance [Flops/Cycle]", fontsize=20, loc='top', rotation=0, labelpad=-262)
+    plt.grid(b=None, which='major', axis='y', color='w')
+    plt.grid(b=False, axis='x')
     #plt.grid(b=None, which='major', axis='y', color='w')
     plt.title(
         "Roofline Plot considering only Compulsory Misses \nIntel Core i7-10750H @ 2.6 GHz, Memory @ 45.8 GB/s",
@@ -429,8 +483,8 @@ def roofline():
             'horizontalalignment': 'left'
         }, 
         loc = 'left',
-        pad = 30,
-        fontsize = 15,
+        pad = 40,
+        fontsize = 20,
         fontweight = 'bold'
     )
     plt.tight_layout()
@@ -438,6 +492,14 @@ def roofline():
     plt.plot(x_simd, y_simd, '--', linewidth=1.5, color='maroon')
     plt.plot(x_seq, y_seq, '-', linewidth=1.5, color='maroon')
     plt.plot(x_par, y_par, ':', linewidth=1.5, color='maroon')
+
+    plt.text(6, 105, "Multi-Core Roofline", fontfamily="sans-serif", color="maroon", fontsize="15", fontstyle="italic")
+    plt.text(6, 18, "Vector Roofline", fontfamily="sans-serif", color="maroon", fontsize="15", fontstyle="italic")
+    plt.text(6, 4.5, "Scalar Roofline", fontfamily="sans-serif", color="maroon", fontsize="15", fontstyle="italic")
+
+    perf_arr = [] 
+    naming = []
+    intens_arr = []
 
     # plot actual data
     for mapping in ROOFLINE_MAPPING:
@@ -448,10 +510,42 @@ def roofline():
             this_data.append((flopcount) / (elem * 2.6 * 1e6))
         perf = np.median(this_data)
         intensity = flopcount / mapping['nr_bytes']
+        perf_arr.append(perf)
+        intens_arr.append(intensity)
+        naming.append(mapping['name'])
         plt.plot(intensity, perf,
                 mapping['point_des'], color=mapping['color'], label=mapping['name'])
 
-    plt.savefig('roofline.pdf', format='pdf')
+    plt.text(3000, 0.2, "Baseline", fontfamily="sans-serif", fontweight="bold", fontsize="16")
+    plt.text(300, 0.55, "Algorithmic", fontfamily="sans-serif", fontweight="bold", fontsize="16")
+    plt.text(200, 2, "Mathematical", fontfamily="sans-serif", fontweight="bold", fontsize="16")
+    plt.text(400, 7, "Vectorized", fontfamily="sans-serif", fontweight="bold", fontsize="16")
+    plt.text(150, 33, "Multi-Threaded", fontfamily="sans-serif", fontweight="bold", fontsize="16")
+    plt.plot([14000, 29000], [0.27, 0.46], linestyle="dotted", color="black")
+    plt.plot([2650, 5500], [0.63, 0.61], linestyle="dotted", color="black")
+    plt.plot([2300, 4800], [2.3, 2.35], linestyle="dotted", color="black")
+    plt.plot([2900, 5500], [7.6, 5.8], linestyle="dotted", color="black")
+    plt.plot([2400, 5200], [37, 32], linestyle="dotted", color="black")
+
+    print("Performance in Flops/Cycle")
+    for i in range(len(perf_arr)):
+        if i == 0:
+            print(f"Perf {naming[i]:15.15}: {perf_arr[i]:6.5}")
+        else:
+            print(f"Perf {naming[i]:15.15}:  {perf_arr[i]:6.5}\n\
+    Diff to version before: {perf_arr[i]/perf_arr[i-1]:6.5}\n\
+    Diff to baseline:       {perf_arr[i]/perf_arr[0]:6.5}")
+
+    print("Operational Intensity in Flops/Byte")
+    for i in range(len(perf_arr)):
+        if i == 0:
+            print(f"Intens {naming[i]:15.15}: {intens_arr[i]:6.6}")
+        else:
+            print(f"Intens {naming[i]:15.15}:  {intens_arr[i]:6.5}\n\
+    Diff to version before: {intens_arr[i]/intens_arr[i-1]:6.5}\n\
+    Diff to baseline:       {intens_arr[i]/intens_arr[0]:6.5}")
+
+    plt.savefig('roofline.eps', format='eps')
     plt.show()
 
 
@@ -468,14 +562,15 @@ def perf_vs_input():
 
     # limit the axes and set the axis ticks 
     plt.xlim([150, 2050])
-    plt.ylim([0.7, 43])
-    plt.yticks(ticks=[1,2,4,8,16,32], labels=["1", "2", "4", "8", "16", "32"])
-    plt.xticks(ticks=input_sizes, labels=[200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000])
+    plt.ylim([0.7, 130])# 43])
+    plt.yticks(ticks=[1,2,4,8,16,32,64, 128], labels=["1", "2", "4", "8", "16", "32", "64", "128"], fontsize=18)
+    plt.xticks(ticks=input_sizes, labels=[200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000], fontsize=18)
 
     # title, x,y-axis labels and grid
-    plt.xlabel("Image Width [Pixels]", fontsize=14)
-    plt.ylabel("Performance [GFlop/s]", fontsize=14, loc='top', rotation=0, labelpad=-160)
-    plt.grid(b=None, which='major', axis='x', color='w')
+    plt.xlabel("Image Width [Pixels]", fontsize=20)
+    plt.ylabel("Performance [GFlop/s]", fontsize=20, loc='top', rotation=0, labelpad=-238)
+    plt.grid(b=None, which='major', axis='y', color='w')
+    plt.grid(b=False, axis='x')
     plt.title(
         "Performance on Different Image Sizes \nIntel Core i7-10750H @ 2.6 GHz, Memory @ 45.8 GB/s",
         {
@@ -483,14 +578,17 @@ def perf_vs_input():
             'horizontalalignment': 'left'
         }, 
         loc = 'left',
-        pad = 30,
-        fontsize = 15,
+        pad = 40,
+        fontsize = 20,
         fontweight = 'bold'
     )
-    plt.tight_layout()    
+    plt.tight_layout()  
+    perf = [] 
+    naming = [] 
 
     # plot the actual data
     for mapping in PERF_MAPPING:
+        print(mapping['name'])
         runtime = runtimes[mapping['runtime']]
         flopcount = flop_counts[mapping['flopcount']]
         median = []
@@ -501,13 +599,34 @@ def perf_vs_input():
                 this_data.append((flopcount[i] / 1e9) / (elem / 1e3))
             median.append(np.median(this_data))
             std.append(np.std(this_data))
+        
         mapping['median'] = median
+        perf.append(median[-1])
+        naming.append(mapping['name'])
         mapping['std'] = std
         plt.errorbar(x=input_sizes, y=mapping['median'], 
-                yerr=mapping['std'], fmt=mapping['fmt'], 
+                yerr=mapping['std'], marker=mapping['marker'], 
                 color=mapping['color'], capsize=100,)
 
-    plt.savefig('perf_vs_input.pdf', format='pdf')
+    plt.text(1300, 1.9, "Algorithmic", fontfamily="sans-serif", fontweight="bold", fontsize="16")
+    plt.text(1300, 7.5, "Mathematical", fontfamily="sans-serif", fontweight="bold", fontsize="16")
+    plt.text(1300, 17.5, "Vectorized", fontfamily="sans-serif", fontweight="bold", fontsize="16")
+    plt.text(1300, 97, "Multi-Threaded", fontfamily="sans-serif", fontweight="bold", fontsize="16") 
+    plt.plot([1210, 1295], [1.7, 2.1], linestyle="dotted", color="black")
+    plt.plot([1210, 1295], [6.6, 8.2], linestyle="dotted", color="black")
+    plt.plot([1210, 1295], [15.5, 19.4], linestyle="dotted", color="black")
+    plt.plot([1210, 1295], [88, 105], linestyle="dotted", color="black")
+    
+    print("Performance in GFlops/s")
+    for i in range(len(perf)):
+        if i == 0:
+            print(f"Perf {naming[i]:15.15}: {perf[i]:6.5}")
+        else:
+            print(f"Perf {naming[i]:15.15}:  {perf[i]:6.5}\n\
+    Perf inc to version before: {perf[i]/perf[i-1]:6.5}\n\
+    Perf inc to algorithmic:    {perf[i]/perf[0]:6.5}")
+
+    plt.savefig('perf_vs_input.eps', format='eps')
     plt.show()
 
 
@@ -526,18 +645,21 @@ def differentScenes():
     plt.style.use('seaborn')
     fig, ax = plt.subplots(1,1)
     fig.set_size_inches(10,6)
+    ax.set_xscale('log', basex=2)
 
     # limit the axes and set the axis ticks
-    plt.xlim([3.5, 16.5])
-    plt.ylim([6, 31.5])
-    x_axis = [4,8,12,16]
-    plt.xticks(x_axis)
+    plt.xlim([3.8, 67])
+    plt.ylim([9, 46])
+    x_axis = [4,8,16,32,64]
+    plt.xticks(x_axis, fontsize=18, labels=["4", "8", "16", "32", "64"])
+    plt.yticks(fontsize=18)
+    x_axis = [4,8,16,32,64]
 
     # title, x,y-axis labels and grid
-    plt.xlabel("Number of Objects per Shape Type in Scene [-]", fontsize=14)
-    plt.ylabel("Fraction of Single Core Peak Performance [%]", fontsize=14, loc='top', rotation=0, labelpad=-308)
-    plt.grid(b=None, which='major', axis='x', color='w')
-    #plt.grid(b=None, which='major', axis='y', color='w')
+    plt.xlabel("Number of Objects per Shape Type in Scene [-]", fontsize=20)
+    plt.ylabel("Fraction of Single Core Peak Performance [%]", fontsize=20, loc='top', rotation=0, labelpad=-437)
+    plt.grid(b=None, which='major', axis='y', color='w')
+    plt.grid(b=False, axis='x')
     plt.title(
         "Performance on Scenes of Different Sizes \nIntel Core i7-10750H @ 2.6 GHz, Memory @ 45.8 GB/s",
         {
@@ -545,21 +667,27 @@ def differentScenes():
             'horizontalalignment': 'left'
         }, 
         loc = 'left',
-        pad = 30,
-        fontsize = 15,
+        pad = 40,
+        fontsize = 20,
         fontweight = 'bold'
     )
     plt.tight_layout()
+    print(data_points_lto)
+    print(data_points_vect)
 
     # plot the actual data
-    plt.plot(x_axis, data_points_lto, marker='D', color='olive')
-    plt.plot(x_axis, data_points_vect, marker='D', color='darkgreen')
+    plt.plot(x_axis, data_points_lto, marker="P", color="olive")
+    plt.plot(x_axis, data_points_vect, marker="o", color="darkgreen")
+    plt.text(8, 34, "Vectorized", fontfamily="sans-serif", fontweight="bold", fontsize="16")
+    plt.text(8, 17.5, "Mathematical", fontfamily="sans-serif", fontweight="bold", fontsize="16")
+    plt.plot([11.5, 15.6], [34.7, 34.5], linestyle="dotted", color="black")
+    plt.plot([12.5, 15.6], [18, 15.2], linestyle="dotted", color="black")
 
-    plt.savefig("diffScenes.pdf", format='pdf')
+    plt.savefig("diffScenes.eps", format='eps')
     plt.show()
 
 if __name__ == "__main__":
     runtime()
     roofline()
     perf_vs_input()
-    #differentScenes()
+    differentScenes()
