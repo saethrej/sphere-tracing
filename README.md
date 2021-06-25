@@ -3,12 +3,12 @@ This is the project repository for the Sphere Tracing project (team 23) in the A
 
 ## Finding your way
 Please note that the different versions are spread across different branches. The branches mentioned in the report are called:
-'''
+```
 stable/baseline
 stable/algorithmic
 stable/compiler-help # this is referred to as mathematical in the report
 stable/vectorization # Compile with openMP for the multithreaded version
-'''
+```
 
 ## Prerequisites
 - CMake version 3.15 or newer.
