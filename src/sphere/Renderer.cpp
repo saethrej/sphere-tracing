@@ -246,7 +246,7 @@ void sphere::Renderer::renderPixels()
     getMinDistances(minDistance, min2Distance, closestShape, ray_origin);
 
     // render each pixel individually, with OpenMP threads
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(dynamic)
     for (itype i = 0; i < this->image->height; ++i) {
         for (itype j = 0; j < this->image->width; ++j) {
             Vector ray_direction(
