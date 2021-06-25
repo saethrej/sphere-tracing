@@ -10,6 +10,8 @@ stable/compiler-help # this is referred to as mathematical in the report
 stable/vectorization # Compile with openMP for the multithreaded version
 ```
 
+If you want to benchmark larger scenes (more than 16 objects per shape type) in the vectorized version, you need to change the `MAX_OBJECTS` variable in `Sphere_Shapes.h`
+
 ## Prerequisites
 - CMake version 3.15 or newer.
 - A Linux distribution.
